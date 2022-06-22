@@ -40,7 +40,7 @@ class DatabaseTest {
     }
 
     @Test
-    fun testSession() {
+    fun testSession() = runBlocking {
         val session = Session("TestSession1", "test1/", OffsetDateTime.now(), 50.0, 50.0)
         session.sessionID = db.sessionDAO().insert(session)
 

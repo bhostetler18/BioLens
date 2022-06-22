@@ -6,10 +6,10 @@ import androidx.room.*
 interface ImageDAO {
 
     @Insert
-    fun insert(image: Image): Long
+    suspend fun insert(image: Image): Long
 
     @Delete
-    fun delete(image: Image)
+    suspend fun delete(image: Image)
 
     @Query("SELECT * FROM images")
     fun getAllImages(): List<Image>
@@ -19,10 +19,10 @@ interface ImageDAO {
 interface SessionDAO {
 
     @Insert
-    fun insert(session: Session): Long
+    suspend fun insert(session: Session): Long
 
     @Delete
-    fun delete(session: Session)
+    suspend fun delete(session: Session)
 
     // See https://medium.com/androiddevelopers/room-time-2b4cf9672b98
     @Transaction
