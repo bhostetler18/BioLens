@@ -1,12 +1,11 @@
 package com.uf.automoth
 
 import android.content.Context
+import android.database.sqlite.SQLiteConstraintException
 import android.util.Log
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.services.storage.internal.TestStorageUtil
 import com.uf.automoth.data.Image
 import com.uf.automoth.data.ImageDatabase
 import com.uf.automoth.data.Session
@@ -21,6 +20,7 @@ import org.junit.Assert.*
 import org.junit.Before
 import java.io.IOException
 import java.time.OffsetDateTime
+import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
 class DatabaseTest {
@@ -53,6 +53,13 @@ class DatabaseTest {
         // Foreign key structure should result in all images contained in the session being deleted
         // when their parent session is removed
         db.sessionDAO().delete(session)
+        images = db.imageDAO().getAllImages()
+        assert(images.isEmpty())
+
+        // Foreign key structure should also prevent insertion into a nonexistent session
+        assertFailsWith<SQLiteConstraintException> {
+            db.imageDAO().insert(image)
+        }
         images = db.imageDAO().getAllImages()
         assert(images.isEmpty())
     }
