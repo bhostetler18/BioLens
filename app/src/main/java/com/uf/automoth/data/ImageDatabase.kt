@@ -10,4 +10,6 @@ abstract class ImageDatabase : RoomDatabase() {
 
     abstract fun imageDAO(): ImageDAO
     abstract fun sessionDAO(): SessionDAO
+
+
 }

@@ -1,6 +1,7 @@
 package com.uf.automoth.data
 
 import androidx.room.*
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ImageDAO {
@@ -27,10 +28,10 @@ interface SessionDAO {
     // See https://medium.com/androiddevelopers/room-time-2b4cf9672b98
     @Transaction
     @Query("SELECT * FROM sessions ORDER BY datetime(started)")
-    fun getAllSessions(): List<SessionWithImages>
+    fun getAllSessions(): Flow<List<Session>>
 
     @Transaction
-    @Query("SELECT * FROM sessions")
+    @Query("SELECT * FROM sessions ORDER BY datetime(started)")
     fun getSessionsWithImages(): List<SessionWithImages>
 
     @Transaction

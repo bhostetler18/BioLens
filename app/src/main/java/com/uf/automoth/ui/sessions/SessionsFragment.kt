@@ -1,0 +1,58 @@
+package com.uf.automoth.ui.sessions
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.uf.automoth.data.AutoMothRepository
+import com.uf.automoth.data.Session
+import com.uf.automoth.databinding.FragmentSessionsBinding
+import kotlinx.coroutines.launch
+import java.time.OffsetDateTime
+
+class SessionsFragment : Fragment() {
+
+    private var _binding: FragmentSessionsBinding? = null
+
+    // This property is only valid between onCreateView and
+    // onDestroyView.
+    private val binding get() = _binding!!
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        val sessionsViewModel: SessionsViewModel by viewModels {
+            SessionsViewModelFactory(AutoMothRepository)
+        }
+
+        _binding = FragmentSessionsBinding.inflate(inflater, container, false)
+
+        val recyclerView = binding.recyclerview
+        val adapter = SessionListAdapter()
+        recyclerView.adapter = adapter
+        recyclerView.layoutManager = LinearLayoutManager(activity)
+
+        sessionsViewModel.allSessions.observe(viewLifecycleOwner, Observer { sessions ->
+            sessions?.let { adapter.submitList(it) }
+        })
+
+        // TODO: remove, just for testing purposes
+        lifecycleScope.launch {
+            AutoMothRepository.insert(Session("Test", "./test", OffsetDateTime.now(), 50.0,50.0))
+        }
+
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+}
