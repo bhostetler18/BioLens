@@ -4,7 +4,7 @@ import androidx.room.*
 import java.time.OffsetDateTime
 
 @Entity(tableName = "sessions")
-data class Session (
+data class Session(
     val name: String,
     val directory: String,
     val started: OffsetDateTime,
@@ -26,7 +26,7 @@ data class Session (
         )
     ]
 )
-data class Image (
+data class Image(
     val filename: String,
     val timestamp: OffsetDateTime,
     @ColumnInfo(index = true) val parentSessionID: Long

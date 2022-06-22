@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.uf.automoth.data.AutoMothRepository
@@ -39,13 +38,13 @@ class SessionsFragment : Fragment() {
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(activity)
 
-        sessionsViewModel.allSessions.observe(viewLifecycleOwner, Observer { sessions ->
+        sessionsViewModel.allSessions.observe(viewLifecycleOwner) { sessions ->
             sessions?.let { adapter.submitList(it) }
-        })
+        }
 
         // TODO: remove, just for testing purposes
         lifecycleScope.launch {
-            AutoMothRepository.insert(Session("Test", "./test", OffsetDateTime.now(), 50.0,50.0))
+            AutoMothRepository.insert(Session("Test", "./test", OffsetDateTime.now(), 50.0, 50.0))
         }
 
         return binding.root

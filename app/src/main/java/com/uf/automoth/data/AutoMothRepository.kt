@@ -9,9 +9,11 @@ object AutoMothRepository {
     private lateinit var imageDatabase: ImageDatabase
 
     operator fun invoke(context: Context) {
-        imageDatabase = Room.databaseBuilder(context,
+        imageDatabase = Room.databaseBuilder(
+            context,
             ImageDatabase::class.java,
-            "image-db").build()
+            "image-db"
+        ).build()
     }
 
     val allSessionsFlow by lazy {
@@ -22,13 +24,12 @@ object AutoMothRepository {
     suspend fun insert(session: Session) {
         val id = imageDatabase.sessionDAO().insert(session)
         session.sessionID = id
-        //TODO: create filesystem storage
+        // TODO: create filesystem storage
     }
 
     @WorkerThread
     suspend fun delete(session: Session) {
         imageDatabase.sessionDAO().delete(session)
-        //TODO: delete associated filesystem storage
+        // TODO: delete associated filesystem storage
     }
-
 }
