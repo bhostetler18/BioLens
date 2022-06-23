@@ -3,4 +3,5 @@
     <string name="title_imaging">Imaging</string>
     <string name="title_sessions">Sessions</string>
     <string name="title_info">Info</string>
+    <string name="permissions_denied_toast">Cannot capture images without permission</string>
 </resources>
