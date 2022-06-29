@@ -38,7 +38,7 @@ class DatabaseTest {
 
     @Test
     fun testSession() = runBlocking {
-        val session = Session("TestSession1", "test1/", OffsetDateTime.now(), 50.0, 50.0)
+        val session = Session("TestSession1", "test1/", OffsetDateTime.now(), 50.0, 50.0, 5)
         session.sessionID = db.sessionDAO().insert(session)
 
         val image = Image("test1.png", OffsetDateTime.now(), session.sessionID)
