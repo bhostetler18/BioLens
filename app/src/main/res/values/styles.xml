@@ -6,8 +6,15 @@
     </style>
 
     <style name="info">
-        <item name="android:textColor">@color/dark_grey</item>
         <item name="android:textAppearance">@android:style/TextAppearance.Small</item>
+        <item name="android:textColor">@color/dark_grey</item>
+    </style>
+
+    <style name="AppToolbar" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <item name="android:textColorPrimary">@android:color/white</item>
+        <item name="android:textColorSecondary">@android:color/white</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="iconTint">@android:color/white</item>
     </style>
 
 </resources>

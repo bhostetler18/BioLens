@@ -9,7 +9,8 @@ data class Session(
     val directory: String,
     val started: OffsetDateTime,
     val latitude: Double,
-    val longitude: Double
+    val longitude: Double,
+    val interval: Int
 ) {
     @PrimaryKey(autoGenerate = true) var sessionID: Long = 0
     var completed: OffsetDateTime? = null
@@ -31,8 +32,8 @@ data class Image(
     val timestamp: OffsetDateTime,
     @ColumnInfo(index = true) val parentSessionID: Long
 ) {
-    @PrimaryKey(autoGenerate = true) var imageID: Long? = null
-    var containsMoths: Boolean = false
+    @PrimaryKey(autoGenerate = true) var imageID: Long = 0
+    var containsMoths: Boolean? = null
 }
 
 @Entity
@@ -44,7 +45,3 @@ data class SessionWithImages(
     )
     val images: List<Image>
 )
-
-
-
-

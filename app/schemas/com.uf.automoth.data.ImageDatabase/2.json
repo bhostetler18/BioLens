@@ -1,8 +1,8 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 1,
-    "identityHash": "f97d93c88b3664f63d84cf2be629f054",
+    "version": 2,
+    "identityHash": "31d4de552ac152aed9ca4ef678e92221",
     "entities": [
       {
         "tableName": "images",
@@ -72,7 +72,7 @@
       },
       {
         "tableName": "sessions",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `directory` TEXT NOT NULL, `started` TEXT NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `sessionID` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `completed` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `directory` TEXT NOT NULL, `started` TEXT NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `interval` INTEGER NOT NULL, `sessionID` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `completed` TEXT)",
         "fields": [
           {
             "fieldPath": "name",
@@ -105,6 +105,12 @@
             "notNull": true
           },
           {
+            "fieldPath": "interval",
+            "columnName": "interval",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
             "fieldPath": "sessionID",
             "columnName": "sessionID",
             "affinity": "INTEGER",
@@ -130,7 +136,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f97d93c88b3664f63d84cf2be629f054')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '31d4de552ac152aed9ca4ef678e92221')"
     ]
   }
 }

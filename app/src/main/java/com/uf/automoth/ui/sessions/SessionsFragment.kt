@@ -6,13 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.uf.automoth.data.AutoMothRepository
-import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.FragmentSessionsBinding
-import kotlinx.coroutines.launch
-import java.time.OffsetDateTime
 
 class SessionsFragment : Fragment() {
 
@@ -40,11 +36,8 @@ class SessionsFragment : Fragment() {
 
         sessionsViewModel.allSessions.observe(viewLifecycleOwner) { sessions ->
             sessions?.let { adapter.submitList(it) }
-        }
-
-        // TODO: remove, just for testing purposes
-        lifecycleScope.launch {
-            AutoMothRepository.insert(Session("Test", "./test", OffsetDateTime.now(), 50.0, 50.0))
+            binding.noSessionsText.visibility = if (sessions.isEmpty()) View.VISIBLE else View.GONE
+            binding.recyclerview.visibility = if (sessions.isEmpty()) View.GONE else View.VISIBLE
         }
 
         return binding.root

@@ -37,4 +37,7 @@ interface SessionDAO {
     @Transaction
     @Query("SELECT * FROM images WHERE parentSessionID = :id")
     fun getImagesInSession(id: Long): List<Image>
+
+    @Query("SELECT * FROM sessions WHERE sessionID = :id")
+    fun getSession(id: Long): Session
 }

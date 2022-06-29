@@ -17,8 +17,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setSupportActionBar(binding.mainToolbar)
 
-        val navView: BottomNavigationView = binding.navView
+        val navView: BottomNavigationView = binding.bottomNavBar
 
         // See https://stackoverflow.com/questions/58703451/fragmentcontainerview-as-navhostfragment
         val navHostFragment = supportFragmentManager
