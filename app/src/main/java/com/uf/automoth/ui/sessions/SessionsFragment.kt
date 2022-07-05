@@ -5,9 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.databinding.FragmentSessionsBinding
 
 class SessionsFragment : Fragment() {
@@ -23,9 +22,7 @@ class SessionsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val sessionsViewModel: SessionsViewModel by viewModels {
-            SessionsViewModelFactory(AutoMothRepository)
-        }
+        val sessionsViewModel: SessionsViewModel = ViewModelProvider(this)[SessionsViewModel::class.java]
 
         _binding = FragmentSessionsBinding.inflate(inflater, container, false)
 

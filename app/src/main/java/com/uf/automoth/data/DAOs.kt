@@ -1,5 +1,6 @@
 package com.uf.automoth.data
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 
@@ -36,7 +37,11 @@ interface SessionDAO {
 
     @Transaction
     @Query("SELECT * FROM images WHERE parentSessionID = :id")
-    fun getImagesInSession(id: Long): List<Image>
+    fun getImagesInSession(id: Long): LiveData<List<Image>>
+
+    @Transaction
+    @Query("SELECT COUNT(imageID) FROM images WHERE parentSessionID = :id")
+    fun getNumImagesInSession(id: Long): LiveData<Int>
 
     @Query("SELECT * FROM sessions WHERE sessionID = :id")
     fun getSession(id: Long): Session

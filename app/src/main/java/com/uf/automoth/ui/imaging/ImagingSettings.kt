@@ -14,7 +14,7 @@ enum class AutoStopType {
 
 @Serializable
 data class ImagingSettings(
-    var interval: Int = 20,
+    var interval: Int = 10,
     var autoStop: Boolean = false,
     var autoStopType: AutoStopType = AutoStopType.IMAGE_COUNT,
     var autoStopValue: Int = 100

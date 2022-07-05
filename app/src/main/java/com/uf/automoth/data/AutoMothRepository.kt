@@ -2,6 +2,7 @@ package com.uf.automoth.data
 
 import android.content.Context
 import android.util.Log
+import androidx.lifecycle.LiveData
 import androidx.room.Room
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -13,7 +14,7 @@ object AutoMothRepository {
 
     private lateinit var imageDatabase: ImageDatabase
     private lateinit var coroutineScope: CoroutineScope
-    private var filesystemPath: File? = null
+    lateinit var storageLocation: File
 
     operator fun invoke(context: Context, coroutineScope: CoroutineScope) {
         imageDatabase = Room.databaseBuilder(
@@ -22,9 +23,9 @@ object AutoMothRepository {
             "image-db"
         ).fallbackToDestructiveMigration() // TODO: remove when ready to release
             .build()
-        filesystemPath = context.getExternalFilesDir(null) // TODO: handle ejection?
+        storageLocation = context.getExternalFilesDir(null)!! // TODO: handle ejection?
         this.coroutineScope = coroutineScope
-        Log.d("[INFO]", "External file path is ${filesystemPath?.path}")
+        Log.d("[INFO]", "External file path is ${storageLocation.path}")
     }
 
     val allSessionsFlow by lazy {
@@ -33,9 +34,8 @@ object AutoMothRepository {
 
     // TODO: indicate filesystem errors in below functions either by exception or return
 
-    fun insert(session: Session) = coroutineScope.launch {
-        val parent = filesystemPath ?: return@launch
-        val sessionDir = File(parent, session.directory)
+    fun create(session: Session) = coroutineScope.launch {
+        val sessionDir = File(storageLocation, session.directory)
         val created = withContext(Dispatchers.IO) {
             return@withContext sessionDir.mkdir()
         }
@@ -45,8 +45,7 @@ object AutoMothRepository {
     }
 
     fun delete(session: Session) = coroutineScope.launch {
-        val parent = filesystemPath ?: return@launch
-        val sessionDir = File(parent, session.directory)
+        val sessionDir = File(storageLocation, session.directory)
         val deleted = withContext(Dispatchers.IO) {
             return@withContext sessionDir.deleteRecursively()
         }
@@ -60,9 +59,8 @@ object AutoMothRepository {
     }
 
     fun delete(image: Image) = coroutineScope.launch {
-        val parent = filesystemPath ?: return@launch
         val session = imageDatabase.sessionDAO().getSession(image.parentSessionID)
-        val sessionDir = File(parent, session.directory)
+        val sessionDir = File(storageLocation, session.directory)
         val imagePath = File(sessionDir, image.filename)
 
         val deleted = withContext(Dispatchers.IO) {
@@ -72,5 +70,11 @@ object AutoMothRepository {
         if (deleted) {
             imageDatabase.imageDAO().delete(image)
         }
+    }
+
+    fun getSession(id: Long): Session = imageDatabase.sessionDAO().getSession(id)
+
+    fun getImagesInSession(id: Long): LiveData<List<Image>> {
+        return imageDatabase.sessionDAO().getImagesInSession(id)
     }
 }

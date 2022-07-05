@@ -5,5 +5,5 @@ import com.uf.automoth.data.Session
 
 class ImagingViewModel : ViewModel() {
     var imagingSettings = ImagingSettings()
-    var currentSession: Session? = null
+    var manager: ImagingManager? = null
 }

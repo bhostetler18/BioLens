@@ -1,5 +1,6 @@
 package com.uf.automoth.ui.sessions
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -7,13 +8,15 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.SessionListItemBinding
+import com.uf.automoth.ui.sessions.grid.ImageGridActivity
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
 class SessionListAdapter : ListAdapter<Session, SessionListAdapter.SessionViewHolder>(SESSION_COMPARATOR) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SessionViewHolder {
-        return SessionViewHolder.create(parent)
+        val binding = SessionListItemBinding.inflate(LayoutInflater.from(parent.context))
+        return SessionViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: SessionViewHolder, position: Int) {
@@ -27,15 +30,16 @@ class SessionListAdapter : ListAdapter<Session, SessionListAdapter.SessionViewHo
         fun bind(session: Session) {
             viewBinding.titleView.text = session.name
             viewBinding.infoView.text = dateFormatter.format(session.started)
+            viewBinding.root.setOnClickListener {
+                val ctx = viewBinding.root.context
+                val intent = Intent(ctx, ImageGridActivity::class.java)
+                intent.putExtra("SESSION", session.sessionID)
+                ctx.startActivity(intent)
+            }
         }
 
         companion object {
             val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
-
-            fun create(parent: ViewGroup): SessionViewHolder {
-                val binding = SessionListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-                return SessionViewHolder(binding)
-            }
         }
     }
 
