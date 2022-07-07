@@ -27,6 +27,8 @@ class ImageGridActivity : AppCompatActivity() {
             sessions?.let { adapter.submitList(it) }
         }
 
+        setSupportActionBar(binding.toolbar)
         setContentView(binding.root)
+        supportActionBar?.title = session.name
     }
 }
