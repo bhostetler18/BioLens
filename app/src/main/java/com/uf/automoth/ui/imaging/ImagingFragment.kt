@@ -1,24 +1,29 @@
 package com.uf.automoth.ui.imaging
 
 import android.Manifest
+import android.app.Dialog
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.NumberPicker
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.uf.automoth.R
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Session
+import com.uf.automoth.databinding.DurationPickerBinding
 import com.uf.automoth.databinding.FragmentImagingBinding
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -58,6 +63,9 @@ class ImagingFragment : Fragment() {
         requestPermissionsIfNecessary()
         binding.startButton.setOnClickListener {
             startSessionPressed()
+        }
+        binding.intervalButton.setOnClickListener {
+            changeIntervalPressed()
         }
 //        binding.cameraPreview.scaleType = PreviewView.ScaleType.FIT_CENTER
 //        binding.cameraPreview.rotation = 0F
@@ -117,6 +125,47 @@ class ImagingFragment : Fragment() {
         }
     }
 
+    private fun changeIntervalPressed() {
+        val binding = DurationPickerBinding.inflate(layoutInflater)
+        binding.minutePicker.minValue = 0
+        binding.minutePicker.maxValue = 15
+        binding.secondPicker.minValue = 0
+        binding.secondPicker.maxValue = 59
+        val currentInterval = viewModel.imagingSettings.interval
+        binding.minutePicker.value = currentInterval / 60
+        binding.secondPicker.value = currentInterval % 60
+        binding.minutePicker.wrapSelectorWheel = false
+        binding.secondPicker.wrapSelectorWheel = false
+
+        val dialogBuilder = AlertDialog.Builder(requireContext())
+        dialogBuilder.setView(binding.root)
+        dialogBuilder.setTitle(R.string.choose_interval)
+        dialogBuilder.setNegativeButton(R.string.cancel) { dialog, _ ->
+            dialog.dismiss()
+        }
+        dialogBuilder.setPositiveButton(R.string.OK) { dialog, _ ->
+            val minutes: Int = binding.minutePicker.value
+            val seconds: Int = binding.secondPicker.value
+            viewModel.imagingSettings.interval = 60 * minutes + seconds
+            dialog.dismiss()
+        }
+
+        val dialog = dialogBuilder.create()
+        val setPlurality = {
+            binding.minuteText.text = if (binding.minutePicker.value != 1) getString(R.string.unit_minutes_plural) else getString(R.string.unit_minutes_singular)
+            binding.secondText.text = if (binding.secondPicker.value != 1) getString(R.string.unit_seconds_plural) else getString(R.string.unit_seconds_singular)
+        }
+        setPlurality()
+        val observer = { _: NumberPicker, _: Int, _: Int ->
+            dialog.getButton(Dialog.BUTTON_POSITIVE).isEnabled = binding.secondPicker.value != 0 ||
+                binding.minutePicker.value != 0
+            setPlurality()
+        }
+        binding.minutePicker.setOnValueChangedListener(observer)
+        binding.secondPicker.setOnValueChangedListener(observer)
+        dialog.show()
+    }
+
     private fun startSession() {
         setButtonsEnabled(false)
 
@@ -166,6 +215,9 @@ class ImagingFragment : Fragment() {
         bar.visibility = if (enabled) View.VISIBLE else View.GONE
         menu?.findItem(R.id.imaging_settings).apply {
             this?.isVisible = enabled
+        }
+        listOf(binding.intervalButton, binding.autoStopButton).forEach {
+            it.visibility = if (enabled) View.VISIBLE else View.INVISIBLE
         }
     }
 

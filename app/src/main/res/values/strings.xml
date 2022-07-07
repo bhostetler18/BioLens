@@ -18,4 +18,10 @@
     <string name="cancel">Cancel</string>
     <string name="rename">Rename</string>
     <string name="rename_session">Rename session</string>
+    <string name="choose_interval">Choose Imaging Interval</string>
+    <string name="OK">OK</string>
+    <string name="unit_minutes_plural">minutes</string>
+    <string name="unit_seconds_plural">seconds</string>
+    <string name="unit_minutes_singular">minute</string>
+    <string name="unit_seconds_singular">second</string>
 </resources>
