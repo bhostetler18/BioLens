@@ -32,6 +32,7 @@ class ImagingFragment : Fragment() {
     private lateinit var viewModel: ImagingViewModel
 
     private var menu: Menu? = null
+    private lateinit var locationProvider: SingleLocationProvider
     private var imageCapture: ImageCapture? = null
     private var timer: Timer? = null
 
@@ -45,6 +46,8 @@ class ImagingFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         viewModel = ViewModelProvider(this)[ImagingViewModel::class.java]
+        locationProvider = SingleLocationProvider(requireContext())
+
         ImagingSettings.loadFromFile(requireContext())?.let {
             viewModel.imagingSettings = it
         }
@@ -58,23 +61,7 @@ class ImagingFragment : Fragment() {
         }
 //        binding.cameraPreview.scaleType = PreviewView.ScaleType.FIT_CENTER
 //        binding.cameraPreview.rotation = 0F
-
-        setHasOptionsMenu(true)
         return root
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.imaging_menu, menu)
-        this.menu = menu
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.imaging_settings -> {
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
     }
 
     private fun startCamera() {
@@ -132,25 +119,32 @@ class ImagingFragment : Fragment() {
 
     private fun startSession() {
         setButtonsEnabled(false)
+
         val start = OffsetDateTime.now()
         val session = Session(
             "Untitled session",
             ImagingManager.getUniqueDirectory(start),
             start,
-            50.0,
-            50.0,
+            0.0,
+            0.0,
             viewModel.imagingSettings.interval
         )
         // Need to get session primary key before continuing, so block for this call
         runBlocking {
             AutoMothRepository.create(session)
         }
+
+        locationProvider.getCurrentLocation() {
+            AutoMothRepository.updateSessionLocation(session.sessionID, it)
+        }
+
         val manager = ImagingManager(session, viewModel.imagingSettings)
         viewModel.manager = manager
         val milliseconds: Long = viewModel.imagingSettings.interval * 1000L
         timer = fixedRateTimer("imaging", false, 0, milliseconds) {
             if (manager.shouldStop()) {
                 this.cancel()
+                finishSession()
             } else {
                 takePhoto(manager.getUniqueFile())
             }
@@ -158,8 +152,12 @@ class ImagingFragment : Fragment() {
     }
 
     private fun finishSession() {
+        val end = OffsetDateTime.now()
         setButtonsEnabled(true)
         timer?.cancel()
+        viewModel.manager?.session?.let {
+            AutoMothRepository.updateSessionCompletion(it.sessionID, end)
+        }
         viewModel.manager = null
     }
 

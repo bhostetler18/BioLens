@@ -8,6 +8,7 @@
         <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.2045" />
         <entry key="app/src/main/res/drawable/ic_notifications_black_24dp.xml" value="0.2045" />
         <entry key="app/src/main/res/drawable/ic_settings_24.xml" value="0.131" />
+        <entry key="app/src/main/res/layout/activity_image_grid.xml" value="0.1203125" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.1" />
         <entry key="app/src/main/res/layout/activity_session_grid.xml" value="0.1" />
         <entry key="app/src/main/res/layout/content_session_grid.xml" value="0.1203125" />

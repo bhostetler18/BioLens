@@ -1,6 +1,7 @@
 package com.uf.automoth.data
 
 import android.content.Context
+import android.location.Location
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.room.Room
@@ -9,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.time.OffsetDateTime
 
 object AutoMothRepository {
 
@@ -34,7 +36,7 @@ object AutoMothRepository {
 
     // TODO: indicate filesystem errors in below functions either by exception or return
 
-    fun create(session: Session) = coroutineScope.launch {
+    suspend fun create(session: Session) {
         val sessionDir = File(storageLocation, session.directory)
         val created = withContext(Dispatchers.IO) {
             return@withContext sessionDir.mkdir()
@@ -76,5 +78,13 @@ object AutoMothRepository {
 
     fun getImagesInSession(id: Long): LiveData<List<Image>> {
         return imageDatabase.sessionDAO().getImagesInSession(id)
+    }
+
+    fun updateSessionLocation(id: Long, location: Location) = coroutineScope.launch {
+        imageDatabase.sessionDAO().updateSessionLocation(id, location.latitude, location.longitude)
+    }
+
+    fun updateSessionCompletion(id: Long, time: OffsetDateTime) = coroutineScope.launch {
+        imageDatabase.sessionDAO().updateSessionCompletion(id, time)
     }
 }

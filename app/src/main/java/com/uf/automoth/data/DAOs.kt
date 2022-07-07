@@ -3,6 +3,7 @@ package com.uf.automoth.data
 import androidx.lifecycle.LiveData
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
+import java.time.OffsetDateTime
 
 @Dao
 interface ImageDAO {
@@ -45,4 +46,10 @@ interface SessionDAO {
 
     @Query("SELECT * FROM sessions WHERE sessionID = :id")
     fun getSession(id: Long): Session
+
+    @Query("UPDATE sessions SET latitude = :latitude, longitude = :longitude WHERE sessionID = :id")
+    fun updateSessionLocation(id: Long, latitude: Double, longitude: Double)
+
+    @Query("UPDATE sessions SET completed = :time WHERE sessionID = :id")
+    fun updateSessionCompletion(id: Long, time: OffsetDateTime)
 }
