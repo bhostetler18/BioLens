@@ -1,6 +1,8 @@
 package com.uf.automoth.ui.sessions.grid
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AlertDialog
@@ -9,6 +11,8 @@ import com.uf.automoth.R
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.ActivityImageGridBinding
+import com.uf.automoth.databinding.DialogEditTextBinding
+import com.uf.automoth.ui.common.EditTextDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -46,6 +50,10 @@ class ImageGridActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.rename -> {
+                renameCurrentSession()
+                true
+            }
             R.id.upload -> {
                 true
             }
@@ -55,6 +63,21 @@ class ImageGridActivity : AppCompatActivity() {
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun renameCurrentSession() {
+        val editDialog = EditTextDialog(this, layoutInflater,
+        title = getString(R.string.rename_session),
+        hint = session.name,
+        positiveText = getString(R.string.rename),
+        negativeText = getString(R.string.cancel),
+        positiveListener = { text, dialog ->
+            AutoMothRepository.renameSession(session.sessionID, text)
+            supportActionBar?.title = text
+            dialog.dismiss()
+        },
+        textValidator = Session::isValid)
+        editDialog.show()
     }
 
     private fun deleteCurrentSession() {

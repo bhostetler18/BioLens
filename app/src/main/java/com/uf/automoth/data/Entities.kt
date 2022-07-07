@@ -14,6 +14,12 @@ data class Session(
 ) {
     @PrimaryKey(autoGenerate = true) var sessionID: Long = 0
     var completed: OffsetDateTime? = null
+
+    companion object {
+        fun isValid(sessionName: String): Boolean {
+            return sessionName.trim().isNotEmpty()
+        }
+    }
 }
 
 @Entity(

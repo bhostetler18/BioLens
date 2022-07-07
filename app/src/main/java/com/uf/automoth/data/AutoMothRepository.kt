@@ -87,4 +87,8 @@ object AutoMothRepository {
     fun updateSessionCompletion(id: Long, time: OffsetDateTime) = coroutineScope.launch {
         imageDatabase.sessionDAO().updateSessionCompletion(id, time)
     }
+
+    fun renameSession(id: Long, name: String) = coroutineScope.launch {
+        imageDatabase.sessionDAO().renameSession(id, name)
+    }
 }

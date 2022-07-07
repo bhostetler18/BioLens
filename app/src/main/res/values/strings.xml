@@ -16,4 +16,6 @@
     <string name="warn_permanent_action">This cannot be undone</string>
     <string name="warn_delete_session">Are you sure you want to delete this session?</string>
     <string name="cancel">Cancel</string>
+    <string name="rename">Rename</string>
+    <string name="rename_session">Rename session</string>
 </resources>

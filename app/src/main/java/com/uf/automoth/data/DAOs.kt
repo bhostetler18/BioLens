@@ -52,4 +52,7 @@ interface SessionDAO {
 
     @Query("UPDATE sessions SET completed = :time WHERE sessionID = :id")
     fun updateSessionCompletion(id: Long, time: OffsetDateTime)
+
+    @Query("UPDATE sessions SET name = :name WHERE sessionID = :id")
+    fun renameSession(id: Long, name: String)
 }
