@@ -22,6 +22,7 @@
         <entry key="app/src/main/res/layout/session_list_item.xml" value="0.1" />
         <entry key="app/src/main/res/menu/bottom_nav_menu.xml" value="0.2703125" />
         <entry key="app/src/main/res/menu/imaging_menu.xml" value="0.1453125" />
+        <entry key="app/src/main/res/menu/session_menu.xml" value="0.1203125" />
       </map>
     </option>
   </component>
