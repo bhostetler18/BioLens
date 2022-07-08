@@ -24,4 +24,5 @@
     <string name="unit_seconds_plural">seconds</string>
     <string name="unit_minutes_singular">minute</string>
     <string name="unit_seconds_singular">second</string>
+    <string name="per_hour">per hour</string>
 </resources>

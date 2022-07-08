@@ -36,7 +36,7 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/picker_container"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintBottom_toTopOf="@id/size_estimate">
 
         <TextView
             android:id="@+id/minute_text"
@@ -53,6 +53,17 @@
             android:layout_weight="1"
             android:text="@string/unit_seconds_plural"/>
     </LinearLayout>
+    <TextView
+        android:id="@+id/size_estimate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:gravity="center_horizontal"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/unit_container"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:text="~10MB per hour"/>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

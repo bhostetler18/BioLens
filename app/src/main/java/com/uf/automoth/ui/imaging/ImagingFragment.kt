@@ -1,29 +1,24 @@
 package com.uf.automoth.ui.imaging
 
 import android.Manifest
-import android.app.Dialog
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import android.widget.NumberPicker
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.uf.automoth.R
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Session
-import com.uf.automoth.databinding.DurationPickerBinding
 import com.uf.automoth.databinding.FragmentImagingBinding
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -83,8 +78,7 @@ class ImagingFragment : Fragment() {
                     it.setSurfaceProvider(binding.cameraPreview.surfaceProvider)
                 }
 
-            imageCapture = ImageCapture.Builder()
-                .build()
+            imageCapture = ImageCapture.Builder().build()
 
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
@@ -97,6 +91,15 @@ class ImagingFragment : Fragment() {
                 Log.e("Camera", "Use case binding failed", exc)
             }
         }, ContextCompat.getMainExecutor(requireContext()))
+    }
+
+    // TODO: this is a placeholder – should probably take a test image for a better estimate
+    private fun estimatedImageSizeInBytes(): Double {
+        val resolution = imageCapture?.attachedSurfaceResolution ?: return 0.0
+        val pixels = resolution.height * resolution.width
+        val bytes = 24.0 * pixels / 8.0 // 8 bits each for RGB channels
+        val avgCompression = 9.88 // see https://www.graphicsmill.com/blog/2014/11/06/Compression-ratio-for-different-JPEG-quality-values
+        return bytes / avgCompression
     }
 
     private fun takePhoto(saveLocation: File) {
@@ -126,43 +129,11 @@ class ImagingFragment : Fragment() {
     }
 
     private fun changeIntervalPressed() {
-        val binding = DurationPickerBinding.inflate(layoutInflater)
-        binding.minutePicker.minValue = 0
-        binding.minutePicker.maxValue = 15
-        binding.secondPicker.minValue = 0
-        binding.secondPicker.maxValue = 59
-        val currentInterval = viewModel.imagingSettings.interval
-        binding.minutePicker.value = currentInterval / 60
-        binding.secondPicker.value = currentInterval % 60
-        binding.minutePicker.wrapSelectorWheel = false
-        binding.secondPicker.wrapSelectorWheel = false
-
-        val dialogBuilder = AlertDialog.Builder(requireContext())
-        dialogBuilder.setView(binding.root)
-        dialogBuilder.setTitle(R.string.choose_interval)
-        dialogBuilder.setNegativeButton(R.string.cancel) { dialog, _ ->
-            dialog.dismiss()
-        }
-        dialogBuilder.setPositiveButton(R.string.OK) { dialog, _ ->
-            val minutes: Int = binding.minutePicker.value
-            val seconds: Int = binding.secondPicker.value
-            viewModel.imagingSettings.interval = 60 * minutes + seconds
-            dialog.dismiss()
-        }
-
-        val dialog = dialogBuilder.create()
-        val setPlurality = {
-            binding.minuteText.text = if (binding.minutePicker.value != 1) getString(R.string.unit_minutes_plural) else getString(R.string.unit_minutes_singular)
-            binding.secondText.text = if (binding.secondPicker.value != 1) getString(R.string.unit_seconds_plural) else getString(R.string.unit_seconds_singular)
-        }
-        setPlurality()
-        val observer = { _: NumberPicker, _: Int, _: Int ->
-            dialog.getButton(Dialog.BUTTON_POSITIVE).isEnabled = binding.secondPicker.value != 0 ||
-                binding.minutePicker.value != 0
-            setPlurality()
-        }
-        binding.minutePicker.setOnValueChangedListener(observer)
-        binding.secondPicker.setOnValueChangedListener(observer)
+        val dialog = IntervalDialog(
+            requireContext(),
+            layoutInflater, viewModel.imagingSettings.interval,
+            estimatedImageSizeInBytes()
+        ) { interval -> viewModel.imagingSettings.interval = interval }
         dialog.show()
     }
 
@@ -183,7 +154,7 @@ class ImagingFragment : Fragment() {
             AutoMothRepository.create(session)
         }
 
-        locationProvider.getCurrentLocation() {
+        locationProvider.getCurrentLocation {
             AutoMothRepository.updateSessionLocation(session.sessionID, it)
         }
 
