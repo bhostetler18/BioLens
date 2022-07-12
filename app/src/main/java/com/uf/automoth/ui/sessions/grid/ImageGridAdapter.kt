@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.squareup.picasso.Picasso
+import com.bumptech.glide.Glide
 import com.uf.automoth.data.Image
 import com.uf.automoth.databinding.ImageGridItemBinding
 import java.io.File
@@ -26,7 +26,7 @@ class ImageGridAdapter(val sessionDirectory: File) : ListAdapter<Image, ImageGri
 
         fun bind(image: Image) {
             val file = File(sessionDirectory, image.filename)
-            Picasso.get().load(file).into(viewBinding.image)
+            Glide.with(viewBinding.root.context).load(file).into(viewBinding.image)
         }
     }
 

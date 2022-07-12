@@ -85,7 +85,10 @@ class ImagingFragment : Fragment() {
             try {
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, imageCapture
+                    this,
+                    cameraSelector,
+                    preview,
+                    imageCapture
                 )
             } catch (exc: Exception) {
                 Log.e("Camera", "Use case binding failed", exc)
@@ -131,7 +134,8 @@ class ImagingFragment : Fragment() {
     private fun changeIntervalPressed() {
         val dialog = IntervalDialog(
             requireContext(),
-            layoutInflater, viewModel.imagingSettings.interval,
+            layoutInflater,
+            viewModel.imagingSettings.interval,
             estimatedImageSizeInBytes()
         ) { interval -> viewModel.imagingSettings.interval = interval }
         dialog.show()
@@ -163,7 +167,6 @@ class ImagingFragment : Fragment() {
         val milliseconds: Long = viewModel.imagingSettings.interval * 1000L
         timer = fixedRateTimer("imaging", false, 0, milliseconds) {
             if (manager.shouldStop()) {
-                this.cancel()
                 finishSession()
             } else {
                 takePhoto(manager.getUniqueFile())
@@ -215,9 +218,11 @@ class ImagingFragment : Fragment() {
 
     private fun warnPermissionsDenied() {
         Toast.makeText(
-            requireContext(), R.string.permissions_denied_toast, Toast.LENGTH_SHORT
+            requireContext(),
+            R.string.permissions_denied_toast,
+            Toast.LENGTH_SHORT
         ).show()
-        // TODO: more persistent warning, maybe mention going to settings
+        // TODO: more persistent warning, disable capture button and maybe mention going to settings
     }
 
     override fun onDestroyView() {
@@ -227,6 +232,7 @@ class ImagingFragment : Fragment() {
 
     override fun onStop() {
         super.onStop()
+        finishSession()
         viewModel.imagingSettings.saveToFile(requireContext())
     }
 
