@@ -5,6 +5,7 @@
     <color name="green">#8BC34A</color>
     <color name="green_lighter">#C7E6A3</color>
     <color name="purple">#A77CE4</color>
+    <color name="attention">#FB4771</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="dark_grey">#343637</color>

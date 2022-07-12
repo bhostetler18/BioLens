@@ -27,4 +27,6 @@
     <string name="per_hour">per hour</string>
     <string name="service_notification_title">Imaging session in progress</string>
     <string name="service_notification_message">Please do not open any other camera apps</string>
+    <string name="service_notification_channel">AutoMoth Imaging Service</string>
+    <string name="active_session_indication">An image capture session is currently running</string>
 </resources>

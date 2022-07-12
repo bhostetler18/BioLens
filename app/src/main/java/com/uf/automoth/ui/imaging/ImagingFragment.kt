@@ -143,9 +143,9 @@ class ImagingFragment : Fragment() {
     }
 
     private fun startSession() {
-        val intent = Intent(requireContext().applicationContext, ImagingService::class.java)
-        requireContext().applicationContext.startForegroundService(intent)
-        return
+//        val intent = Intent(requireContext().applicationContext, ImagingService::class.java)
+//        requireContext().applicationContext.startForegroundService(intent)
+//        return
 
         setButtonsEnabled(false)
 

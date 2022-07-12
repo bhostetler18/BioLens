@@ -1,6 +1,16 @@
 <component name="InspectionProjectProfileManager">
   <profile version="1.0">
     <option name="myName" value="Project Default" />
-    <inspection_tool class="AndroidLintMinSdkTooLow" enabled="true" level="WARNING" enabled_by_default="true" />
+    <inspection_tool class="RefusedBequest" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoreEmptySuperMethods" value="false" />
+      <option name="onlyReportWhenAnnotated" value="true" />
+      <option name="annotations">
+        <value>
+          <item value="androidx.annotation.CallSuper" />
+          <item value="javax.annotation.OverridingMethodsMustInvokeSuper" />
+          <item value="org.jetbrains.annotations.MustBeInvokedByOverriders" />
+        </value>
+      </option>
+    </inspection_tool>
   </profile>
 </component>

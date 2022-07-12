@@ -27,7 +27,8 @@
         <service
             android:name="com.uf.automoth.ui.imaging.ImagingService"
             android:enabled="true"
-            android:exported="false" />
+            android:exported="false"
+            android:foregroundServiceType="location|camera" />
 
         <activity
             android:name=".MainActivity"

@@ -2,12 +2,14 @@ package com.uf.automoth
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.uf.automoth.databinding.ActivityMainBinding
+import com.uf.automoth.ui.imaging.ImagingService
 
 class MainActivity : AppCompatActivity() {
 
@@ -28,10 +30,26 @@ class MainActivity : AppCompatActivity() {
 
         val appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.navigation_imaging, R.id.navigation_data, R.id.navigation_other
+                R.id.navigation_imaging,
+                R.id.navigation_data,
+                R.id.navigation_other
             )
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateUI()
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        updateUI()
+    }
+
+    private fun updateUI() {
+        binding.activeServiceBar.isVisible = ImagingService.IS_RUNNING
     }
 }
