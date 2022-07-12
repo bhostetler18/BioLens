@@ -76,7 +76,7 @@ class ImagingService : LifecycleService(), ImageCapturerInterface {
         val serviceChannel = NotificationChannel(
             SERVICE_CHANNEL_ID,
             getString(R.string.service_notification_channel),
-            NotificationManager.IMPORTANCE_HIGH
+            NotificationManager.IMPORTANCE_DEFAULT
         )
         serviceChannel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
 
