@@ -1,9 +1,8 @@
 package com.uf.automoth.ui.imaging
 
 import androidx.lifecycle.ViewModel
-import com.uf.automoth.data.Session
 
 class ImagingViewModel : ViewModel() {
     var imagingSettings = ImagingSettings()
-    var manager: ImagingManager? = null
+    var imagingManager: ImagingManager? = null
 }

@@ -3,10 +3,10 @@ package com.uf.automoth.ui.imaging
 import android.app.*
 import android.content.Context
 import android.content.Intent
-import android.graphics.SurfaceTexture
 import android.os.IBinder
 import android.util.Log
-import androidx.camera.core.*
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -17,14 +17,14 @@ import com.uf.automoth.data.AutoMothRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import java.io.File
+import java.lang.ref.WeakReference
 
-class ImagingService : LifecycleService() {
+class ImagingService : LifecycleService(), ImageCapturerInterface {
 
     private val serviceScope = CoroutineScope(SupervisorJob())
     private var imageCapture: ImageCapture? = null
-    private var surfaceTexture: SurfaceTexture? = null
-    private var imagingSettings: ImagingSettings? = null
-    private var manager: ImagingManager? = null
+    private var imagingManager: ImagingManager? = null
+    private val locationProvider = SingleLocationProvider(this)
 
     override fun onCreate() {
         Log.d("[SERVICE]", "On create called")
@@ -82,7 +82,6 @@ class ImagingService : LifecycleService() {
 
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-
         cameraProviderFuture.addListener({
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
             imageCapture = ImageCapture.Builder().build()
@@ -102,9 +101,8 @@ class ImagingService : LifecycleService() {
         }, ContextCompat.getMainExecutor(this))
     }
 
-    private fun takePhoto(saveLocation: File) {
-        val imageCapture = imageCapture ?: return
-//        val manager = manager ?: return
+    override fun takePhoto(saveLocation: File, onSaved: ImageCapture.OnImageSavedCallback): Boolean {
+        val imageCapture = imageCapture ?: return false
 
         val outputOptions = ImageCapture.OutputFileOptions
             .Builder(saveLocation)
@@ -113,18 +111,19 @@ class ImagingService : LifecycleService() {
         imageCapture.takePicture(
             outputOptions,
             ContextCompat.getMainExecutor(this),
-            object: ImageCapture.OnImageSavedCallback {
-                override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                    Log.d(TAG, "Image saved successfully")
-                }
-
-                override fun onError(exception: ImageCaptureException) {
-                    Log.d(TAG, "Image failed to save")
-                    Log.d(TAG, exception.toString())
-                }
-
-            }
+            onSaved
         )
+        return true
+    }
+
+    fun startSession(settings: ImagingSettings) {
+        imagingManager = ImagingManager(settings, WeakReference(this))
+        imagingManager?.start(getString(R.string.default_session_name), locationProvider)
+    }
+
+    fun stopCurrentSession() {
+        imagingManager?.stop()
+        imagingManager = null
     }
 
     companion object {
