@@ -167,7 +167,6 @@ class ImagingFragment : Fragment() {
         val milliseconds: Long = viewModel.imagingSettings.interval * 1000L
         timer = fixedRateTimer("imaging", false, 0, milliseconds) {
             if (manager.shouldStop()) {
-                this.cancel()
                 finishSession()
             } else {
                 takePhoto(manager.getUniqueFile())
@@ -233,6 +232,7 @@ class ImagingFragment : Fragment() {
 
     override fun onStop() {
         super.onStop()
+        finishSession()
         viewModel.imagingSettings.saveToFile(requireContext())
     }
 
