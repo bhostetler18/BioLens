@@ -11,6 +11,7 @@
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
     <application
         android:name=".AutoMothApplication"
@@ -23,6 +24,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AutoMoth"
         tools:targetApi="31">
+        <service
+            android:name="com.uf.automoth.ui.imaging.ImagingService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="location|camera" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true">

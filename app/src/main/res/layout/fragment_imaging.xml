@@ -36,7 +36,7 @@
             app:tint="@color/white"
             android:background="?android:attr/selectableItemBackground" />
         <Button
-            android:id="@+id/start_button"
+            android:id="@+id/capture_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"

@@ -1,6 +1,7 @@
 package com.uf.automoth.ui.imaging
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -10,23 +11,20 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.uf.automoth.MainActivity
 import com.uf.automoth.R
-import com.uf.automoth.data.AutoMothRepository
-import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.FragmentImagingBinding
-import kotlinx.coroutines.runBlocking
 import java.io.File
-import java.time.OffsetDateTime
-import java.util.*
-import kotlin.concurrent.fixedRateTimer
+import java.lang.ref.WeakReference
 
-class ImagingFragment : Fragment() {
+class ImagingFragment : Fragment(), ImageCapturerInterface {
 
     private var _binding: FragmentImagingBinding? = null
     private lateinit var viewModel: ImagingViewModel
@@ -34,7 +32,6 @@ class ImagingFragment : Fragment() {
     private var menu: Menu? = null
     private lateinit var locationProvider: SingleLocationProvider
     private var imageCapture: ImageCapture? = null
-    private var timer: Timer? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -55,9 +52,14 @@ class ImagingFragment : Fragment() {
         _binding = FragmentImagingBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        requestPermissionsIfNecessary()
-        binding.startButton.setOnClickListener {
-            startSessionPressed()
+        requestPermissionsIfNecessary {
+            if (!isSessionInProgress()) {
+                startCamera()
+            }
+        }
+
+        binding.captureButton.setOnClickListener {
+            captureButtonPressed()
         }
         binding.intervalButton.setOnClickListener {
             changeIntervalPressed()
@@ -105,10 +107,9 @@ class ImagingFragment : Fragment() {
         return bytes / avgCompression
     }
 
-    private fun takePhoto(saveLocation: File) {
-        val imageCapture = imageCapture ?: return
-        val manager = viewModel.manager ?: return
-        val context = context ?: return
+    override fun takePhoto(saveLocation: File, onSaved: ImageCapture.OnImageSavedCallback): Boolean {
+        val imageCapture = imageCapture ?: return false
+        val context = context ?: return false
 
         val outputOptions = ImageCapture.OutputFileOptions
             .Builder(saveLocation)
@@ -117,17 +118,27 @@ class ImagingFragment : Fragment() {
         imageCapture.takePicture(
             outputOptions,
             ContextCompat.getMainExecutor(context),
-            manager
+            onSaved
         )
+        return true
     }
 
-    private fun startSessionPressed() {
-        if (viewModel.manager == null) {
-            binding.startButton.text = getString(R.string.stop_session)
-            startSession()
+    override fun onTakePhotoFailed(exception: ImageCaptureException) {
+    }
+
+    private fun isSessionInProgress(): Boolean {
+        return if (USE_SERVICE) {
+            ImagingService.IS_RUNNING
         } else {
-            binding.startButton.text = getString(R.string.start_session)
-            finishSession()
+            viewModel.imagingManager == null
+        }
+    }
+
+    private fun captureButtonPressed() {
+        if (isSessionInProgress()) {
+            finishSession(USE_SERVICE)
+        } else {
+            startSession(USE_SERVICE)
         }
     }
 
@@ -141,47 +152,35 @@ class ImagingFragment : Fragment() {
         dialog.show()
     }
 
-    private fun startSession() {
-        setButtonsEnabled(false)
-
-        val start = OffsetDateTime.now()
-        val session = Session(
-            "Untitled session",
-            ImagingManager.getUniqueDirectory(start),
-            start,
-            0.0,
-            0.0,
-            viewModel.imagingSettings.interval
-        )
-        // Need to get session primary key before continuing, so block for this call
-        runBlocking {
-            AutoMothRepository.create(session)
-        }
-
-        locationProvider.getCurrentLocation {
-            AutoMothRepository.updateSessionLocation(session.sessionID, it)
-        }
-
-        val manager = ImagingManager(session, viewModel.imagingSettings)
-        viewModel.manager = manager
-        val milliseconds: Long = viewModel.imagingSettings.interval * 1000L
-        timer = fixedRateTimer("imaging", false, 0, milliseconds) {
-            if (manager.shouldStop()) {
-                finishSession()
-            } else {
-                takePhoto(manager.getUniqueFile())
-            }
+    private fun startSession(service: Boolean = false) {
+        binding.captureButton.text = getString(R.string.stop_session)
+        if (service) {
+            val intent = Intent(requireContext().applicationContext, ImagingService::class.java)
+            intent.action = ImagingService.ACTION_START_SESSION
+            intent.putExtra("IMAGING_SETTINGS", viewModel.imagingSettings)
+            requireContext().applicationContext.startForegroundService(intent)
+            (activity as? MainActivity)?.setServiceIndicatorBarVisible(true)
+        } else {
+            setButtonsEnabled(false)
+            val manager = ImagingManager(viewModel.imagingSettings, WeakReference(this))
+            viewModel.imagingManager = manager
+            manager.start(getString(R.string.default_session_name), locationProvider)
         }
     }
 
-    private fun finishSession() {
-        val end = OffsetDateTime.now()
-        setButtonsEnabled(true)
-        timer?.cancel()
-        viewModel.manager?.session?.let {
-            AutoMothRepository.updateSessionCompletion(it.sessionID, end)
+    private fun finishSession(service: Boolean = false) {
+        binding.captureButton.text = getString(R.string.start_session)
+        if (service) {
+            val intent = Intent(requireContext().applicationContext, ImagingService::class.java)
+            intent.action = ImagingService.ACTION_STOP_SESSION
+            requireContext().applicationContext.startService(intent)
+            (activity as? MainActivity)?.setServiceIndicatorBarVisible(false)
+            startCamera() // For preview
+        } else {
+            viewModel.imagingManager?.stop()
+            viewModel.imagingManager = null
+            setButtonsEnabled(true)
         }
-        viewModel.manager = null
     }
 
     private fun setButtonsEnabled(enabled: Boolean) {
@@ -195,15 +194,15 @@ class ImagingFragment : Fragment() {
         }
     }
 
-    private fun requestPermissionsIfNecessary() {
+    private fun requestPermissionsIfNecessary(onAllPermissionGranted: () -> Unit) {
         if (allPermissionsGranted()) {
-            startCamera()
+            onAllPermissionGranted()
         } else {
             val permissionLauncher = registerForActivityResult(
                 ActivityResultContracts.RequestMultiplePermissions()
             ) { isGranted ->
                 if (isGranted.values.all { it }) {
-                    startCamera()
+                    onAllPermissionGranted
                 } else {
                     warnPermissionsDenied()
                 }
@@ -225,6 +224,19 @@ class ImagingFragment : Fragment() {
         // TODO: more persistent warning, disable capture button and maybe mention going to settings
     }
 
+    override fun onResume() {
+        super.onResume()
+        refreshUI()
+    }
+
+    private fun refreshUI() {
+        if (isSessionInProgress()) {
+            binding.captureButton.text = getString(R.string.stop_session)
+        } else {
+            binding.captureButton.text = getString(R.string.start_session)
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -237,6 +249,7 @@ class ImagingFragment : Fragment() {
     }
 
     companion object {
+        private var USE_SERVICE = true
         private val REQUIRED_PERMISSIONS =
             mutableListOf(
                 Manifest.permission.CAMERA,

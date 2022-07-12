@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.6.0'
+    id 'kotlin-parcelize'
 }
 
 android {
@@ -86,5 +87,7 @@ dependencies {
     implementation "androidx.room:room-ktx:$room_version"
     testImplementation "androidx.room:room-testing:$room_version"
 
+    // Service
+    implementation "androidx.lifecycle:lifecycle-service:2.5.0"
 
 }
