@@ -41,15 +41,19 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        updateUI()
+        refreshUI()
     }
 
     override fun onRestart() {
         super.onRestart()
-        updateUI()
+        refreshUI()
     }
 
-    private fun updateUI() {
-        binding.activeServiceBar.isVisible = ImagingService.IS_RUNNING
+    private fun refreshUI() {
+        setServiceIndicatorBarVisible(ImagingService.IS_RUNNING)
+    }
+
+    fun setServiceIndicatorBarVisible(visible: Boolean) {
+        binding.activeServiceBar.isVisible = visible
     }
 }

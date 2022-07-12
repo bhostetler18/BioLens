@@ -76,7 +76,9 @@ class ImagingManager(
     }
 
     override fun onError(exception: ImageCaptureException) {
-        Log.d(TAG, exception.localizedMessage ?: "")
+        Log.d(TAG, "Image failed to capture: " + exception.localizedMessage)
+        // TODO: implement below
+//        capturer.get()?.onTakePhotoFailed(exception)
     }
 
     private fun shouldStop(): Boolean {

@@ -1,6 +1,8 @@
 package com.uf.automoth.ui.imaging
 
 import android.content.Context
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
@@ -13,12 +15,13 @@ enum class AutoStopType {
 }
 
 @Serializable
+@Parcelize
 data class ImagingSettings(
     var interval: Int = 10,
     var autoStop: Boolean = false,
     var autoStopType: AutoStopType = AutoStopType.IMAGE_COUNT,
     var autoStopValue: Int = 100
-) {
+) : Parcelable {
 
     fun saveToFile(context: Context) {
         val encoded = JSON.encodeToString(this)

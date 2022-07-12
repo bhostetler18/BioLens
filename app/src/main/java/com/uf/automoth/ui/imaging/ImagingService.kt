@@ -7,6 +7,7 @@ import android.os.IBinder
 import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -24,19 +25,32 @@ class ImagingService : LifecycleService(), ImageCapturerInterface {
     private val serviceScope = CoroutineScope(SupervisorJob())
     private var imageCapture: ImageCapture? = null
     private var imagingManager: ImagingManager? = null
-    private val locationProvider = SingleLocationProvider(this)
+    private lateinit var locationProvider: SingleLocationProvider
 
     override fun onCreate() {
         Log.d("[SERVICE]", "On create called")
         super.onCreate()
         AutoMothRepository(this, serviceScope)
+        locationProvider = SingleLocationProvider(this)
+        startInForeground()
         IS_RUNNING = true
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("[SERVICE]", "On start command called")
-        startInForeground()
-        // Needed for lifecycle state to be marked correctly
+
+        if (intent != null) {
+            when (intent.action) {
+                ACTION_START_SESSION -> {
+                    intent.getParcelableExtra<ImagingSettings>("IMAGING_SETTINGS")?.let {
+                        startSession(it)
+                    }
+                }
+                ACTION_STOP_SESSION -> stopCurrentSession()
+            }
+        }
+
+        // Needed for lifecycle state to be marked correctly and camera to start
         super.onStartCommand(intent, flags, startId)
         return START_STICKY
     }
@@ -77,10 +91,9 @@ class ImagingService : LifecycleService(), ImageCapturerInterface {
             .build()
 
         startForeground(SERVICE_NOTIFICATION_ID, notification)
-        startCamera()
     }
 
-    private fun startCamera() {
+    private fun startCamera(onInitialize: () -> Unit) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener({
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
@@ -94,10 +107,11 @@ class ImagingService : LifecycleService(), ImageCapturerInterface {
                     cameraSelector,
                     imageCapture
                 )
-                Log.d(TAG, this.lifecycle.currentState.toString())
             } catch (exc: Exception) {
                 Log.e("Camera", "Use case binding failed", exc)
             }
+
+            onInitialize()
         }, ContextCompat.getMainExecutor(this))
     }
 
@@ -116,20 +130,40 @@ class ImagingService : LifecycleService(), ImageCapturerInterface {
         return true
     }
 
-    fun startSession(settings: ImagingSettings) {
-        imagingManager = ImagingManager(settings, WeakReference(this))
-        imagingManager?.start(getString(R.string.default_session_name), locationProvider)
+    override fun onTakePhotoFailed(exception: ImageCaptureException) {
+//        if (exception.imageCaptureError == ImageCapture.ERROR_CAMERA_CLOSED) {
+//            startCamera { }
+//        }
     }
 
-    fun stopCurrentSession() {
+    private fun startSession(settings: ImagingSettings) {
+        if (imagingManager != null) {
+            Log.d(TAG, "Imaging session already in progress")
+            return
+        }
+        startCamera {
+            imagingManager = ImagingManager(settings, WeakReference(this))
+            imagingManager?.start(getString(R.string.default_session_name), locationProvider)
+        }
+    }
+
+    private fun stopCurrentSession() {
         imagingManager?.stop()
         imagingManager = null
+        killService()
+    }
+
+    private fun killService() {
+        stopForeground(true)
+        stopSelf()
     }
 
     companion object {
         const val TAG = "[SERVICE]"
         const val SERVICE_NOTIFICATION_ID: Int = 1297044552
-        const val SERVICE_CHANNEL_ID: String = "com.uf.automoth.serviceNotification"
+        const val SERVICE_CHANNEL_ID: String = "com.uf.automoth.notification.serviceChannel"
+        const val ACTION_START_SESSION = "com.uf.automoth.action.START_SESSION"
+        const val ACTION_STOP_SESSION = "com.uf.automoth.action.STOP_SESSION"
         var IS_RUNNING = false
     }
 }

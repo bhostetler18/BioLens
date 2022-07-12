@@ -1,6 +1,7 @@
 package com.uf.automoth.ui.imaging
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -10,12 +11,14 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.uf.automoth.MainActivity
 import com.uf.automoth.R
 import com.uf.automoth.databinding.FragmentImagingBinding
 import java.io.File
@@ -49,9 +52,14 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
         _binding = FragmentImagingBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        requestPermissionsIfNecessary()
-        binding.startButton.setOnClickListener {
-            startSessionPressed()
+        requestPermissionsIfNecessary {
+            if (!isSessionInProgress()) {
+                startCamera()
+            }
+        }
+
+        binding.captureButton.setOnClickListener {
+            captureButtonPressed()
         }
         binding.intervalButton.setOnClickListener {
             changeIntervalPressed()
@@ -115,11 +123,22 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
         return true
     }
 
-    private fun startSessionPressed() {
-        if (viewModel.imagingManager == null) {
-            startSession()
+    override fun onTakePhotoFailed(exception: ImageCaptureException) {
+    }
+
+    private fun isSessionInProgress(): Boolean {
+        return if (USE_SERVICE) {
+            ImagingService.IS_RUNNING
         } else {
-            finishSession()
+            viewModel.imagingManager == null
+        }
+    }
+
+    private fun captureButtonPressed() {
+        if (isSessionInProgress()) {
+            finishSession(USE_SERVICE)
+        } else {
+            startSession(USE_SERVICE)
         }
     }
 
@@ -133,24 +152,35 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
         dialog.show()
     }
 
-    private fun startSession() {
-//        val intent = Intent(requireContext().applicationContext, ImagingService::class.java)
-//        requireContext().applicationContext.startForegroundService(intent)
-//        return
-
-        setButtonsEnabled(false)
-        binding.startButton.text = getString(R.string.stop_session)
-
-        val manager = ImagingManager(viewModel.imagingSettings, WeakReference(this))
-        viewModel.imagingManager = manager
-        manager.start(getString(R.string.default_session_name), locationProvider)
+    private fun startSession(service: Boolean = false) {
+        binding.captureButton.text = getString(R.string.stop_session)
+        if (service) {
+            val intent = Intent(requireContext().applicationContext, ImagingService::class.java)
+            intent.action = ImagingService.ACTION_START_SESSION
+            intent.putExtra("IMAGING_SETTINGS", viewModel.imagingSettings)
+            requireContext().applicationContext.startForegroundService(intent)
+            (activity as? MainActivity)?.setServiceIndicatorBarVisible(true)
+        } else {
+            setButtonsEnabled(false)
+            val manager = ImagingManager(viewModel.imagingSettings, WeakReference(this))
+            viewModel.imagingManager = manager
+            manager.start(getString(R.string.default_session_name), locationProvider)
+        }
     }
 
-    private fun finishSession() {
-        viewModel.imagingManager?.stop()
-        viewModel.imagingManager = null
-        setButtonsEnabled(true)
-        binding.startButton.text = getString(R.string.start_session)
+    private fun finishSession(service: Boolean = false) {
+        binding.captureButton.text = getString(R.string.start_session)
+        if (service) {
+            val intent = Intent(requireContext().applicationContext, ImagingService::class.java)
+            intent.action = ImagingService.ACTION_STOP_SESSION
+            requireContext().applicationContext.startService(intent)
+            (activity as? MainActivity)?.setServiceIndicatorBarVisible(false)
+            startCamera() // For preview
+        } else {
+            viewModel.imagingManager?.stop()
+            viewModel.imagingManager = null
+            setButtonsEnabled(true)
+        }
     }
 
     private fun setButtonsEnabled(enabled: Boolean) {
@@ -164,15 +194,15 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
         }
     }
 
-    private fun requestPermissionsIfNecessary() {
+    private fun requestPermissionsIfNecessary(onAllPermissionGranted: () -> Unit) {
         if (allPermissionsGranted()) {
-            startCamera()
+            onAllPermissionGranted()
         } else {
             val permissionLauncher = registerForActivityResult(
                 ActivityResultContracts.RequestMultiplePermissions()
             ) { isGranted ->
                 if (isGranted.values.all { it }) {
-                    startCamera()
+                    onAllPermissionGranted
                 } else {
                     warnPermissionsDenied()
                 }
@@ -194,6 +224,19 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
         // TODO: more persistent warning, disable capture button and maybe mention going to settings
     }
 
+    override fun onResume() {
+        super.onResume()
+        refreshUI()
+    }
+
+    private fun refreshUI() {
+        if (isSessionInProgress()) {
+            binding.captureButton.text = getString(R.string.stop_session)
+        } else {
+            binding.captureButton.text = getString(R.string.start_session)
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -206,6 +249,7 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
     }
 
     companion object {
+        private var USE_SERVICE = true
         private val REQUIRED_PERMISSIONS =
             mutableListOf(
                 Manifest.permission.CAMERA,
