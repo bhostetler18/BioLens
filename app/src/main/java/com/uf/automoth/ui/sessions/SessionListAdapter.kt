@@ -15,7 +15,8 @@ import java.time.format.FormatStyle
 class SessionListAdapter : ListAdapter<Session, SessionListAdapter.SessionViewHolder>(SESSION_COMPARATOR) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SessionViewHolder {
-        val binding = SessionListItemBinding.inflate(LayoutInflater.from(parent.context))
+        val inflater = LayoutInflater.from(parent.context)
+        val binding = SessionListItemBinding.inflate(inflater, parent, false)
         return SessionViewHolder(binding)
     }
 

@@ -81,6 +81,10 @@ object AutoMothRepository {
         return imageDatabase.sessionDAO().getImagesInSession(id)
     }
 
+    fun getNumImagesInSession(id: Long): LiveData<Int> {
+        return imageDatabase.sessionDAO().getNumImagesInSession(id)
+    }
+
     fun updateSessionLocation(id: Long, location: Location) = coroutineScope.launch {
         imageDatabase.sessionDAO().updateSessionLocation(id, location.latitude, location.longitude)
     }

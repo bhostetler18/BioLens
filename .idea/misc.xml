@@ -8,7 +8,7 @@
         <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.2045" />
         <entry key="app/src/main/res/drawable/ic_notifications_black_24dp.xml" value="0.2045" />
         <entry key="app/src/main/res/drawable/ic_settings_24.xml" value="0.131" />
-        <entry key="app/src/main/res/layout/activity_image_grid.xml" value="0.1203125" />
+        <entry key="app/src/main/res/layout/activity_image_grid.xml" value="0.2046356201171875" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.1" />
         <entry key="app/src/main/res/layout/activity_session_grid.xml" value="0.1" />
         <entry key="app/src/main/res/layout/content_session_grid.xml" value="0.1203125" />
@@ -18,10 +18,10 @@
         <entry key="app/src/main/res/layout/fragment_imaging.xml" value="0.1614486694335937" />
         <entry key="app/src/main/res/layout/fragment_imaging_settings.xml" value="0.12779541015625" />
         <entry key="app/src/main/res/layout/fragment_info.xml" value="0.1" />
-        <entry key="app/src/main/res/layout/fragment_sessions.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/fragment_sessions.xml" value="0.3067535400390625" />
         <entry key="app/src/main/res/layout/image_grid_item.xml" value="0.1" />
         <entry key="app/src/main/res/layout/imaging_settings.xml" value="0.11574074074074074" />
-        <entry key="app/src/main/res/layout/session_list_item.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/session_list_item.xml" value="0.24616088867187502" />
         <entry key="app/src/main/res/menu/bottom_nav_menu.xml" value="0.2703125" />
         <entry key="app/src/main/res/menu/imaging_menu.xml" value="0.1453125" />
         <entry key="app/src/main/res/menu/session_menu.xml" value="0.1203125" />

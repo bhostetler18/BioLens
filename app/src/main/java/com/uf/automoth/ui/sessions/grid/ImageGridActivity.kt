@@ -35,6 +35,12 @@ class ImageGridActivity : AppCompatActivity() {
             sessions?.let { adapter.submitList(it) }
         }
 
+        AutoMothRepository.getNumImagesInSession(sessionID).observe(this) { count ->
+            val imageString = if (count != 1) getString(R.string.image_plural) else getString(R.string.image_singular)
+
+            binding.imgCount.text = "$count $imageString"
+        }
+
         setSupportActionBar(binding.toolbar)
         setContentView(binding.root)
         supportActionBar?.title = session.name
