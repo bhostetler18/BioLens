@@ -62,7 +62,7 @@ class IntervalDialog(
         } else {
             binding.minuteText.text = ctx.getString(R.string.unit_minutes_singular)
         }
-        if (binding.minutePicker.value != 1) {
+        if (binding.secondPicker.value != 1) {
             binding.secondText.text = ctx.getString(R.string.unit_seconds_plural)
         } else {
             binding.secondText.text = ctx.getString(R.string.unit_seconds_singular)
