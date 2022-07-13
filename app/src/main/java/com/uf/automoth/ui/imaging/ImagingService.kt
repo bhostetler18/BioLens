@@ -3,6 +3,7 @@ package com.uf.automoth.ui.imaging
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.camera.core.CameraSelector
@@ -73,15 +74,16 @@ class ImagingService : LifecycleService(), ImageCapturerInterface {
             PendingIntent.FLAG_IMMUTABLE
         )
 
-        val serviceChannel = NotificationChannel(
-            SERVICE_CHANNEL_ID,
-            getString(R.string.service_notification_channel),
-            NotificationManager.IMPORTANCE_DEFAULT
-        )
-        serviceChannel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        manager.createNotificationChannel(serviceChannel)
+        if (Build.VERSION.SDK_INT >= 26) {
+            val serviceChannel = NotificationChannel(
+                SERVICE_CHANNEL_ID,
+                getString(R.string.service_notification_channel),
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+            serviceChannel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            manager.createNotificationChannel(serviceChannel)
+        }
 
         val notification: Notification = NotificationCompat.Builder(this, SERVICE_CHANNEL_ID)
             .setContentTitle(getText(R.string.service_notification_title))

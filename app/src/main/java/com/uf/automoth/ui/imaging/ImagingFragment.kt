@@ -158,7 +158,7 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
             val intent = Intent(requireContext().applicationContext, ImagingService::class.java)
             intent.action = ImagingService.ACTION_START_SESSION
             intent.putExtra("IMAGING_SETTINGS", viewModel.imagingSettings)
-            requireContext().applicationContext.startForegroundService(intent)
+            ContextCompat.startForegroundService(requireContext().applicationContext, intent)
             (activity as? MainActivity)?.setServiceIndicatorBarVisible(true)
         } else {
             setButtonsEnabled(false)
