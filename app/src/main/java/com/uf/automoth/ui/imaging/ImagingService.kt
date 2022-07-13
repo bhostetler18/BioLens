@@ -44,7 +44,8 @@ class ImagingService : LifecycleService(), ImageCapturerInterface {
             when (intent.action) {
                 ACTION_START_SESSION -> {
                     intent.getParcelableExtra<ImagingSettings>("IMAGING_SETTINGS")?.let {
-                        startSession(it)
+                        val name = intent.getStringExtra("SESSION_NAME")
+                        startSession(name, it)
                     }
                 }
                 ACTION_STOP_SESSION -> stopCurrentSession()
@@ -138,14 +139,16 @@ class ImagingService : LifecycleService(), ImageCapturerInterface {
 //        }
     }
 
-    private fun startSession(settings: ImagingSettings) {
+    private fun startSession(name: String?, settings: ImagingSettings) {
         if (imagingManager != null) {
             Log.d(TAG, "Imaging session already in progress")
             return
         }
         startCamera {
             imagingManager = ImagingManager(settings, WeakReference(this))
-            imagingManager?.start(getString(R.string.default_session_name), locationProvider)
+            imagingManager?.start(
+                name ?: getString(R.string.default_session_name), locationProvider
+            )
         }
     }
 

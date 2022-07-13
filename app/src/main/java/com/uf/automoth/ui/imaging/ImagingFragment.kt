@@ -20,7 +20,9 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.uf.automoth.MainActivity
 import com.uf.automoth.R
+import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.FragmentImagingBinding
+import com.uf.automoth.ui.common.EditTextDialog
 import java.io.File
 import java.lang.ref.WeakReference
 
@@ -138,7 +140,19 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
         if (isSessionInProgress()) {
             finishSession(USE_SERVICE)
         } else {
-            startSession(USE_SERVICE)
+            val editDialog = EditTextDialog(
+                requireContext(),
+                layoutInflater,
+                hint = getString(R.string.session_name_hint),
+                positiveText = getString(R.string.start_session),
+                negativeText = getString(R.string.cancel),
+                positiveListener = { text, dialog ->
+                    startSession(text, USE_SERVICE)
+                    dialog.dismiss()
+                },
+                textValidator = Session::isValid
+            )
+            editDialog.show()
         }
     }
 
@@ -152,19 +166,22 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
         dialog.show()
     }
 
-    private fun startSession(service: Boolean = false) {
+    private fun startSession(name: String?, service: Boolean = false) {
         binding.captureButton.text = getString(R.string.stop_session)
         if (service) {
             val intent = Intent(requireContext().applicationContext, ImagingService::class.java)
             intent.action = ImagingService.ACTION_START_SESSION
             intent.putExtra("IMAGING_SETTINGS", viewModel.imagingSettings)
+            name?.let {
+                intent.putExtra("SESSION_NAME", it)
+            }
             ContextCompat.startForegroundService(requireContext().applicationContext, intent)
             (activity as? MainActivity)?.setServiceIndicatorBarVisible(true)
         } else {
             setButtonsEnabled(false)
             val manager = ImagingManager(viewModel.imagingSettings, WeakReference(this))
             viewModel.imagingManager = manager
-            manager.start(getString(R.string.default_session_name), locationProvider)
+            manager.start(name ?: getString(R.string.default_session_name), locationProvider)
         }
     }
 

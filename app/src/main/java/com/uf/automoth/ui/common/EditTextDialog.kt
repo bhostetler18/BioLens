@@ -5,13 +5,14 @@ import android.content.DialogInterface
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
+import android.view.WindowManager
 import androidx.appcompat.app.AlertDialog
 import com.uf.automoth.databinding.DialogEditTextBinding
 
 class EditTextDialog(
     context: Context,
     inflater: LayoutInflater,
-    title: String,
+    title: String? = null,
     hint: String? = null,
     positiveText: String,
     negativeText: String,
@@ -35,6 +36,8 @@ class EditTextDialog(
             negativeListener(dialog)
         }
         dialog = dialogBuilder.create()
+        textEntry.requestFocus()
+        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
         }
