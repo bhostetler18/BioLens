@@ -32,4 +32,5 @@
     <string name="default_session_name">Untitled session</string>
     <string name="image_plural">images</string>
     <string name="image_singular">image</string>
+    <string name="time_delimiter">:</string>
 </resources>
