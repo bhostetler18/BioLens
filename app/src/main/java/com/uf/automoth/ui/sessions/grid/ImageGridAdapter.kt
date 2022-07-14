@@ -26,7 +26,7 @@ class ImageGridAdapter(val sessionDirectory: File) : ListAdapter<Image, ImageGri
 
         fun bind(image: Image) {
             val file = File(sessionDirectory, image.filename)
-            Glide.with(viewBinding.root.context).load(file).into(viewBinding.image)
+            Glide.with(viewBinding.root.context).load(file).thumbnail(0.5f).into(viewBinding.image)
         }
     }
 
