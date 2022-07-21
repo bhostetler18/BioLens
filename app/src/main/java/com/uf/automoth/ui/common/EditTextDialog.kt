@@ -7,6 +7,7 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.WindowManager
 import androidx.appcompat.app.AlertDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.uf.automoth.databinding.DialogEditTextBinding
 
 class EditTextDialog(
@@ -26,7 +27,7 @@ class EditTextDialog(
         val textEntry = binding.editText
         textEntry.hint = hint
         textEntry.setSingleLine()
-        val dialogBuilder = AlertDialog.Builder(context)
+        val dialogBuilder = MaterialAlertDialogBuilder(context)
         dialogBuilder.setView(binding.root)
         dialogBuilder.setTitle(title)
         dialogBuilder.setPositiveButton(positiveText) { dialog, _ ->

@@ -5,6 +5,7 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.uf.automoth.R
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Session
@@ -92,7 +93,7 @@ class ImageGridActivity : AppCompatActivity() {
     }
 
     private fun deleteCurrentSession() {
-        val dialogBuilder = AlertDialog.Builder(this)
+        val dialogBuilder = MaterialAlertDialogBuilder(this)
         dialogBuilder.setTitle(getString(R.string.warn_delete_session))
         dialogBuilder.setMessage(getString(R.string.warn_permanent_action))
         dialogBuilder.setPositiveButton(getString(R.string.delete)) { dialog, _ ->

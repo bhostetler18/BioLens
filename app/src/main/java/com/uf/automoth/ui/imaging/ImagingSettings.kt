@@ -10,16 +10,15 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.IOException
 
-enum class AutoStopType {
-    TIME, IMAGE_COUNT
+enum class AutoStopMode {
+    OFF, TIME, IMAGE_COUNT
 }
 
 @Serializable
 @Parcelize
 data class ImagingSettings(
     var interval: Int = 10,
-    var autoStop: Boolean = false,
-    var autoStopType: AutoStopType = AutoStopType.IMAGE_COUNT,
+    var autoStopMode: AutoStopMode = AutoStopMode.IMAGE_COUNT,
     var autoStopValue: Int = 100
 ) : Parcelable {
 

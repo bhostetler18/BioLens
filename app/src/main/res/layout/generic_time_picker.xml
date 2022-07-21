@@ -1,25 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="20dp"
+    android:layout_height="wrap_content"
+    tools:parentTag="androidx.constraintlayout.widget.ConstraintLayout"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-
     <LinearLayout
         android:id="@+id/picker_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/unit_container">
-
+        app:layout_constraintTop_toTopOf="parent">
         <NumberPicker
-            android:id="@+id/minute_picker"
+            android:id="@+id/unit1_picker"
             android:layout_width="wrap_content"
-            android:layout_height="100dp"
+            android:layout_height="@dimen/number_picker_height"
             android:layout_weight="1"/>
         <TextView
             android:layout_width="wrap_content"
@@ -29,11 +24,10 @@
             android:gravity="center"
             android:text="@string/time_delimiter"/>
         <NumberPicker
-            android:id="@+id/second_picker"
+            android:id="@+id/unit2_picker"
             android:layout_width="wrap_content"
-            android:layout_height="100dp"
+            android:layout_height="@dimen/number_picker_height"
             android:layout_weight="1"/>
-
     </LinearLayout>
     <LinearLayout
         android:id="@+id/unit_container"
@@ -43,42 +37,27 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/picker_container"
-        app:layout_constraintBottom_toTopOf="@id/size_estimate">
-
+        app:layout_constraintBottom_toBottomOf="parent">
         <TextView
-            android:id="@+id/minute_text"
-            android:layout_width="wrap_content"
+            android:id="@+id/unit1_label"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:gravity="center_horizontal"
             android:layout_weight="1"
-            android:text="@string/unit_minutes_plural"/>
+            tools:text="@string/unit_minutes_plural"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_marginLeft="10dp"
             android:layout_marginRight="10dp"
-            android:gravity="center"
             android:text="@string/time_delimiter"
             android:visibility="invisible"/>
         <TextView
-            android:id="@+id/second_text"
-            android:layout_width="wrap_content"
+            android:id="@+id/unit2_label"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:gravity="center_horizontal"
             android:layout_weight="1"
-            android:text="@string/unit_seconds_plural"/>
+            tools:text="@string/unit_seconds_plural"/>
     </LinearLayout>
-    <TextView
-        android:id="@+id/size_estimate"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:paddingTop="10dp"
-        android:gravity="center_horizontal"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/unit_container"
-        app:layout_constraintBottom_toBottomOf="parent"
-        tools:text="~10MB per hour"/>
-
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</merge>

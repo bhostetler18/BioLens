@@ -18,7 +18,7 @@
     <string name="cancel">Cancel</string>
     <string name="rename">Rename</string>
     <string name="rename_session">Rename session</string>
-    <string name="choose_interval">Choose Imaging Interval</string>
+    <string name="interval_dialog_title">Imaging Interval</string>
     <string name="OK">OK</string>
     <string name="unit_minutes_plural">minutes</string>
     <string name="unit_seconds_plural">seconds</string>
@@ -33,4 +33,12 @@
     <string name="image_plural">images</string>
     <string name="image_singular">image</string>
     <string name="time_delimiter">:</string>
+    <string name="auto_stop_image">Count</string>
+    <string name="auto_stop_time">Time</string>
+    <string name="auto_stop_never">Never</string>
+    <string name="autostop_dialog_title">Auto-Stop Settings</string>
+    <string name="auto_stop_off_description">The session will continue until it is stopped manually or your device runs out of battery.</string>
+    <string name="unit_hours_singular">hour</string>
+    <string name="unit_hours_plural">hours</string>
+    <string name="per_session">per session</string>
 </resources>

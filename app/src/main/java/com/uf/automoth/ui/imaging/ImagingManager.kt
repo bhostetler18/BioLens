@@ -12,12 +12,14 @@ import java.io.File
 import java.lang.ref.WeakReference
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
 
 class ImagingManager(
     private val settings: ImagingSettings,
-    private val capturer: WeakReference<ImageCapturerInterface>
+    private val capturer: WeakReference<ImageCapturerInterface>,
+    private val onAutoStopCallback: (() -> Unit)? = null
 ) : ImageCapture.OnImageSavedCallback {
     private lateinit var session: Session
     private var timer: Timer? = null
@@ -47,8 +49,9 @@ class ImagingManager(
 
         val milliseconds: Long = settings.interval * 1000L
         timer = fixedRateTimer(TAG, false, 0, milliseconds) {
-            if (shouldStop()) {
+            if (shouldAutoStop()) {
                 stop()
+                onAutoStopCallback?.invoke()
             } else {
                 val capturer = capturer.get()
                 if (capturer == null ||
@@ -73,6 +76,10 @@ class ImagingManager(
         AutoMothRepository.insert(image)
         Log.d(TAG, "Image captured at $file")
         imagesTaken++
+        if (shouldAutoStop()) {
+            stop()
+            onAutoStopCallback?.invoke()
+        }
     }
 
     override fun onError(exception: ImageCaptureException) {
@@ -81,11 +88,15 @@ class ImagingManager(
 //        capturer.get()?.onTakePhotoFailed(exception)
     }
 
-    private fun shouldStop(): Boolean {
-        if (!settings.autoStop) { return false }
-        return when (settings.autoStopType) {
-            AutoStopType.IMAGE_COUNT -> imagesTaken == settings.autoStopValue
-            AutoStopType.TIME -> false // TODO: implement
+    private fun shouldAutoStop(): Boolean {
+        return when (settings.autoStopMode) {
+            AutoStopMode.OFF -> false
+            AutoStopMode.IMAGE_COUNT -> imagesTaken == settings.autoStopValue
+            AutoStopMode.TIME -> {
+                val now = OffsetDateTime.now()
+                val minutesPassed = session.started.until(now, ChronoUnit.MINUTES)
+                return minutesPassed >= settings.autoStopValue
+            }
         }
     }
 

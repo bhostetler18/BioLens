@@ -145,9 +145,12 @@ class ImagingService : LifecycleService(), ImageCapturerInterface {
             return
         }
         startCamera {
-            imagingManager = ImagingManager(settings, WeakReference(this))
+            imagingManager = ImagingManager(settings, WeakReference(this)) {
+                killService()
+            }
             imagingManager?.start(
-                name ?: getString(R.string.default_session_name), locationProvider
+                name ?: getString(R.string.default_session_name),
+                locationProvider
             )
         }
     }

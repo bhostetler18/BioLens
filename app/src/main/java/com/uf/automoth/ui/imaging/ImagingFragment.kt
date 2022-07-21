@@ -66,8 +66,10 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
         binding.intervalButton.setOnClickListener {
             changeIntervalPressed()
         }
-//        binding.cameraPreview.scaleType = PreviewView.ScaleType.FIT_CENTER
-//        binding.cameraPreview.rotation = 0F
+        binding.autoStopButton.setOnClickListener {
+            changeAutoStopPressed()
+        }
+
         return root
     }
 
@@ -132,7 +134,7 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
         return if (USE_SERVICE) {
             ImagingService.IS_RUNNING
         } else {
-            viewModel.imagingManager == null
+            viewModel.imagingManager != null
         }
     }
 
@@ -166,6 +168,21 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
         dialog.show()
     }
 
+    private fun changeAutoStopPressed() {
+        val dialog = AutoStopDialog(
+            requireContext(),
+            layoutInflater,
+            viewModel.imagingSettings,
+            estimatedImageSizeInBytes()
+        ) { mode, value ->
+            viewModel.imagingSettings.autoStopMode = mode
+            value?.let {
+                viewModel.imagingSettings.autoStopValue = it
+            }
+        }
+        dialog.show()
+    }
+
     private fun startSession(name: String?, service: Boolean = false) {
         binding.captureButton.text = getString(R.string.stop_session)
         if (service) {
@@ -192,7 +209,7 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
             intent.action = ImagingService.ACTION_STOP_SESSION
             requireContext().applicationContext.startService(intent)
             (activity as? MainActivity)?.setServiceIndicatorBarVisible(false)
-            startCamera() // For preview
+            startCamera() // Restart preview
         } else {
             viewModel.imagingManager?.stop()
             viewModel.imagingManager = null
@@ -219,7 +236,7 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
                 ActivityResultContracts.RequestMultiplePermissions()
             ) { isGranted ->
                 if (isGranted.values.all { it }) {
-                    onAllPermissionGranted
+                    onAllPermissionGranted()
                 } else {
                     warnPermissionsDenied()
                 }
