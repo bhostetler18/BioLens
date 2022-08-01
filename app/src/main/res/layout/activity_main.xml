@@ -15,7 +15,7 @@
         app:layout_constraintTop_toTopOf="parent"
         android:background="?attr/colorPrimary"
         android:elevation="4dp"
-        android:theme="@style/AppToolbar"
+        android:theme="@style/AutoMoth.AppToolbar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"  />
     <LinearLayout
         android:id="@+id/active_service_bar"

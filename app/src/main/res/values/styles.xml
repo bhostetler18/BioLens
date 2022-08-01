@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+<!--    TODO: create TextAppearance properly-->
     <style name="title">
 <!--        <item name="android:textAppearance">@android:style/TextAppearance.Large</item>-->
         <item name="android:textSize">20sp</item>
@@ -11,7 +12,7 @@
         <item name="android:textColor">@color/dark_grey</item>
     </style>
 
-    <style name="AppToolbar" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+    <style name="AutoMoth.AppToolbar" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
         <item name="android:textColorPrimary">@android:color/white</item>
         <item name="android:textColorSecondary">@android:color/white</item>
         <item name="colorOnPrimary">@android:color/white</item>

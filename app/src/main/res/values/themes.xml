@@ -16,12 +16,11 @@
 
     </style>
 
-    <style name="Theme.AutoMoth.NoActionBar">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
+    <!--    Splash screen -->
+    <style name="Theme.AutoMoth.SplashScreen" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.AutoMoth</item>
+        <item name="windowSplashScreenBackground">@color/ic_launcher_background</item>
     </style>
 
-    <style name="Theme.AutoMoth.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-
-    <style name="Theme.AutoMoth.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>
