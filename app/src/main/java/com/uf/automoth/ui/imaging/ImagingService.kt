@@ -13,6 +13,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.MutableLiveData
 import com.uf.automoth.MainActivity
 import com.uf.automoth.R
 import com.uf.automoth.data.AutoMothRepository
@@ -34,7 +35,7 @@ class ImagingService : LifecycleService(), ImageCapturerInterface {
         AutoMothRepository(this, serviceScope)
         locationProvider = SingleLocationProvider(this)
         startInForeground()
-        IS_RUNNING = true
+        IS_RUNNING.postValue(true)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -63,7 +64,7 @@ class ImagingService : LifecycleService(), ImageCapturerInterface {
 
     override fun onDestroy() {
         Log.d("[SERVICE]", "On destroy called")
-        IS_RUNNING = false
+        IS_RUNNING.postValue(false)
         super.onDestroy()
     }
 
@@ -172,6 +173,6 @@ class ImagingService : LifecycleService(), ImageCapturerInterface {
         const val SERVICE_CHANNEL_ID: String = "com.uf.automoth.notification.serviceChannel"
         const val ACTION_START_SESSION = "com.uf.automoth.action.START_SESSION"
         const val ACTION_STOP_SESSION = "com.uf.automoth.action.STOP_SESSION"
-        var IS_RUNNING = false
+        val IS_RUNNING = MutableLiveData(false)
     }
 }

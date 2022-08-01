@@ -37,6 +37,10 @@ class MainActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+
+        ImagingService.IS_RUNNING.observe(this) { isRunning ->
+            setServiceIndicatorBarVisible(isRunning)
+        }
     }
 
     override fun onResume() {
@@ -50,7 +54,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun refreshUI() {
-        setServiceIndicatorBarVisible(ImagingService.IS_RUNNING)
+        setServiceIndicatorBarVisible(ImagingService.IS_RUNNING.value ?: false)
     }
 
     fun setServiceIndicatorBarVisible(visible: Boolean) {

@@ -70,6 +70,15 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
             changeAutoStopPressed()
         }
 
+        // Though unlikely, this ensures that the UI will display correctly if the user has it open
+        // and is watching while a background service session auto-stops.
+        ImagingService.IS_RUNNING.observe(viewLifecycleOwner) { isRunning ->
+            if (!isRunning) {
+                binding.captureButton.text = getString(R.string.start_session)
+                startCamera() // Restart preview
+            }
+        }
+
         return root
     }
 
@@ -132,7 +141,7 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
 
     private fun isSessionInProgress(): Boolean {
         return if (USE_SERVICE) {
-            ImagingService.IS_RUNNING
+            ImagingService.IS_RUNNING.value ?: false
         } else {
             viewModel.imagingManager != null
         }

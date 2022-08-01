@@ -12,7 +12,7 @@
         <entry key="app/src/main/res/drawable/ic_notifications_black_24dp.xml" value="0.2045" />
         <entry key="app/src/main/res/drawable/ic_settings_24.xml" value="0.131" />
         <entry key="app/src/main/res/layout/activity_image_grid.xml" value="0.2046356201171875" />
-        <entry key="app/src/main/res/layout/activity_main.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.10156097412109376" />
         <entry key="app/src/main/res/layout/activity_session_grid.xml" value="0.1" />
         <entry key="app/src/main/res/layout/content_session_grid.xml" value="0.1203125" />
         <entry key="app/src/main/res/layout/dialog_auto_stop.xml" value="0.15058898925781256" />
