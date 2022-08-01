@@ -3,8 +3,9 @@ package com.uf.automoth.ui.sessions.grid
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.asLiveData
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.uf.automoth.R
 import com.uf.automoth.data.AutoMothRepository
@@ -16,7 +17,7 @@ import kotlinx.coroutines.runBlocking
 import java.io.File
 
 class ImageGridActivity : AppCompatActivity() {
-    private lateinit var session: Session
+    private lateinit var viewModel: ImageGridViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,19 +25,21 @@ class ImageGridActivity : AppCompatActivity() {
         val binding = ActivityImageGridBinding.inflate(layoutInflater)
 
         val sessionID = intent.extras?.get("SESSION") as? Long ?: return
-        session = runBlocking(Dispatchers.IO) {
+        val session = runBlocking(Dispatchers.IO) {
             AutoMothRepository.getSession(sessionID)
         }
-
         val sessionDirectory = File(AutoMothRepository.storageLocation, session.directory)
+
+        viewModel = ViewModelProvider(this, ImageGridViewModel.ImageGridViewModelFactory(session))[ImageGridViewModel::class.java]
+
         val adapter = ImageGridAdapter(sessionDirectory)
         binding.imageGrid.adapter = adapter
 
-        AutoMothRepository.getImagesInSession(sessionID).observe(this) { sessions ->
-            sessions?.let { adapter.submitList(it) }
+        viewModel.allImages.observe(this) { images ->
+            images?.let { adapter.submitList(it) }
         }
 
-        AutoMothRepository.getNumImagesInSession(sessionID).observe(this) { count ->
+        AutoMothRepository.getNumImagesInSession(sessionID).asLiveData().observe(this) { count ->
             val imageString = if (count != 1) getString(R.string.image_plural) else getString(R.string.image_singular)
 
             binding.imgCount.text = "$count $imageString"
@@ -79,11 +82,11 @@ class ImageGridActivity : AppCompatActivity() {
             this,
             layoutInflater,
             title = getString(R.string.rename_session),
-            hint = session.name,
+            hint = viewModel.session.name,
             positiveText = getString(R.string.rename),
             negativeText = getString(R.string.cancel),
             positiveListener = { text, dialog ->
-                AutoMothRepository.renameSession(session.sessionID, text)
+                AutoMothRepository.renameSession(viewModel.session.sessionID, text)
                 supportActionBar?.title = text
                 dialog.dismiss()
             },
@@ -97,7 +100,7 @@ class ImageGridActivity : AppCompatActivity() {
         dialogBuilder.setTitle(getString(R.string.warn_delete_session))
         dialogBuilder.setMessage(getString(R.string.warn_permanent_action))
         dialogBuilder.setPositiveButton(getString(R.string.delete)) { dialog, _ ->
-            AutoMothRepository.delete(session)
+            AutoMothRepository.delete(viewModel.session)
             dialog.dismiss()
             this.finish()
         }

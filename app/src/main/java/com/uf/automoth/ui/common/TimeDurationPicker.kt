@@ -10,7 +10,7 @@ import com.uf.automoth.databinding.GenericTimePickerBinding
 class TimeDurationPicker(context: Context, attrs: AttributeSet?) :
     ConstraintLayout(context, attrs) {
 
-    constructor(context: Context): this(context, null)
+    constructor(context: Context) : this(context, null)
 
     enum class DurationMode {
         HHMM, MMSS
@@ -60,13 +60,13 @@ class TimeDurationPicker(context: Context, attrs: AttributeSet?) :
     }
 
     fun setUnits(mode: DurationMode) {
-        when(mode) {
+        when (mode) {
             DurationMode.HHMM -> {
                 setUnits(
                     context.getString(R.string.unit_hours_singular),
                     context.getString(R.string.unit_hours_plural),
                     context.getString(R.string.unit_minutes_singular),
-                    context.getString(R.string.unit_minutes_plural),
+                    context.getString(R.string.unit_minutes_plural)
                 )
             }
 

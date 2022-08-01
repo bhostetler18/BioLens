@@ -3,10 +3,10 @@ package com.uf.automoth.data
 import android.content.Context
 import android.location.Location
 import android.util.Log
-import androidx.lifecycle.LiveData
 import androidx.room.Room
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -77,11 +77,11 @@ object AutoMothRepository {
 
     fun getSession(id: Long): Session = imageDatabase.sessionDAO().getSession(id)
 
-    fun getImagesInSession(id: Long): LiveData<List<Image>> {
+    fun getImagesInSession(id: Long): Flow<List<Image>> {
         return imageDatabase.sessionDAO().getImagesInSession(id)
     }
 
-    fun getNumImagesInSession(id: Long): LiveData<Int> {
+    fun getNumImagesInSession(id: Long): Flow<Int> {
         return imageDatabase.sessionDAO().getNumImagesInSession(id)
     }
 

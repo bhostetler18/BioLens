@@ -2,9 +2,7 @@
 plugins {
     id 'com.android.application' version '7.2.1' apply false
     id 'com.android.library' version '7.2.1' apply false
-    // TODO: update kotlin version at some point. However, Room with Coroutines doesn't like new versions...
-    // see https://androidwithdivya.wordpress.com/2021/07/01/room-error-type-of-the-parameter-must-be-a-class-annotated-with-entity-or-a-collection-array-of-it/
-    id 'org.jetbrains.kotlin.android' version '1.6.0' apply false
+    id 'org.jetbrains.kotlin.android' version '1.7.0' apply false
 }
 
 task clean(type: Delete) {
