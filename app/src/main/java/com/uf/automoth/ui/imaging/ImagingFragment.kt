@@ -96,7 +96,6 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
             imageCapture = ImageCapture.Builder().build()
 
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
             try {
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(
@@ -113,7 +112,7 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
 
     // TODO: this is a placeholder – should probably take a test image for a better estimate
     private fun estimatedImageSizeInBytes(): Double {
-        val resolution = imageCapture?.attachedSurfaceResolution ?: return 0.0
+        val resolution = imageCapture?.resolutionInfo?.resolution ?: return 0.0
         val pixels = resolution.height * resolution.width
         val bytes = 24.0 * pixels / 8.0 // 8 bits each for RGB channels
         val avgCompression = 9.88 // see https://www.graphicsmill.com/blog/2014/11/06/Compression-ratio-for-different-JPEG-quality-values
