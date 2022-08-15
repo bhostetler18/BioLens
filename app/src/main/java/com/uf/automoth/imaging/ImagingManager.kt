@@ -9,8 +9,6 @@ import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Image
 import com.uf.automoth.data.Session
 import com.uf.automoth.network.SingleLocationProvider
-import com.uf.automoth.ui.imaging.AutoStopMode
-import com.uf.automoth.ui.imaging.ImagingSettings
 import java.io.File
 import java.lang.ref.WeakReference
 import java.time.OffsetDateTime
@@ -22,11 +20,15 @@ import kotlin.concurrent.fixedRateTimer
 class ImagingManager(
     private val settings: ImagingSettings,
     private val imageCapture: WeakReference<ImageCaptureInterface>,
+    private val maxCameraRestarts: Int = DEFAULT_MAX_RESTART_COUNT,
     private val onAutoStopCallback: (() -> Unit)? = null
 ) : ImageCapture.OnImageSavedCallback {
     private lateinit var session: Session
     private var timer: Timer? = null
+    private var imageRequestNumber: Int = 0
     private var imagesTaken: Int = 0
+    private var cameraRestartCount: Int = 0
+
     private val sessionDirectory by lazy {
         File(AutoMothRepository.storageLocation, session.directory)
     }
@@ -61,13 +63,12 @@ class ImagingManager(
         timer = fixedRateTimer(TAG, false, initialDelay, milliseconds) {
             if (shouldAutoStop()) {
                 stop()
-                onAutoStopCallback?.invoke()
             } else {
                 val capture = imageCapture.get()
-                if (capture == null ||
-                    !capture.takePhoto(getUniqueFile(), this@ImagingManager)
-                ) {
-                    Log.d(TAG, "Failed to capture image; stopping session")
+                if (capture != null && !capture.isRestartingCamera.get()) {
+                    capture.takePhoto(getUniqueFile(), this@ImagingManager)
+                } else {
+                    Log.d(TAG, "Image capture was garbage collected, stopping session")
                     stop()
                 }
             }
@@ -77,7 +78,12 @@ class ImagingManager(
     fun stop() {
         val end = OffsetDateTime.now()
         timer?.cancel()
+        timer = null
         AutoMothRepository.updateSessionCompletion(session.sessionID, end)
+        onAutoStopCallback?.invoke()
+        imagesTaken = 0
+        imageRequestNumber = 0
+        cameraRestartCount = 0
     }
 
     override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
@@ -88,14 +94,41 @@ class ImagingManager(
         imagesTaken++
         if (shouldAutoStop()) {
             stop()
-            onAutoStopCallback?.invoke()
         }
     }
 
     override fun onError(exception: ImageCaptureException) {
         Log.d(TAG, "Image failed to capture: " + exception.localizedMessage)
-        // TODO: implement below
-//        capturer.get()?.onTakePhotoFailed(exception)
+        when (exception.imageCaptureError) {
+            ImageCapture.ERROR_CAMERA_CLOSED,
+            ImageCapture.ERROR_INVALID_CAMERA,
+            ImageCapture.ERROR_CAPTURE_FAILED -> {
+                tryRestartCamera()
+            }
+            ImageCapture.ERROR_UNKNOWN, ImageCapture.ERROR_FILE_IO -> {
+                Log.d(TAG, "Stopping session due to ${exception.localizedMessage}")
+                stop()
+            }
+        }
+    }
+
+    private fun tryRestartCamera() {
+        val capture = imageCapture.get() ?: run {
+            Log.d(TAG, "Failed to restart camera; image capture was garbage collected")
+            stop()
+            return
+        }
+
+        if (capture.isRestartingCamera.get()) {
+            Log.d(TAG, "Camera restart requested while camera was already restarting")
+        } else if (cameraRestartCount < maxCameraRestarts) {
+            cameraRestartCount++
+            Log.d(TAG, "Attempting to restart camera: attempt #$cameraRestartCount")
+            capture.restartCamera()
+        } else {
+            Log.d(TAG, "Camera restart unsuccessful; stopping session")
+            stop()
+        }
     }
 
     private fun shouldAutoStop(): Boolean {
@@ -111,11 +144,12 @@ class ImagingManager(
     }
 
     private fun getUniqueFile(): File {
-        return File(sessionDirectory, "img${imagesTaken + 1}.jpg")
+        return File(sessionDirectory, "img${++imageRequestNumber}.jpg")
     }
 
     companion object {
         const val TAG = "[IMAGING]"
+        const val DEFAULT_MAX_RESTART_COUNT = 3
         private val formatter: DateTimeFormatter =
             DateTimeFormatter.ofPattern("yyyy_MM_dd_kk_mm_ss_SSSS")
 

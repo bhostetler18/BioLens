@@ -11,7 +11,6 @@ import android.os.Build
 import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -22,22 +21,23 @@ import com.uf.automoth.MainActivity
 import com.uf.automoth.R
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.network.SingleLocationProvider
-import com.uf.automoth.ui.imaging.ImagingSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import java.io.File
 import java.lang.ref.WeakReference
+import java.util.concurrent.atomic.AtomicBoolean
 
 class ImagingService : LifecycleService(), ImageCaptureInterface {
 
     private val serviceScope = CoroutineScope(SupervisorJob())
-    private var imageCapture: ImageCapture? = null
+    private var imageCapture: ImageCapture = ImageCapture.Builder().build()
     private var imagingManager: ImagingManager? = null
+    override var isRestartingCamera = AtomicBoolean(false)
     private lateinit var locationProvider: SingleLocationProvider
 
     override fun onCreate() {
-        Log.d("[SERVICE]", "On create called")
+        Log.d(TAG, "On create called")
         super.onCreate()
         AutoMothRepository(this, serviceScope)
         locationProvider = SingleLocationProvider(this)
@@ -46,7 +46,7 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d("[SERVICE]", "On start command called")
+        Log.d(TAG, "On start command called")
 
         if (intent != null) {
             when (intent.action) {
@@ -56,7 +56,10 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
                         startSession(name, it)
                     }
                 }
-                ACTION_STOP_SESSION -> stopCurrentSession()
+                ACTION_STOP_SESSION -> {
+                    Log.d(TAG, "Stopping current session")
+                    stopCurrentSessionAndKillService()
+                }
             }
         }
 
@@ -66,7 +69,7 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
     }
 
     override fun onDestroy() {
-        Log.d("[SERVICE]", "On destroy called")
+        Log.d(TAG, "On destroy called")
         IS_RUNNING.postValue(false)
         super.onDestroy()
     }
@@ -121,11 +124,13 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(
                     this,
-                    cameraSelector,
-                    imageCapture
+                    cameraSelector
+//                    imageCapture
                 )
             } catch (exc: Exception) {
-                Log.e("Camera", "Use case binding failed", exc)
+                Log.e(TAG, "Image capture use case binding failed", exc)
+                stopCurrentSessionAndKillService()
+                return@addListener
             }
 
             onInitialize()
@@ -135,9 +140,7 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
     override fun takePhoto(
         saveLocation: File,
         onSaved: ImageCapture.OnImageSavedCallback
-    ): Boolean {
-        val imageCapture = imageCapture ?: return false
-
+    ) {
         val outputOptions = ImageCapture.OutputFileOptions
             .Builder(saveLocation)
             .build()
@@ -147,13 +150,17 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
             ContextCompat.getMainExecutor(this),
             onSaved
         )
-        return true
     }
 
-    override fun onTakePhotoFailed(exception: ImageCaptureException) {
-//        if (exception.imageCaptureError == ImageCapture.ERROR_CAMERA_CLOSED) {
-//            startCamera { }
-//        }
+    override fun restartCamera() {
+        if (isRestartingCamera.get()) {
+            return
+        }
+        isRestartingCamera.set(true)
+        startCamera {
+            Log.d(TAG, "Camera was restarted")
+            isRestartingCamera.set(false)
+        }
     }
 
     private fun startSession(name: String?, settings: ImagingSettings) {
@@ -175,7 +182,7 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
         }
     }
 
-    private fun stopCurrentSession() {
+    private fun stopCurrentSessionAndKillService() {
         imagingManager?.stop()
         imagingManager = null
         killService()

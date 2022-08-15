@@ -11,7 +11,6 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
-import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
@@ -27,11 +26,13 @@ import com.uf.automoth.databinding.FragmentImagingBinding
 import com.uf.automoth.imaging.ImageCaptureInterface
 import com.uf.automoth.imaging.ImagingManager
 import com.uf.automoth.imaging.ImagingService
+import com.uf.automoth.imaging.ImagingSettings
 import com.uf.automoth.network.SingleLocationProvider
 import com.uf.automoth.ui.common.EditTextDialog
 import kotlinx.coroutines.launch
 import java.io.File
 import java.lang.ref.WeakReference
+import java.util.concurrent.atomic.AtomicBoolean
 
 class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
 
@@ -40,7 +41,9 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
 
     private var menu: Menu? = null
     private lateinit var locationProvider: SingleLocationProvider
-    private var imageCapture: ImageCapture? = null
+    private var imageCapture = ImageCapture.Builder().build()
+
+    override var isRestartingCamera = AtomicBoolean(false)
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -135,39 +138,38 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
             } catch (exc: Exception) {
                 Log.e("Camera", "Use case binding failed", exc)
             }
+            isRestartingCamera.set(false)
         }, ContextCompat.getMainExecutor(requireContext()))
     }
 
     // TODO: this is a placeholder – should probably take a test image for a better estimate
     private fun estimatedImageSizeInBytes(): Double {
-        val resolution = imageCapture?.resolutionInfo?.resolution ?: return 0.0
+        val resolution = imageCapture.resolutionInfo?.resolution ?: return 0.0
         val pixels = resolution.height * resolution.width
         val bytes = 24.0 * pixels / 8.0 // 8 bits each for RGB channels
-        val avgCompression =
-            9.88 // see https://www.graphicsmill.com/blog/2014/11/06/Compression-ratio-for-different-JPEG-quality-values
+        // see https://www.graphicsmill.com/blog/2014/11/06/Compression-ratio-for-different-JPEG-quality-values
+        val avgCompression = 9.88
         return bytes / avgCompression
     }
 
     override fun takePhoto(
         saveLocation: File,
         onSaved: ImageCapture.OnImageSavedCallback
-    ): Boolean {
-        val imageCapture = imageCapture ?: return false
-        val context = context ?: return false
-
+    ) {
         val outputOptions = ImageCapture.OutputFileOptions
             .Builder(saveLocation)
             .build()
 
         imageCapture.takePicture(
             outputOptions,
-            ContextCompat.getMainExecutor(context),
+            ContextCompat.getMainExecutor(requireContext()),
             onSaved
         )
-        return true
     }
 
-    override fun onTakePhotoFailed(exception: ImageCaptureException) {
+    override fun restartCamera() {
+        isRestartingCamera.set(true)
+        startCamera()
     }
 
     private fun isSessionInProgress(): Boolean {

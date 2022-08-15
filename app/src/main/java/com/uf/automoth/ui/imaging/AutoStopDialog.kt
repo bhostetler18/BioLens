@@ -15,6 +15,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.uf.automoth.R
 import com.uf.automoth.databinding.DialogAutoStopBinding
 import com.uf.automoth.databinding.GenericNumberEntryBinding
+import com.uf.automoth.imaging.AutoStopMode
+import com.uf.automoth.imaging.ImagingSettings
 import com.uf.automoth.ui.common.TimeDurationPicker
 
 class AutoStopDialog(

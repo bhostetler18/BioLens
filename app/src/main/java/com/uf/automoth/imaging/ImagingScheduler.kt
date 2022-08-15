@@ -2,7 +2,6 @@ package com.uf.automoth.imaging
 
 import android.app.AlarmManager
 import android.content.Context
-import com.uf.automoth.ui.imaging.ImagingSettings
 
 class ImagingScheduler {
 

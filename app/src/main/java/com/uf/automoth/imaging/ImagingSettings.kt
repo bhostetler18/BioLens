@@ -1,4 +1,4 @@
-package com.uf.automoth.ui.imaging
+package com.uf.automoth.imaging
 
 import android.content.Context
 import android.os.Parcelable
