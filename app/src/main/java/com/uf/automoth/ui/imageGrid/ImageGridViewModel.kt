@@ -1,4 +1,4 @@
-package com.uf.automoth.ui.sessions.grid
+package com.uf.automoth.ui.imageGrid
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

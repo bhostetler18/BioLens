@@ -21,6 +21,7 @@
         <entry key="app/src/main/res/layout/activity_image_viewer.xml" value="0.13854166666666667" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.10156097412109376" />
         <entry key="app/src/main/res/layout/activity_session_grid.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/app_bar.xml" value="0.11837606837606837" />
         <entry key="app/src/main/res/layout/content_session_grid.xml" value="0.1203125" />
         <entry key="app/src/main/res/layout/dialog_auto_stop.xml" value="0.15058898925781256" />
         <entry key="app/src/main/res/layout/dialog_edit_text.xml" value="0.11927083333333334" />
@@ -31,6 +32,7 @@
         <entry key="app/src/main/res/layout/fragment_imaging_settings.xml" value="0.12779541015625" />
         <entry key="app/src/main/res/layout/fragment_info.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_sessions.xml" value="0.22179487179487178" />
+        <entry key="app/src/main/res/layout/generic_number_entry.xml" value="0.11923076923076924" />
         <entry key="app/src/main/res/layout/generic_number_picker.xml" value="0.16270751953125004" />
         <entry key="app/src/main/res/layout/generic_time_picker.xml" value="0.23541870117187502" />
         <entry key="app/src/main/res/layout/image_grid_item.xml" value="0.1" />

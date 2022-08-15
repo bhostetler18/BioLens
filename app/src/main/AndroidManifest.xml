@@ -44,10 +44,10 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.sessions.grid.ImageGridActivity"
+            android:name="com.uf.automoth.ui.imageGrid.ImageGridActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.sessions.ImageViewerActivity"
+            android:name=".ui.imageView.ImageViewerActivity"
             android:exported="false" />
 
         <meta-data

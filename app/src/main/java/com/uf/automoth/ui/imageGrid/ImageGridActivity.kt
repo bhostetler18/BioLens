@@ -1,4 +1,4 @@
-package com.uf.automoth.ui.sessions.grid
+package com.uf.automoth.ui.imageGrid
 
 import android.content.Context
 import android.os.Bundle
@@ -68,7 +68,7 @@ class ImageGridActivity : AppCompatActivity(), GoogleDriveSignInActivity {
                     binding.imgCount.text = "$count $imageString"
                 }
 
-            setSupportActionBar(binding.toolbar)
+            setSupportActionBar(binding.appBar.toolbar)
             setContentView(binding.root)
             supportActionBar?.title = session.name
             supportActionBar?.setDisplayHomeAsUpEnabled(true)

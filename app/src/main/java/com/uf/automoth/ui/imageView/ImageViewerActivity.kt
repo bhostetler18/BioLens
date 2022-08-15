@@ -1,6 +1,7 @@
-package com.uf.automoth.ui.sessions
+package com.uf.automoth.ui.imageView
 
 import android.os.Bundle
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
@@ -9,6 +10,8 @@ import com.uf.automoth.data.Image
 import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.ActivityImageViewerBinding
 import kotlinx.coroutines.launch
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 class ImageViewerActivity : AppCompatActivity() {
 
@@ -20,6 +23,12 @@ class ImageViewerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         binding = ActivityImageViewerBinding.inflate(layoutInflater)
+        setSupportActionBar(binding.appBar.toolbar)
+        setContentView(binding.root)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = ""
+        setContentView(binding.root)
+
         lifecycleScope.launch {
             // TODO: show loading indicator while this runs?
             val imageID = intent.extras?.get("IMAGE") as? Long ?: -1
@@ -32,8 +41,6 @@ class ImageViewerActivity : AppCompatActivity() {
                 displayError()
             }
         }
-
-        setContentView(binding.root)
     }
 
     private fun setData(image: Image, session: Session) {
@@ -44,9 +51,25 @@ class ImageViewerActivity : AppCompatActivity() {
 //        binding.imageview.setImageBitmap(BitmapFactory.decodeFile(file.path))
 //        binding.imageview.setImageURI(file.toUri())
         binding.imageview.setImageURI(file.toUri())
+        supportActionBar?.title = dateFormatter.format(image.timestamp)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                true
+            }
+            else -> false
+        }
     }
 
     private fun displayError() {
         TODO("Implement image/session not found error screen")
+    }
+
+    companion object {
+        val dateFormatter: DateTimeFormatter =
+            DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
     }
 }

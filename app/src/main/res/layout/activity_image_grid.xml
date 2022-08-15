@@ -4,17 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.sessions.grid.ImageGridActivity">
+    tools:context=".ui.imageGrid.ImageGridActivity">
 
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
-        android:elevation="4dp"
-        android:theme="@style/AutoMoth.AppToolbar"
-        app:layout_constraintTop_toTopOf="parent"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+    <include
+        layout="@layout/app_bar"
+        android:id="@+id/app_bar"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/image_grid"
@@ -26,7 +20,7 @@
         app:layout_constraintBottom_toTopOf="@id/info_bar"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintTop_toBottomOf="@id/app_bar"
         app:spanCount="3" />
 
     <LinearLayout

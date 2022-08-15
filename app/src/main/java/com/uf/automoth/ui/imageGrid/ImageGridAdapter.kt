@@ -1,4 +1,4 @@
-package com.uf.automoth.ui.sessions.grid
+package com.uf.automoth.ui.imageGrid
 
 import android.content.Intent
 import android.view.LayoutInflater
@@ -11,7 +11,7 @@ import com.uf.automoth.data.Image
 import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.ImageGridItemBinding
 import com.uf.automoth.ui.common.GlideApp
-import com.uf.automoth.ui.sessions.ImageViewerActivity
+import com.uf.automoth.ui.imageView.ImageViewerActivity
 
 class ImageGridAdapter(val session: Session) :
     ListAdapter<Image, ImageGridAdapter.ImageViewHolder>(DiffCallback) {

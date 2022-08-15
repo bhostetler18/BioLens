@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setSupportActionBar(binding.mainToolbar)
+        setSupportActionBar(binding.appBar.toolbar)
 
         val navView: BottomNavigationView = binding.bottomNavBar
 

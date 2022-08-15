@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.SessionListItemBinding
-import com.uf.automoth.ui.sessions.grid.ImageGridActivity
+import com.uf.automoth.ui.imageGrid.ImageGridActivity
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
