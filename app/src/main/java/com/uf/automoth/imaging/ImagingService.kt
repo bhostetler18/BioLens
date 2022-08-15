@@ -124,8 +124,8 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(
                     this,
-                    cameraSelector
-//                    imageCapture
+                    cameraSelector,
+                    imageCapture
                 )
             } catch (exc: Exception) {
                 Log.e(TAG, "Image capture use case binding failed", exc)
