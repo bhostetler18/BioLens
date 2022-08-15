@@ -18,16 +18,18 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.uf.automoth.MainActivity
 import com.uf.automoth.R
 import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.FragmentImagingBinding
 import com.uf.automoth.ui.common.EditTextDialog
+import kotlinx.coroutines.launch
 import java.io.File
 import java.lang.ref.WeakReference
 
-class ImagingFragment : Fragment(), MenuProvider, ImageCapturerInterface {
+class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
 
     private var _binding: FragmentImagingBinding? = null
     private lateinit var viewModel: ImagingViewModel
@@ -228,7 +230,9 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCapturerInterface {
         } else {
             val manager = ImagingManager(viewModel.imagingSettings, WeakReference(this))
             viewModel.imagingManager = manager
-            manager.start(name ?: getString(R.string.default_session_name), requireContext(), locationProvider)
+            lifecycleScope.launch {
+                manager.start(name ?: getString(R.string.default_session_name), requireContext(), locationProvider)
+            }
         }
     }
 

@@ -17,15 +17,17 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.lifecycleScope
 import com.uf.automoth.MainActivity
 import com.uf.automoth.R
 import com.uf.automoth.data.AutoMothRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import java.io.File
 import java.lang.ref.WeakReference
 
-class ImagingService : LifecycleService(), ImageCapturerInterface {
+class ImagingService : LifecycleService(), ImageCaptureInterface {
 
     private val serviceScope = CoroutineScope(SupervisorJob())
     private var imageCapture: ImageCapture? = null
@@ -158,11 +160,13 @@ class ImagingService : LifecycleService(), ImageCapturerInterface {
             imagingManager = ImagingManager(settings, WeakReference(this)) {
                 killService()
             }
-            imagingManager?.start(
-                name ?: getString(R.string.default_session_name),
-                this,
-                locationProvider
-            )
+            lifecycleScope.launch {
+                imagingManager?.start(
+                    name ?: getString(R.string.default_session_name),
+                    this@ImagingService,
+                    locationProvider
+                )
+            }
         }
     }
 

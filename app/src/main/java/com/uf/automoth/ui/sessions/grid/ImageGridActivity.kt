@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asLiveData
+import androidx.lifecycle.lifecycleScope
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.workDataOf
@@ -20,7 +21,7 @@ import com.uf.automoth.network.GoogleDriveLoginManager
 import com.uf.automoth.network.GoogleDriveSignInActivity
 import com.uf.automoth.network.GoogleDriveUploadWorker
 import com.uf.automoth.ui.common.EditTextDialog
-import kotlinx.coroutines.*
+import kotlinx.coroutines.launch
 
 class ImageGridActivity : AppCompatActivity(), GoogleDriveSignInActivity {
     private lateinit var viewModel: ImageGridViewModel
@@ -37,30 +38,39 @@ class ImageGridActivity : AppCompatActivity(), GoogleDriveSignInActivity {
 
         val binding = ActivityImageGridBinding.inflate(layoutInflater)
 
-        val sessionID = intent.extras?.get("SESSION") as? Long ?: return
-        val session = runBlocking(Dispatchers.IO) {
-            AutoMothRepository.getSession(sessionID)
-        } ?: return // TODO: better handling of nonexistent session
-
-        viewModel = ViewModelProvider(this, ImageGridViewModel.ImageGridViewModelFactory(session))[ImageGridViewModel::class.java]
-
-        val adapter = ImageGridAdapter(session)
-        binding.imageGrid.adapter = adapter
-
-        viewModel.allImages.observe(this) { images ->
-            images?.let { adapter.submitList(it) }
+        val sessionID = intent.extras?.get("SESSION") as? Long ?: run {
+            displayError()
+            return
         }
 
-        AutoMothRepository.getNumImagesInSession(sessionID).asLiveData().observe(this) { count ->
-            val imageString = if (count != 1) getString(R.string.image_plural) else getString(R.string.image_singular)
+        lifecycleScope.launch {
+            val session = AutoMothRepository.getSession(sessionID) ?: run {
+                displayError()
+                return@launch
+            }
+            viewModel = ViewModelProvider(this@ImageGridActivity, ImageGridViewModel.ImageGridViewModelFactory(session))[ImageGridViewModel::class.java]
 
-            binding.imgCount.text = "$count $imageString"
+            val adapter = ImageGridAdapter(session)
+            binding.imageGrid.adapter = adapter
+
+            viewModel.allImages.observe(this@ImageGridActivity) { images ->
+                images?.let { adapter.submitList(it) }
+            }
+
+            AutoMothRepository.getNumImagesInSession(sessionID).asLiveData().observe(this@ImageGridActivity) { count ->
+                val imageString = if (count != 1) getString(R.string.image_plural) else getString(R.string.image_singular)
+                binding.imgCount.text = "$count $imageString"
+            }
+
+            setSupportActionBar(binding.toolbar)
+            setContentView(binding.root)
+            supportActionBar?.title = session.name
+            supportActionBar?.setDisplayHomeAsUpEnabled(true)
         }
+    }
 
-        setSupportActionBar(binding.toolbar)
-        setContentView(binding.root)
-        supportActionBar?.title = session.name
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    private fun displayError() {
+        TODO("Display session not found error")
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

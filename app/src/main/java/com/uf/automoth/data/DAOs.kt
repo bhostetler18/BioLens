@@ -13,6 +13,9 @@ interface ImageDAO {
     @Delete
     suspend fun delete(image: Image)
 
+    @Query("SELECT * FROM images WHERE imageID = :id")
+    suspend fun getImage(id: Long): Image?
+
     @Query("SELECT * FROM images")
     fun getAllImages(): List<Image>
 }
@@ -48,7 +51,7 @@ interface SessionDAO {
     fun getNumImagesInSession(id: Long): Flow<Int>
 
     @Query("SELECT * FROM sessions WHERE sessionID = :id")
-    fun getSession(id: Long): Session?
+    suspend fun getSession(id: Long): Session?
 
     @Query("UPDATE sessions SET latitude = :latitude, longitude = :longitude WHERE sessionID = :id")
     fun updateSessionLocation(id: Long, latitude: Double, longitude: Double)

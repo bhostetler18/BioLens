@@ -37,14 +37,16 @@ object AutoMothRepository {
 
     // TODO: indicate filesystem errors in below functions either by exception or return
 
-    suspend fun create(session: Session) {
+    suspend fun create(session: Session): Long? {
         val sessionDir = File(storageLocation, session.directory)
         val created = withContext(Dispatchers.IO) {
             return@withContext sessionDir.mkdir()
         }
         if (created) {
             session.sessionID = imageDatabase.sessionDAO().insert(session)
+            return session.sessionID
         }
+        return null
     }
 
     fun delete(session: Session) = coroutineScope.launch {
@@ -75,7 +77,8 @@ object AutoMothRepository {
         }
     }
 
-    fun getSession(id: Long): Session? = imageDatabase.sessionDAO().getSession(id)
+    suspend fun getSession(id: Long): Session? = imageDatabase.sessionDAO().getSession(id)
+    suspend fun getImage(id: Long): Image? = imageDatabase.imageDAO().getImage(id)
 
     fun getImagesInSession(id: Long): Flow<List<Image>> {
         return imageDatabase.sessionDAO().getImagesInSession(id)

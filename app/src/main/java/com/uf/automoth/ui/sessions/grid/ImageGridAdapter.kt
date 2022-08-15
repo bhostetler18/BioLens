@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Image
 import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.ImageGridItemBinding
@@ -28,7 +29,7 @@ class ImageGridAdapter(val session: Session) : ListAdapter<Image, ImageGridAdapt
     inner class ImageViewHolder(private val viewBinding: ImageGridItemBinding) : RecyclerView.ViewHolder(viewBinding.root) {
 
         fun bind(image: Image) {
-            val file = File(sessionDirectory, image.filename)
+            val file = AutoMothRepository.resolve(image, session)
             GlideApp.with(viewBinding.root.context)
                 .load(file)
                 .thumbnail(0.5f)
@@ -37,6 +38,7 @@ class ImageGridAdapter(val session: Session) : ListAdapter<Image, ImageGridAdapt
                 val ctx = viewBinding.root.context
                 val intent = Intent(ctx, ImageViewerActivity::class.java)
                 intent.putExtra("IMAGE", image.imageID)
+                intent.putExtra("SESSION", session.sessionID)
                 ctx.startActivity(intent)
             }
         }

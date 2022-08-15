@@ -8,7 +8,6 @@ import androidx.core.net.toFile
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Image
 import com.uf.automoth.data.Session
-import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.lang.ref.WeakReference
 import java.time.OffsetDateTime
@@ -19,7 +18,7 @@ import kotlin.concurrent.fixedRateTimer
 
 class ImagingManager(
     private val settings: ImagingSettings,
-    private val capturer: WeakReference<ImageCapturerInterface>,
+    private val imageCapture: WeakReference<ImageCaptureInterface>,
     private val onAutoStopCallback: (() -> Unit)? = null
 ) : ImageCapture.OnImageSavedCallback {
     private lateinit var session: Session
@@ -29,7 +28,7 @@ class ImagingManager(
         File(AutoMothRepository.storageLocation, session.directory)
     }
 
-    fun start(sessionName: String, context: Context, locationProvider: SingleLocationProvider, initialDelay: Long = 1000) {
+    suspend fun start(sessionName: String, context: Context, locationProvider: SingleLocationProvider, initialDelay: Long = 1000) {
         val start = OffsetDateTime.now()
         session = Session(
             sessionName,
@@ -39,16 +38,15 @@ class ImagingManager(
             -1.0,
             settings.interval
         )
-        // Need to get session primary key before continuing, so block for this call
-        runBlocking {
-            AutoMothRepository.create(session)
+        val sessionID = AutoMothRepository.create(session) ?: run {
+            Log.d(TAG, "Failed to create new session")
+            return
         }
 
         locationProvider.getCurrentLocation(context) { location ->
             location?.let {
-                AutoMothRepository.updateSessionLocation(session.sessionID, it)
+                AutoMothRepository.updateSessionLocation(sessionID, it)
             }
-
         }
 
         val milliseconds: Long = settings.interval * 1000L
@@ -57,9 +55,9 @@ class ImagingManager(
                 stop()
                 onAutoStopCallback?.invoke()
             } else {
-                val capturer = capturer.get()
-                if (capturer == null ||
-                    !capturer.takePhoto(getUniqueFile(), this@ImagingManager)
+                val capture = imageCapture.get()
+                if (capture == null ||
+                    !capture.takePhoto(getUniqueFile(), this@ImagingManager)
                 ) {
                     Log.d(TAG, "Failed to capture image; stopping session")
                     stop()

@@ -37,14 +37,14 @@ class DatabaseTest {
     }
 
     @Test
-    fun testSession() = runBlocking {
+    fun testForeignKeyConstraint() = runBlocking {
         val session = Session("TestSession1", "test1/", OffsetDateTime.now(), 50.0, 50.0, 5)
         session.sessionID = db.sessionDAO().insert(session)
 
         val image = Image("test1.png", OffsetDateTime.now(), session.sessionID)
         image.imageID = db.imageDAO().insert(image)
 
-        var images = db.sessionDAO().getImagesInSession(session.sessionID)
+        var images = db.sessionDAO().getImagesInSessionBlocking(session.sessionID)
         assertThat(images[0], equalTo(image))
 
         // Foreign key structure should result in all images contained in the session being deleted
