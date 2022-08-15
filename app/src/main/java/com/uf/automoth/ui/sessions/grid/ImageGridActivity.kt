@@ -1,23 +1,36 @@
 package com.uf.automoth.ui.sessions.grid
 
+import android.content.Context
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.asLiveData
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.uf.automoth.R
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.ActivityImageGridBinding
+import com.uf.automoth.network.GoogleDriveLoginManager
+import com.uf.automoth.network.GoogleDriveSignInActivity
+import com.uf.automoth.network.GoogleDriveUploadWorker
 import com.uf.automoth.ui.common.EditTextDialog
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import java.io.File
+import kotlinx.coroutines.*
 
-class ImageGridActivity : AppCompatActivity() {
+class ImageGridActivity : AppCompatActivity(), GoogleDriveSignInActivity {
     private lateinit var viewModel: ImageGridViewModel
+
+    private val driveManager = GoogleDriveLoginManager(this)
+    override val appContext: Context get() = applicationContext
+    override val applicationName: String get() = getString(R.string.app_name)
+    override val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        driveManager.handleSignInResult(result)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,12 +40,11 @@ class ImageGridActivity : AppCompatActivity() {
         val sessionID = intent.extras?.get("SESSION") as? Long ?: return
         val session = runBlocking(Dispatchers.IO) {
             AutoMothRepository.getSession(sessionID)
-        }
-        val sessionDirectory = File(AutoMothRepository.storageLocation, session.directory)
+        } ?: return // TODO: better handling of nonexistent session
 
         viewModel = ViewModelProvider(this, ImageGridViewModel.ImageGridViewModelFactory(session))[ImageGridViewModel::class.java]
 
-        val adapter = ImageGridAdapter(sessionDirectory)
+        val adapter = ImageGridAdapter(session)
         binding.imageGrid.adapter = adapter
 
         viewModel.allImages.observe(this) { images ->
@@ -67,6 +79,23 @@ class ImageGridActivity : AppCompatActivity() {
                 true
             }
             R.id.upload -> {
+                driveManager.signInIfNecessary()
+                val account = driveManager.currentAccount?.account
+                if (account != null) {
+                    val workRequest = OneTimeWorkRequestBuilder<GoogleDriveUploadWorker>()
+                        .setInputData(
+                            workDataOf(
+                                GoogleDriveUploadWorker.KEY_SESSION_ID to viewModel.session.sessionID,
+                                GoogleDriveUploadWorker.KEY_ACCOUNT_NAME to account.name,
+                                GoogleDriveUploadWorker.KEY_ACCOUNT_TYPE to account.type
+                            )
+                        )
+                        .build()
+                    WorkManager.getInstance(this).beginWith(workRequest).enqueue()
+                } else {
+                    // TODO: handle sign in failure
+                }
+
                 true
             }
             R.id.delete -> {

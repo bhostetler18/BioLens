@@ -6,11 +6,12 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Image
+import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.ImageGridItemBinding
-import java.io.File
 
-class ImageGridAdapter(val sessionDirectory: File) : ListAdapter<Image, ImageGridAdapter.ImageViewHolder>(DiffCallback) {
+class ImageGridAdapter(val session: Session) : ListAdapter<Image, ImageGridAdapter.ImageViewHolder>(DiffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageGridAdapter.ImageViewHolder {
         val binding = ImageGridItemBinding.inflate(LayoutInflater.from(parent.context))
@@ -25,8 +26,10 @@ class ImageGridAdapter(val sessionDirectory: File) : ListAdapter<Image, ImageGri
     inner class ImageViewHolder(private val viewBinding: ImageGridItemBinding) : RecyclerView.ViewHolder(viewBinding.root) {
 
         fun bind(image: Image) {
-            val file = File(sessionDirectory, image.filename)
-            Glide.with(viewBinding.root.context).load(file).thumbnail(0.5f).into(viewBinding.image)
+            Glide.with(viewBinding.root.context)
+                .load(AutoMothRepository.resolve(image, session))
+                .thumbnail(0.5f)
+                .into(viewBinding.image)
         }
     }
 

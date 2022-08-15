@@ -43,6 +43,9 @@ android {
     buildFeatures {
         viewBinding true
     }
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+    }
 }
 
 dependencies {
@@ -74,6 +77,8 @@ dependencies {
 
     // Image
     implementation 'com.github.bumptech.glide:glide:4.12.0'
+    implementation 'org.jcodec:jcodec:0.2.5'
+    implementation 'org.jcodec:jcodec-android:0.2.5'
 
     // Tests
     testImplementation 'junit:junit:4.13.2'
@@ -88,7 +93,16 @@ dependencies {
     implementation "androidx.room:room-ktx:$room_version"
     testImplementation "androidx.room:room-testing:$room_version"
 
+    // Work Manager
+    implementation "androidx.work:work-runtime-ktx:2.7.1"
+
     // Service
     implementation "androidx.lifecycle:lifecycle-service:2.5.1"
 
+    // Google Drive
+    implementation "com.google.android.gms:play-services-auth:20.2.0"
+    implementation "com.google.apis:google-api-services-drive:v3-rev197-1.25.0"
+    implementation "com.google.api-client:google-api-client-android:1.26.0"
+    implementation 'com.google.http-client:google-http-client-gson:1.26.0'
+    implementation 'com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
 }

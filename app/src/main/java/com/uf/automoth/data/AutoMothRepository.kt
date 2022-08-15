@@ -62,7 +62,7 @@ object AutoMothRepository {
     }
 
     fun delete(image: Image) = coroutineScope.launch {
-        val session = imageDatabase.sessionDAO().getSession(image.parentSessionID)
+        val session = imageDatabase.sessionDAO().getSession(image.parentSessionID) ?: return@launch
         val sessionDir = File(storageLocation, session.directory)
         val imagePath = File(sessionDir, image.filename)
 
@@ -75,10 +75,14 @@ object AutoMothRepository {
         }
     }
 
-    fun getSession(id: Long): Session = imageDatabase.sessionDAO().getSession(id)
+    fun getSession(id: Long): Session? = imageDatabase.sessionDAO().getSession(id)
 
     fun getImagesInSession(id: Long): Flow<List<Image>> {
         return imageDatabase.sessionDAO().getImagesInSession(id)
+    }
+
+    fun getImagesInSessionBlocking(id: Long): List<Image> {
+        return imageDatabase.sessionDAO().getImagesInSessionBlocking(id)
     }
 
     fun getNumImagesInSession(id: Long): Flow<Int> {
@@ -95,5 +99,13 @@ object AutoMothRepository {
 
     fun renameSession(id: Long, name: String) = coroutineScope.launch {
         imageDatabase.sessionDAO().renameSession(id, name)
+    }
+
+    fun resolve(session: Session): File {
+        return File(storageLocation, session.directory)
+    }
+
+    fun resolve(image: Image, session: Session): File {
+        return File(resolve(session), image.filename)
     }
 }

@@ -40,11 +40,15 @@ interface SessionDAO {
     fun getImagesInSession(id: Long): Flow<List<Image>>
 
     @Transaction
+    @Query("SELECT * FROM images WHERE parentSessionID = :id")
+    fun getImagesInSessionBlocking(id: Long): List<Image>
+
+    @Transaction
     @Query("SELECT COUNT(imageID) FROM images WHERE parentSessionID = :id")
     fun getNumImagesInSession(id: Long): Flow<Int>
 
     @Query("SELECT * FROM sessions WHERE sessionID = :id")
-    fun getSession(id: Long): Session
+    fun getSession(id: Long): Session?
 
     @Query("UPDATE sessions SET latitude = :latitude, longitude = :longitude WHERE sessionID = :id")
     fun updateSessionLocation(id: Long, latitude: Double, longitude: Double)
