@@ -1,10 +1,13 @@
 package com.uf.automoth.ui.imaging
 
-import android.app.*
+import android.annotation.SuppressLint
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.os.IBinder
 import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -58,25 +61,31 @@ class ImagingService : LifecycleService(), ImageCapturerInterface {
         return START_STICKY
     }
 
-    override fun onBind(intent: Intent): IBinder {
-        TODO("Return the communication channel to the service.")
-    }
-
     override fun onDestroy() {
         Log.d("[SERVICE]", "On destroy called")
         IS_RUNNING.postValue(false)
         super.onDestroy()
     }
 
+    @SuppressLint("UnspecifiedImmutableFlag")
     private fun startInForeground() {
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(
-            this,
-            0,
-            Intent(this, MainActivity::class.java),
-            PendingIntent.FLAG_IMMUTABLE
-        )
+        val pendingIntent: PendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PendingIntent.getActivity(
+                this,
+                0,
+                Intent(this, MainActivity::class.java),
+                PendingIntent.FLAG_IMMUTABLE
+            )
+        } else {
+            PendingIntent.getActivity(
+                this,
+                0,
+                Intent(this, MainActivity::class.java),
+                0
+            )
+        }
 
-        if (Build.VERSION.SDK_INT >= 26) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val serviceChannel = NotificationChannel(
                 SERVICE_CHANNEL_ID,
                 getString(R.string.service_notification_channel),
@@ -151,6 +160,7 @@ class ImagingService : LifecycleService(), ImageCapturerInterface {
             }
             imagingManager?.start(
                 name ?: getString(R.string.default_session_name),
+                this,
                 locationProvider
             )
         }

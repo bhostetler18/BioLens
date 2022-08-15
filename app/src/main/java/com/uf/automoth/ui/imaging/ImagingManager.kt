@@ -1,5 +1,6 @@
 package com.uf.automoth.ui.imaging
 
+import android.content.Context
 import android.util.Log
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -28,7 +29,7 @@ class ImagingManager(
         File(AutoMothRepository.storageLocation, session.directory)
     }
 
-    fun start(sessionName: String, locationProvider: SingleLocationProvider) {
+    fun start(sessionName: String, context: Context, locationProvider: SingleLocationProvider, initialDelay: Long = 1000) {
         val start = OffsetDateTime.now()
         session = Session(
             sessionName,
@@ -43,12 +44,15 @@ class ImagingManager(
             AutoMothRepository.create(session)
         }
 
-        locationProvider.getCurrentLocation {
-            AutoMothRepository.updateSessionLocation(session.sessionID, it)
+        locationProvider.getCurrentLocation(context) { location ->
+            location?.let {
+                AutoMothRepository.updateSessionLocation(session.sessionID, it)
+            }
+
         }
 
         val milliseconds: Long = settings.interval * 1000L
-        timer = fixedRateTimer(TAG, false, 0, milliseconds) {
+        timer = fixedRateTimer(TAG, false, initialDelay, milliseconds) {
             if (shouldAutoStop()) {
                 stop()
                 onAutoStopCallback?.invoke()

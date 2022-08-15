@@ -42,4 +42,5 @@
     <string name="unit_hours_plural">hours</string>
     <string name="per_session">per session</string>
     <string name="background_session_complete_toast">Background session completed!</string>
+    <string name="schedule_session">Schedule Session</string>
 </resources>

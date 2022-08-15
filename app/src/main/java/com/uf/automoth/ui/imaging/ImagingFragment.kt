@@ -15,6 +15,7 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -26,7 +27,7 @@ import com.uf.automoth.ui.common.EditTextDialog
 import java.io.File
 import java.lang.ref.WeakReference
 
-class ImagingFragment : Fragment(), ImageCapturerInterface {
+class ImagingFragment : Fragment(), MenuProvider, ImageCapturerInterface {
 
     private var _binding: FragmentImagingBinding? = null
     private lateinit var viewModel: ImagingViewModel
@@ -76,10 +77,31 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
             if (!isRunning) {
                 binding.captureButton.text = getString(R.string.start_session)
                 startCamera() // Restart preview
+                setButtonsEnabled(true)
             }
         }
 
         return root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        requireActivity().addMenuProvider(this, viewLifecycleOwner)
+    }
+
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+        menuInflater.inflate(R.menu.imaging_menu, menu)
+        this.menu = menu
+        refreshUI() // Check and disable menu items appropriately if session is running
+    }
+
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        return when (menuItem.itemId) {
+            R.id.imaging_schedule -> {
+                true
+            }
+            else -> false
+        }
     }
 
     private fun startCamera() {
@@ -193,6 +215,7 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
 
     private fun startSession(name: String?, service: Boolean = false) {
         binding.captureButton.text = getString(R.string.stop_session)
+        setButtonsEnabled(false)
         if (service) {
             val intent = Intent(requireContext().applicationContext, ImagingService::class.java)
             intent.action = ImagingService.ACTION_START_SESSION
@@ -203,10 +226,9 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
             ContextCompat.startForegroundService(requireContext().applicationContext, intent)
             (activity as? MainActivity)?.setServiceIndicatorBarVisible(true)
         } else {
-            setButtonsEnabled(false)
             val manager = ImagingManager(viewModel.imagingSettings, WeakReference(this))
             viewModel.imagingManager = manager
-            manager.start(name ?: getString(R.string.default_session_name), locationProvider)
+            manager.start(name ?: getString(R.string.default_session_name), requireContext(), locationProvider)
         }
     }
 
@@ -221,14 +243,16 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
         } else {
             viewModel.imagingManager?.stop()
             viewModel.imagingManager = null
-            setButtonsEnabled(true)
         }
+        setButtonsEnabled(true)
     }
 
     private fun setButtonsEnabled(enabled: Boolean) {
-        val bar: BottomNavigationView = requireActivity().findViewById(R.id.bottom_nav_bar)
-        bar.visibility = if (enabled) View.VISIBLE else View.GONE
-        menu?.findItem(R.id.imaging_settings).apply {
+        if (!USE_SERVICE) {
+            val bar: BottomNavigationView = requireActivity().findViewById(R.id.bottom_nav_bar)
+            bar.visibility = if (enabled) View.VISIBLE else View.GONE
+        }
+        menu?.findItem(R.id.imaging_schedule).apply {
             this?.isVisible = enabled
         }
         listOf(binding.intervalButton, binding.autoStopButton).forEach {
@@ -274,8 +298,10 @@ class ImagingFragment : Fragment(), ImageCapturerInterface {
     private fun refreshUI() {
         if (isSessionInProgress()) {
             binding.captureButton.text = getString(R.string.stop_session)
+            setButtonsEnabled(false)
         } else {
             binding.captureButton.text = getString(R.string.start_session)
+            setButtonsEnabled(true)
         }
     }
 
