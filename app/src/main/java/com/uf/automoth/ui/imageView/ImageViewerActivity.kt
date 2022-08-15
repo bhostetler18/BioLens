@@ -24,7 +24,6 @@ class ImageViewerActivity : AppCompatActivity() {
 
         binding = ActivityImageViewerBinding.inflate(layoutInflater)
         setSupportActionBar(binding.appBar.toolbar)
-        setContentView(binding.root)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = ""
         setContentView(binding.root)
