@@ -9,18 +9,18 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="2"
-        android:inputType="number"
         android:digits="0123456789"
+        android:focusableInTouchMode="true"
         android:imeOptions="actionDone"
-        android:maxLines="1"
-        android:focusableInTouchMode="true"/>
+        android:inputType="number"
+        android:maxLines="1" />
 
     <TextView
         android:id="@+id/unit_label"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:gravity="center"
         android:layout_weight="1"
-        tools:text="unit"/>
+        android:gravity="center"
+        tools:text="unit" />
 
 </LinearLayout>

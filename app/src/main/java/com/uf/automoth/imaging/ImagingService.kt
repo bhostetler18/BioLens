@@ -21,8 +21,8 @@ import androidx.lifecycle.lifecycleScope
 import com.uf.automoth.MainActivity
 import com.uf.automoth.R
 import com.uf.automoth.data.AutoMothRepository
-import com.uf.automoth.ui.imaging.ImagingSettings
 import com.uf.automoth.network.SingleLocationProvider
+import com.uf.automoth.ui.imaging.ImagingSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
@@ -132,7 +132,10 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
         }, ContextCompat.getMainExecutor(this))
     }
 
-    override fun takePhoto(saveLocation: File, onSaved: ImageCapture.OnImageSavedCallback): Boolean {
+    override fun takePhoto(
+        saveLocation: File,
+        onSaved: ImageCapture.OnImageSavedCallback
+    ): Boolean {
         val imageCapture = imageCapture ?: return false
 
         val outputOptions = ImageCapture.OutputFileOptions

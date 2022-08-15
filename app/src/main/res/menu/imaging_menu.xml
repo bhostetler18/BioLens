@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto" >
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/imaging_schedule"
         android:icon="@drawable/ic_calendar_month_24"
         android:title="@string/schedule_session"
-        app:showAsAction="always"/>
+        app:showAsAction="always" />
 
 </menu>

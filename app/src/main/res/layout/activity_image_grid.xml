@@ -10,38 +10,40 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        app:layout_constraintTop_toTopOf="parent"
         android:background="?attr/colorPrimary"
         android:elevation="4dp"
         android:theme="@style/AutoMoth.AppToolbar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"  />
+        app:layout_constraintTop_toTopOf="parent"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/image_grid"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:padding="6dp"
         android:clipToPadding="false"
+        android:padding="6dp"
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
         app:layout_constraintBottom_toTopOf="@id/info_bar"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar"
         app:spanCount="3" />
+
     <LinearLayout
         android:id="@+id/info_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintTop_toBottomOf="@id/image_grid"
-        app:layout_constraintBottom_toBottomOf="parent" >
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/image_grid">
+
         <TextView
             android:id="@+id/img_count"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
             android:paddingTop="5dp"
             android:paddingBottom="5dp"
-            android:gravity="center_horizontal"
-            tools:text="145 images"/>
+            tools:text="145 images" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

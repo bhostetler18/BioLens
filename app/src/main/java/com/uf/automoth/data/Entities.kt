@@ -12,7 +12,8 @@ data class Session(
     val longitude: Double,
     val interval: Int
 ) {
-    @PrimaryKey(autoGenerate = true) var sessionID: Long = 0
+    @PrimaryKey(autoGenerate = true)
+    var sessionID: Long = 0
     var completed: OffsetDateTime? = null
 
     companion object {
@@ -38,7 +39,8 @@ data class Image(
     val timestamp: OffsetDateTime,
     @ColumnInfo(index = true) val parentSessionID: Long
 ) {
-    @PrimaryKey(autoGenerate = true) var imageID: Long = 0
+    @PrimaryKey(autoGenerate = true)
+    var imageID: Long = 0
     var containsMoths: Boolean? = null
 }
 

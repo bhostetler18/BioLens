@@ -12,11 +12,14 @@ import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.ImageGridItemBinding
 import com.uf.automoth.ui.common.GlideApp
 import com.uf.automoth.ui.sessions.ImageViewerActivity
-import java.io.File
 
-class ImageGridAdapter(val session: Session) : ListAdapter<Image, ImageGridAdapter.ImageViewHolder>(DiffCallback) {
+class ImageGridAdapter(val session: Session) :
+    ListAdapter<Image, ImageGridAdapter.ImageViewHolder>(DiffCallback) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageGridAdapter.ImageViewHolder {
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int
+    ): ImageGridAdapter.ImageViewHolder {
         val binding = ImageGridItemBinding.inflate(LayoutInflater.from(parent.context))
         return this.ImageViewHolder(binding)
     }
@@ -26,7 +29,8 @@ class ImageGridAdapter(val session: Session) : ListAdapter<Image, ImageGridAdapt
         holder.bind(current)
     }
 
-    inner class ImageViewHolder(private val viewBinding: ImageGridItemBinding) : RecyclerView.ViewHolder(viewBinding.root) {
+    inner class ImageViewHolder(private val viewBinding: ImageGridItemBinding) :
+        RecyclerView.ViewHolder(viewBinding.root) {
 
         fun bind(image: Image) {
             val file = AutoMothRepository.resolve(image, session)

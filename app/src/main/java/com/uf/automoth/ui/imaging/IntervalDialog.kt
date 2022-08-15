@@ -73,11 +73,12 @@ class IntervalDialog(
         showEstimatedSize(ctx)
     }
 
-    private val interval: Int get() {
-        val minutes: Int = durationPicker.unit1Value
-        val seconds: Int = durationPicker.unit2Value
-        return 60 * minutes + seconds
-    }
+    private val interval: Int
+        get() {
+            val minutes: Int = durationPicker.unit1Value
+            val seconds: Int = durationPicker.unit2Value
+            return 60 * minutes + seconds
+        }
 
     fun show() = dialog.show()
 }

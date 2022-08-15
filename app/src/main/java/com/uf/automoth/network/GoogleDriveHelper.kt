@@ -6,7 +6,6 @@ import com.google.api.client.googleapis.media.MediaHttpUploader
 import com.google.api.client.googleapis.media.MediaHttpUploaderProgressListener
 import com.google.api.client.http.FileContent
 import com.google.api.services.drive.Drive
-import com.google.api.services.drive.model.FileList
 import java.io.File
 import java.util.*
 
@@ -75,10 +74,16 @@ class GoogleDriveHelper(private val drive: Drive) {
         val DUMMY_LISTENER = MediaHttpUploaderProgressListener { uploader ->
             when (uploader.uploadState) {
                 MediaHttpUploader.UploadState.INITIATION_STARTED -> Log.d(TAG, "Initiation started")
-                MediaHttpUploader.UploadState.INITIATION_COMPLETE -> Log.d(TAG, "Initiation complete")
-                MediaHttpUploader.UploadState.MEDIA_IN_PROGRESS -> Log.d(TAG, "Progress: ${uploader.progress}")
+                MediaHttpUploader.UploadState.INITIATION_COMPLETE -> Log.d(
+                    TAG,
+                    "Initiation complete"
+                )
+                MediaHttpUploader.UploadState.MEDIA_IN_PROGRESS -> Log.d(
+                    TAG,
+                    "Progress: ${uploader.progress}"
+                )
                 MediaHttpUploader.UploadState.MEDIA_COMPLETE -> Log.d(TAG, "Upload complete!")
-                else -> { }
+                else -> {}
             }
         }
     }

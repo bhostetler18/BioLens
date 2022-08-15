@@ -16,12 +16,17 @@ class SingleLocationProvider(context: Context) {
     private val locationManager: LocationManager
 
     init {
-        locationManager = context.applicationContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        locationManager =
+            context.applicationContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager
     }
 
     fun getCurrentLocation(context: Context, consumer: Consumer<Location?>) {
         val executor = Executors.newSingleThreadExecutor()
-        if (ContextCompat.checkSelfPermission(context, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(
+                context,
+                ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             consumer.accept(null)
             return
         }

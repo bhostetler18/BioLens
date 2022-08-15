@@ -19,7 +19,8 @@ class TimeDurationPicker(context: Context, attrs: AttributeSet?) :
     private val binding: GenericTimePickerBinding
 
     init {
-        binding = GenericTimePickerBinding.bind(View.inflate(context, R.layout.generic_time_picker, this))
+        binding =
+            GenericTimePickerBinding.bind(View.inflate(context, R.layout.generic_time_picker, this))
     }
 
     private val unit1Picker = binding.unit1Picker
@@ -43,8 +44,14 @@ class TimeDurationPicker(context: Context, attrs: AttributeSet?) :
         }
     }
 
-    val unit1Value: Int get() { return unit1Picker.value }
-    val unit2Value: Int get() { return unit2Picker.value }
+    val unit1Value: Int
+        get() {
+            return unit1Picker.value
+        }
+    val unit2Value: Int
+        get() {
+            return unit2Picker.value
+        }
 
     fun setUnits(
         unit1Singular: String,

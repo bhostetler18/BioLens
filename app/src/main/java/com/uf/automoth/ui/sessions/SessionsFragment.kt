@@ -22,7 +22,8 @@ class SessionsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val sessionsViewModel: SessionsViewModel = ViewModelProvider(this)[SessionsViewModel::class.java]
+        val sessionsViewModel: SessionsViewModel =
+            ViewModelProvider(this)[SessionsViewModel::class.java]
 
         _binding = FragmentSessionsBinding.inflate(inflater, container, false)
 

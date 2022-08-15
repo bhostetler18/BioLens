@@ -12,7 +12,8 @@ import com.uf.automoth.ui.sessions.grid.ImageGridActivity
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-class SessionListAdapter : ListAdapter<Session, SessionListAdapter.SessionViewHolder>(SESSION_COMPARATOR) {
+class SessionListAdapter :
+    ListAdapter<Session, SessionListAdapter.SessionViewHolder>(SESSION_COMPARATOR) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SessionViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -40,7 +41,8 @@ class SessionListAdapter : ListAdapter<Session, SessionListAdapter.SessionViewHo
         }
 
         companion object {
-            val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
+            val dateFormatter: DateTimeFormatter =
+                DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
         }
     }
 

@@ -72,13 +72,14 @@ class AutoStopDialog(
         offText.text = context.getString(R.string.auto_stop_off_description)
 
         imageCountBinding.numberEntry.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 validateImageCount()
                 setImageCountPlurality()
                 showEstimatedSize()
             }
-            override fun afterTextChanged(s: Editable?) { }
+
+            override fun afterTextChanged(s: Editable?) {}
         })
         timePicker.setOnTimeDurationChangedListener { _, _ ->
             validateTimeSelection()
@@ -118,7 +119,7 @@ class AutoStopDialog(
                 val minutes = value % 60
                 timePicker.setValues(hours, minutes)
             }
-            AutoStopMode.OFF -> { }
+            AutoStopMode.OFF -> {}
         }
     }
 
@@ -162,8 +163,14 @@ class AutoStopDialog(
         }
     }
 
-    private fun toggleButtonSelected(group: MaterialButtonToggleGroup, index: Int, checked: Boolean) {
-        if (!checked) { return }
+    private fun toggleButtonSelected(
+        group: MaterialButtonToggleGroup,
+        index: Int,
+        checked: Boolean
+    ) {
+        if (!checked) {
+            return
+        }
         when (index) {
             binding.imageToggle.id -> {
                 optionsContainer.removeAllViews()

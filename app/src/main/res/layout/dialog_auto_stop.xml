@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -10,49 +10,49 @@
         android:id="@+id/toggle_group"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
-        android:gravity="center"
         app:selectionRequired="true"
         app:singleSelection="true">
+
         <Button
             android:id="@+id/image_toggle"
+            style="?attr/materialButtonOutlinedStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/auto_stop_image"
-            app:icon="@drawable/ic_image_24"
-            style="?attr/materialButtonOutlinedStyle"
-            />
+            app:icon="@drawable/ic_image_24" />
+
         <Button
             android:id="@+id/time_toggle"
+            style="?attr/materialButtonOutlinedStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/auto_stop_time"
-            app:icon="@drawable/ic_time_filled_24"
-            style="?attr/materialButtonOutlinedStyle"
-            />
+            app:icon="@drawable/ic_time_filled_24" />
+
         <Button
             android:id="@+id/off_toggle"
+            style="?attr/materialButtonOutlinedStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/auto_stop_never"
-            app:icon="@drawable/ic_cancel_24"
-            style="?attr/materialButtonOutlinedStyle"
-            />
+            app:icon="@drawable/ic_cancel_24" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
 
     <FrameLayout
         android:id="@+id/options_container"
         android:layout_width="match_parent"
         android:layout_height="250dp"
-        android:padding="15dp"
-        android:animateLayoutChanges="true" />
+        android:animateLayoutChanges="true"
+        android:padding="15dp" />
 
     <TextView
         android:id="@+id/size_estimate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="15dp"
         android:gravity="center"
-        tools:text="~1GB"/>
+        android:padding="15dp"
+        tools:text="~1GB" />
 </LinearLayout>

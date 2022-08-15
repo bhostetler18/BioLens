@@ -8,9 +8,9 @@ import androidx.core.net.toFile
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Image
 import com.uf.automoth.data.Session
+import com.uf.automoth.network.SingleLocationProvider
 import com.uf.automoth.ui.imaging.AutoStopMode
 import com.uf.automoth.ui.imaging.ImagingSettings
-import com.uf.automoth.network.SingleLocationProvider
 import java.io.File
 import java.lang.ref.WeakReference
 import java.time.OffsetDateTime
@@ -31,7 +31,12 @@ class ImagingManager(
         File(AutoMothRepository.storageLocation, session.directory)
     }
 
-    suspend fun start(sessionName: String, context: Context, locationProvider: SingleLocationProvider, initialDelay: Long = 1000) {
+    suspend fun start(
+        sessionName: String,
+        context: Context,
+        locationProvider: SingleLocationProvider,
+        initialDelay: Long = 1000
+    ) {
         val start = OffsetDateTime.now()
         session = Session(
             sessionName,
@@ -111,7 +116,9 @@ class ImagingManager(
 
     companion object {
         const val TAG = "[IMAGING]"
-        private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy_MM_dd_kk_mm_ss_SSSS")
+        private val formatter: DateTimeFormatter =
+            DateTimeFormatter.ofPattern("yyyy_MM_dd_kk_mm_ss_SSSS")
+
         fun getUniqueDirectory(date: OffsetDateTime): String {
             val dateString = formatter.format(date)
             return "session_$dateString"

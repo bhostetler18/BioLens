@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="20dp">
@@ -10,8 +10,7 @@
         android:id="@+id/duration_picker"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent">
-    </com.uf.automoth.ui.common.TimeDurationPicker>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/size_estimate"
@@ -19,11 +18,11 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:gravity="center_horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/duration_picker"
-        app:layout_constraintBottom_toBottomOf="parent"
-        tools:text="~10MB per hour"/>
+        tools:text="~10MB per hour" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -143,11 +143,15 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
         val resolution = imageCapture?.resolutionInfo?.resolution ?: return 0.0
         val pixels = resolution.height * resolution.width
         val bytes = 24.0 * pixels / 8.0 // 8 bits each for RGB channels
-        val avgCompression = 9.88 // see https://www.graphicsmill.com/blog/2014/11/06/Compression-ratio-for-different-JPEG-quality-values
+        val avgCompression =
+            9.88 // see https://www.graphicsmill.com/blog/2014/11/06/Compression-ratio-for-different-JPEG-quality-values
         return bytes / avgCompression
     }
 
-    override fun takePhoto(saveLocation: File, onSaved: ImageCapture.OnImageSavedCallback): Boolean {
+    override fun takePhoto(
+        saveLocation: File,
+        onSaved: ImageCapture.OnImageSavedCallback
+    ): Boolean {
         val imageCapture = imageCapture ?: return false
         val context = context ?: return false
 
@@ -235,7 +239,11 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
             val manager = ImagingManager(viewModel.imagingSettings, WeakReference(this))
             viewModel.imagingManager = manager
             lifecycleScope.launch {
-                manager.start(name ?: getString(R.string.default_session_name), requireContext(), locationProvider)
+                manager.start(
+                    name ?: getString(R.string.default_session_name),
+                    requireContext(),
+                    locationProvider
+                )
             }
         }
     }

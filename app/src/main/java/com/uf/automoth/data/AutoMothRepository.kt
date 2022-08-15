@@ -19,7 +19,9 @@ object AutoMothRepository {
     lateinit var storageLocation: File
 
     operator fun invoke(context: Context, coroutineScope: CoroutineScope) {
-        if (this::imageDatabase.isInitialized) { return }
+        if (this::imageDatabase.isInitialized) {
+            return
+        }
         imageDatabase = Room.databaseBuilder(
             context,
             ImageDatabase::class.java,

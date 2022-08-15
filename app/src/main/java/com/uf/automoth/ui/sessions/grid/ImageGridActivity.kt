@@ -29,9 +29,10 @@ class ImageGridActivity : AppCompatActivity(), GoogleDriveSignInActivity {
     private val driveManager = GoogleDriveLoginManager(this)
     override val appContext: Context get() = applicationContext
     override val applicationName: String get() = getString(R.string.app_name)
-    override val signInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        driveManager.handleSignInResult(result)
-    }
+    override val signInLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            driveManager.handleSignInResult(result)
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +49,10 @@ class ImageGridActivity : AppCompatActivity(), GoogleDriveSignInActivity {
                 displayError()
                 return@launch
             }
-            viewModel = ViewModelProvider(this@ImageGridActivity, ImageGridViewModel.ImageGridViewModelFactory(session))[ImageGridViewModel::class.java]
+            viewModel = ViewModelProvider(
+                this@ImageGridActivity,
+                ImageGridViewModel.ImageGridViewModelFactory(session)
+            )[ImageGridViewModel::class.java]
 
             val adapter = ImageGridAdapter(session)
             binding.imageGrid.adapter = adapter
@@ -57,10 +61,12 @@ class ImageGridActivity : AppCompatActivity(), GoogleDriveSignInActivity {
                 images?.let { adapter.submitList(it) }
             }
 
-            AutoMothRepository.getNumImagesInSession(sessionID).asLiveData().observe(this@ImageGridActivity) { count ->
-                val imageString = if (count != 1) getString(R.string.image_plural) else getString(R.string.image_singular)
-                binding.imgCount.text = "$count $imageString"
-            }
+            AutoMothRepository.getNumImagesInSession(sessionID).asLiveData()
+                .observe(this@ImageGridActivity) { count ->
+                    val imageString =
+                        if (count != 1) getString(R.string.image_plural) else getString(R.string.image_singular)
+                    binding.imgCount.text = "$count $imageString"
+                }
 
             setSupportActionBar(binding.toolbar)
             setContentView(binding.root)

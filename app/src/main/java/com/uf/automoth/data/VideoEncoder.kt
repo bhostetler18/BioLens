@@ -18,7 +18,8 @@ class VideoEncoder {
             try {
                 val allImages = AutoMothRepository.getImagesInSessionBlocking(session.sessionID)
                 val output = File(AutoMothRepository.storageLocation, "${session.name}.mp4")
-                val enc = SequenceEncoder.createWithFps(NIOUtils.writableChannel(output), Rational.ONE)
+                val enc =
+                    SequenceEncoder.createWithFps(NIOUtils.writableChannel(output), Rational.ONE)
                 for (image in allImages) {
                     val file = AutoMothRepository.resolve(image, session)
                     val bitmap = BitmapFactory.decodeFile(file.path)

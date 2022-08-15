@@ -2,7 +2,6 @@
 
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -12,19 +11,20 @@
         android:id="@+id/main_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        app:layout_constraintTop_toTopOf="parent"
         android:background="?attr/colorPrimary"
         android:elevation="4dp"
         android:theme="@style/AutoMoth.AppToolbar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"  />
+        app:layout_constraintTop_toTopOf="parent"
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
     <LinearLayout
         android:id="@+id/active_service_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/attention"
-        app:layout_constraintTop_toBottomOf="@id/main_toolbar"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent">
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/main_toolbar">
 
         <TextView
             android:layout_width="match_parent"
@@ -32,8 +32,8 @@
             android:gravity="center_horizontal"
             android:paddingTop="5dp"
             android:paddingBottom="5dp"
-            android:textColor="@color/white"
-            android:text="@string/active_session_indication" />
+            android:text="@string/active_session_indication"
+            android:textColor="@color/white" />
     </LinearLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
