@@ -1,4 +1,4 @@
-package com.uf.automoth.ui.imaging
+package com.uf.automoth.imaging
 
 import android.content.Context
 import android.util.Log
@@ -8,6 +8,9 @@ import androidx.core.net.toFile
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Image
 import com.uf.automoth.data.Session
+import com.uf.automoth.ui.imaging.AutoStopMode
+import com.uf.automoth.ui.imaging.ImagingSettings
+import com.uf.automoth.network.SingleLocationProvider
 import java.io.File
 import java.lang.ref.WeakReference
 import java.time.OffsetDateTime

@@ -1,4 +1,4 @@
-package com.uf.automoth.ui.imaging
+package com.uf.automoth.imaging
 
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException

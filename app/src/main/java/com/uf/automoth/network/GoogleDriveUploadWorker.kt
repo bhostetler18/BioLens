@@ -42,10 +42,6 @@ class GoogleDriveUploadWorker(
         return Result.success()
     }
 
-    override fun onStopped() {
-        super.onStopped()
-    }
-
     private fun initializeDrive(account: Account): GoogleDriveHelper {
         // TODO: handle exceptions
         val credential: GoogleAccountCredential = GoogleAccountCredential.usingOAuth2(

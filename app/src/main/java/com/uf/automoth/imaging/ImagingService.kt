@@ -1,4 +1,4 @@
-package com.uf.automoth.ui.imaging
+package com.uf.automoth.imaging
 
 import android.annotation.SuppressLint
 import android.app.Notification
@@ -21,6 +21,8 @@ import androidx.lifecycle.lifecycleScope
 import com.uf.automoth.MainActivity
 import com.uf.automoth.R
 import com.uf.automoth.data.AutoMothRepository
+import com.uf.automoth.ui.imaging.ImagingSettings
+import com.uf.automoth.network.SingleLocationProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch

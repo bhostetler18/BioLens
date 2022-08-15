@@ -24,6 +24,10 @@ import com.uf.automoth.MainActivity
 import com.uf.automoth.R
 import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.FragmentImagingBinding
+import com.uf.automoth.imaging.ImageCaptureInterface
+import com.uf.automoth.imaging.ImagingManager
+import com.uf.automoth.imaging.ImagingService
+import com.uf.automoth.network.SingleLocationProvider
 import com.uf.automoth.ui.common.EditTextDialog
 import kotlinx.coroutines.launch
 import java.io.File

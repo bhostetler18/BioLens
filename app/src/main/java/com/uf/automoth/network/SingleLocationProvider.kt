@@ -1,4 +1,4 @@
-package com.uf.automoth.ui.imaging
+package com.uf.automoth.network
 
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Context

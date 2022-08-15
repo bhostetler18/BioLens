@@ -10,7 +10,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.uf.automoth.databinding.ActivityMainBinding
-import com.uf.automoth.ui.imaging.ImagingService
+import com.uf.automoth.imaging.ImagingService
 
 class MainActivity : AppCompatActivity() {
 
