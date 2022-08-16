@@ -11,7 +11,7 @@
         android:id="@+id/app_bar"/>
 
     <com.github.chrisbanes.photoview.PhotoView
-        android:id="@+id/imageview"
+        android:id="@+id/photo_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintTop_toBottomOf="@id/app_bar"

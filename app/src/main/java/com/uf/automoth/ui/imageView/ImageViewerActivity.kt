@@ -1,14 +1,19 @@
 package com.uf.automoth.ui.imageView
 
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Image
 import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.ActivityImageViewerBinding
+import com.uf.automoth.ui.common.GlideApp
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -46,10 +51,31 @@ class ImageViewerActivity : AppCompatActivity() {
         this.image = image
         this.session = session
         val file = AutoMothRepository.resolve(image, session)
-//        GlideApp.with(this).load(file).into(binding.imageview)
-//        binding.imageview.setImageBitmap(BitmapFactory.decodeFile(file.path))
-//        binding.imageview.setImageURI(file.toUri())
-        binding.imageview.setImageURI(file.toUri())
+        GlideApp.with(this)
+            .load(file)
+            .listener(object : RequestListener<Drawable?> {
+                override fun onLoadFailed(
+                    e: GlideException?,
+                    model: Any,
+                    target: Target<Drawable?>,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    return false
+                }
+
+                override fun onResourceReady(
+                    resource: Drawable?,
+                    model: Any,
+                    target: Target<Drawable?>,
+                    dataSource: DataSource,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    binding.photoView.setImageDrawable(resource)
+                    return true
+                }
+            })
+            .into(binding.photoView)
+
         supportActionBar?.title = dateFormatter.format(image.timestamp)
     }
 
