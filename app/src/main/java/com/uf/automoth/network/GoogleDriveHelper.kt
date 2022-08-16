@@ -70,7 +70,7 @@ class GoogleDriveHelper(private val drive: Drive) {
 
     companion object {
         private const val TAG = "[DRIVE_HELPER]"
-        const val ROOT_FOLDER_NAME = "AutoMoth"
+        const val APP_FOLDER_NAME = "AutoMoth" // TODO: i18n
         val DUMMY_LISTENER = MediaHttpUploaderProgressListener { uploader ->
             when (uploader.uploadState) {
                 MediaHttpUploader.UploadState.INITIATION_STARTED -> Log.d(TAG, "Initiation started")

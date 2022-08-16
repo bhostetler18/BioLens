@@ -59,13 +59,13 @@ class GoogleDriveUploadWorker(
 
     private fun uploadSession(session: Session, driveHelper: GoogleDriveHelper) {
         setProgress(0.0)
-        val root = driveHelper.createOrGetFolder(GoogleDriveHelper.ROOT_FOLDER_NAME)
-        val folder = driveHelper.createFolder(session.directory, root)
+        val autoMothFolder = driveHelper.createOrGetFolder(GoogleDriveHelper.APP_FOLDER_NAME)
+        val folder = driveHelper.createOrGetFolder(session.directory, autoMothFolder)
         val images = AutoMothRepository.getImagesInSessionBlocking(session.sessionID)
         val total = images.size
         images.forEachIndexed { i, image ->
             val file = AutoMothRepository.resolve(image, session)
-            driveHelper.upload(file, MimeTypes.JPEG, folder)
+            driveHelper.upload(file, MimeTypes.JPEG, folder) // TODO: check if exists?
             setProgress(i.toDouble() / total.toDouble())
         }
     }
