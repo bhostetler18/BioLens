@@ -39,6 +39,7 @@
         <entry key="app/src/main/res/layout/imaging_settings.xml" value="0.11574074074074074" />
         <entry key="app/src/main/res/layout/session_list_item.xml" value="0.3142857142857143" />
         <entry key="app/src/main/res/menu/bottom_nav_menu.xml" value="0.2703125" />
+        <entry key="app/src/main/res/menu/image_share_menu.xml" value="0.1" />
         <entry key="app/src/main/res/menu/imaging_menu.xml" value="0.1453125" />
         <entry key="app/src/main/res/menu/session_menu.xml" value="0.1203125" />
         <entry key="app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.195" />

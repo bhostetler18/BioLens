@@ -43,4 +43,8 @@
     <string name="per_session">per session</string>
     <string name="background_session_complete_toast">Background session completed!</string>
     <string name="schedule_session">Schedule Session</string>
+    <string name="share">Share</string>
+    <string name="save_media_menu_title">Save to Gallery</string>
+    <string name="image_saved_success">Image saved successfully</string>
+    <string name="image_saved_failure">Failed to save image</string>
 </resources>
