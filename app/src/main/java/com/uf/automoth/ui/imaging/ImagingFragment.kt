@@ -19,19 +19,21 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.uf.automoth.MainActivity
+import com.google.android.material.timepicker.MaterialTimePicker
+import com.google.android.material.timepicker.MaterialTimePicker.INPUT_MODE_KEYBOARD
+import com.google.android.material.timepicker.TimeFormat.CLOCK_12H
 import com.uf.automoth.R
+import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.FragmentImagingBinding
-import com.uf.automoth.imaging.ImageCaptureInterface
-import com.uf.automoth.imaging.ImagingManager
-import com.uf.automoth.imaging.ImagingService
-import com.uf.automoth.imaging.ImagingSettings
+import com.uf.automoth.imaging.*
 import com.uf.automoth.network.SingleLocationProvider
 import com.uf.automoth.ui.common.EditTextDialog
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
 import java.lang.ref.WeakReference
+import java.time.OffsetDateTime
 import java.util.concurrent.atomic.AtomicBoolean
 
 class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
@@ -41,6 +43,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
 
     private var menu: Menu? = null
     private lateinit var locationProvider: SingleLocationProvider
+    private lateinit var imagingScheduler: ImagingScheduler
     private var imageCapture = ImageCapture.Builder().build()
 
     override var isRestartingCamera = AtomicBoolean(false)
@@ -56,6 +59,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
     ): View {
         viewModel = ViewModelProvider(this)[ImagingViewModel::class.java]
         locationProvider = SingleLocationProvider(requireContext())
+        imagingScheduler = ImagingScheduler(requireContext())
 
         ImagingSettings.loadFromFile(requireContext())?.let {
             viewModel.imagingSettings = it
@@ -81,9 +85,12 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
         }
 
         // Though unlikely, this ensures that the UI will display correctly if the user has it open
-        // and is watching while a background service session auto-stops.
+        // and is watching while a background service session auto-stops or starts.
         ImagingService.IS_RUNNING.observe(viewLifecycleOwner) { isRunning ->
-            if (!isRunning) {
+            if (isRunning) {
+                binding.captureButton.text = getString(R.string.stop_session)
+                setButtonsEnabled(false)
+            } else {
                 binding.captureButton.text = getString(R.string.start_session)
                 startCamera() // Restart preview
                 setButtonsEnabled(true)
@@ -107,6 +114,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
     override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
         return when (menuItem.itemId) {
             R.id.imaging_schedule -> {
+                scheduleSession()
                 true
             }
             else -> false
@@ -226,17 +234,17 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
     }
 
     private fun startSession(name: String?, service: Boolean = false) {
+        // TODO: if there are scheduled sessions, warn and ask if the user wants to cancel them
         binding.captureButton.text = getString(R.string.stop_session)
         setButtonsEnabled(false)
         if (service) {
-            val intent = Intent(requireContext().applicationContext, ImagingService::class.java)
-            intent.action = ImagingService.ACTION_START_SESSION
-            intent.putExtra("IMAGING_SETTINGS", viewModel.imagingSettings)
-            name?.let {
-                intent.putExtra("SESSION_NAME", it)
-            }
+            val intent = ImagingService.getStartSessionIntent(
+                requireContext(),
+                viewModel.imagingSettings,
+                false,
+                name
+            )
             ContextCompat.startForegroundService(requireContext().applicationContext, intent)
-            (activity as? MainActivity)?.setServiceIndicatorBarVisible(true)
         } else {
             val manager = ImagingManager(viewModel.imagingSettings, WeakReference(this))
             viewModel.imagingManager = manager
@@ -256,13 +264,41 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
             val intent = Intent(requireContext().applicationContext, ImagingService::class.java)
             intent.action = ImagingService.ACTION_STOP_SESSION
             requireContext().applicationContext.startService(intent)
-            (activity as? MainActivity)?.setServiceIndicatorBarVisible(false)
             startCamera() // Restart preview
         } else {
             viewModel.imagingManager?.stop()
             viewModel.imagingManager = null
         }
         setButtonsEnabled(true)
+    }
+
+    private fun scheduleSession() {
+        imagingScheduler.requestExactAlarmPermissionIfNecessary(requireContext())
+        val defaultHour = (OffsetDateTime.now().hour + 1) % 24
+        val timePicker = MaterialTimePicker.Builder()
+            .setTitleText(R.string.schedule_session)
+            .setHour(defaultHour)
+            .setMinute(0)
+            .setTimeFormat(CLOCK_12H)
+            .setInputMode(INPUT_MODE_KEYBOARD)
+            .setNegativeButtonText(R.string.cancel)
+            .setPositiveButtonText(R.string.schedule_session)
+
+        lifecycleScope.launch {
+            imagingScheduler.scheduleSession(
+                requireContext(),
+                "test",
+                viewModel.imagingSettings,
+                OffsetDateTime.now().plusSeconds(10),
+                false
+            )
+
+            delay(5 * 1000)
+            val pending = AutoMothRepository.getAllPendingSessions()
+            if (pending.isNotEmpty()) {
+                imagingScheduler.cancelPendingSession(pending[0], requireContext())
+            }
+        }
     }
 
     private fun setButtonsEnabled(enabled: Boolean) {

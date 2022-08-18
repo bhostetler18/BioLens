@@ -4,13 +4,18 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.isVisible
+import androidx.lifecycle.asLiveData
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.uf.automoth.data.AutoMothRepository
+import com.uf.automoth.data.PendingSession
 import com.uf.automoth.databinding.ActivityMainBinding
 import com.uf.automoth.imaging.ImagingService
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 class MainActivity : AppCompatActivity() {
 
@@ -29,7 +34,7 @@ class MainActivity : AppCompatActivity() {
 
         // See https://stackoverflow.com/questions/58703451/fragmentcontainerview-as-navhostfragment
         val navHostFragment = supportFragmentManager
-            .findFragmentById(R.id.nav_host_fragment_activity_main) as NavHostFragment
+            .findFragmentById(R.id.main_fragment_container) as NavHostFragment
         val navController = navHostFragment.navController
 
         val appBarConfiguration = AppBarConfiguration(
@@ -43,7 +48,11 @@ class MainActivity : AppCompatActivity() {
         navView.setupWithNavController(navController)
 
         ImagingService.IS_RUNNING.observe(this) { isRunning ->
-            setServiceIndicatorBarVisible(isRunning)
+            setRunningSessionIndicatorVisible(isRunning)
+        }
+
+        AutoMothRepository.earliestPendingSessionFlow.asLiveData().observe(this) {
+            setScheduledServiceIndicator(it)
         }
     }
 
@@ -58,10 +67,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun refreshUI() {
-        setServiceIndicatorBarVisible(ImagingService.IS_RUNNING.value ?: false)
+        setRunningSessionIndicatorVisible(ImagingService.IS_RUNNING.value ?: false)
     }
 
-    fun setServiceIndicatorBarVisible(visible: Boolean) {
-        binding.activeServiceBar.isVisible = visible
+    private fun setRunningSessionIndicatorVisible(visible: Boolean) {
+        binding.sessionRunningNotification.isVisible = visible
+    }
+
+    private fun setScheduledServiceIndicator(pendingSession: PendingSession?) {
+        binding.sessionScheduledNotification.isVisible = pendingSession != null
+        pendingSession?.let {
+            val time = pendingSession.scheduledDateTime.toLocalTime().format(timeFormatter)
+            binding.sessionScheduledNotification.text =
+                getString(R.string.scheduled_session_indication, time)
+        }
+    }
+
+    companion object {
+        private val timeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
     }
 }

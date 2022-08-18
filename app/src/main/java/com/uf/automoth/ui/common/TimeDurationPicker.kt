@@ -3,6 +3,7 @@ package com.uf.automoth.ui.common
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
+import androidx.annotation.PluralsRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.uf.automoth.R
 import com.uf.automoth.databinding.GenericTimePickerBinding
@@ -25,10 +26,12 @@ class TimeDurationPicker(context: Context, attrs: AttributeSet?) :
 
     private val unit1Picker = binding.unit1Picker
     private val unit2Picker = binding.unit2Picker
-    private var unit1Singular = ""
-    private var unit1Plural = ""
-    private var unit2Singular = ""
-    private var unit2Plural = ""
+
+    @PluralsRes
+    private var unit1: Int = R.plurals.unit_minutes
+
+    @PluralsRes
+    private var unit2: Int = R.plurals.unit_seconds
     private var onTimeDurationChangedListener: ((value1: Int, value2: Int) -> Unit)? = null
 
     init {
@@ -54,15 +57,11 @@ class TimeDurationPicker(context: Context, attrs: AttributeSet?) :
         }
 
     fun setUnits(
-        unit1Singular: String,
-        unit1Plural: String,
-        unit2Singular: String,
-        unit2Plural: String
+        @PluralsRes unit1: Int,
+        @PluralsRes unit2: Int
     ) {
-        this.unit1Singular = unit1Singular
-        this.unit1Plural = unit1Plural
-        this.unit2Singular = unit2Singular
-        this.unit2Plural = unit2Plural
+        this.unit1 = unit1
+        this.unit2 = unit2
         setPlurality()
     }
 
@@ -70,19 +69,15 @@ class TimeDurationPicker(context: Context, attrs: AttributeSet?) :
         when (mode) {
             DurationMode.HHMM -> {
                 setUnits(
-                    context.getString(R.string.unit_hours_singular),
-                    context.getString(R.string.unit_hours_plural),
-                    context.getString(R.string.unit_minutes_singular),
-                    context.getString(R.string.unit_minutes_plural)
+                    R.plurals.unit_hours,
+                    R.plurals.unit_minutes
                 )
             }
 
             DurationMode.MMSS -> {
                 setUnits(
-                    context.getString(R.string.unit_minutes_singular),
-                    context.getString(R.string.unit_minutes_plural),
-                    context.getString(R.string.unit_seconds_singular),
-                    context.getString(R.string.unit_seconds_plural)
+                    R.plurals.unit_minutes,
+                    R.plurals.unit_seconds
                 )
             }
         }
@@ -109,15 +104,7 @@ class TimeDurationPicker(context: Context, attrs: AttributeSet?) :
     }
 
     private fun setPlurality() {
-        if (unit1Picker.value == 1) {
-            binding.unit1Label.text = unit1Singular
-        } else {
-            binding.unit1Label.text = unit1Plural
-        }
-        if (unit2Picker.value == 1) {
-            binding.unit2Label.text = unit2Singular
-        } else {
-            binding.unit2Label.text = unit2Plural
-        }
+        binding.unit1Label.text = resources.getQuantityText(unit1, unit1Picker.value)
+        binding.unit2Label.text = resources.getQuantityText(unit2, unit2Picker.value)
     }
 }

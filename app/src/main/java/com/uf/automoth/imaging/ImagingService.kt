@@ -1,6 +1,5 @@
 package com.uf.automoth.imaging
 
-import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -46,26 +45,35 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // Needed for lifecycle state to be marked correctly and camera to start
+        super.onStartCommand(intent, flags, startId)
         Log.d(TAG, "On start command called")
 
-        if (intent != null) {
-            when (intent.action) {
-                ACTION_START_SESSION -> {
-                    intent.getParcelableExtra<ImagingSettings>("IMAGING_SETTINGS")?.let {
-                        val name = intent.getStringExtra("SESSION_NAME")
-                        startSession(name, it)
+        when (intent?.action) {
+            ACTION_START_SESSION -> {
+                intent.getParcelableExtra<ImagingSettings>(KEY_IMAGING_SETTINGS)?.let { settings ->
+                    val name = intent.getStringExtra(KEY_SESSION_NAME)
+                    val shouldCancel = intent.getBooleanExtra(KEY_CANCEL_EXISTING, false)
+                    (intent.extras?.get(KEY_REQUEST_CODE) as? Int)?.let { requestCode ->
+                        // If this session was triggered by an alarm, remove the record of its pending intent
+                        AutoMothRepository.deletePendingSession(requestCode.toLong())
                     }
+                    startSession(name, settings, shouldCancel)
+                    return START_REDELIVER_INTENT
                 }
-                ACTION_STOP_SESSION -> {
-                    Log.d(TAG, "Stopping current session")
-                    stopCurrentSessionAndKillService()
-                }
+            }
+            ACTION_STOP_SESSION -> {
+                Log.d(TAG, "Stopping current session")
+                stopCurrentSession()
+                killService()
+                return START_REDELIVER_INTENT
             }
         }
 
-        // Needed for lifecycle state to be marked correctly and camera to start
-        super.onStartCommand(intent, flags, startId)
-        return START_STICKY
+        // In the case of an unrecognized or malformed intent, just stop the service so it doesn't
+        // run indefinitely in the background (as long as there isn't an active session)
+        killServiceIfInactive()
+        return START_NOT_STICKY
     }
 
     override fun onDestroy() {
@@ -74,7 +82,6 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
         super.onDestroy()
     }
 
-    @SuppressLint("UnspecifiedImmutableFlag")
     private fun startInForeground() {
         val pendingIntent: PendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PendingIntent.getActivity(
@@ -88,7 +95,7 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
                 this,
                 0,
                 Intent(this, MainActivity::class.java),
-                0
+                0 // warning here is a lint bug
             )
         }
 
@@ -129,7 +136,8 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
                 )
             } catch (exc: Exception) {
                 Log.e(TAG, "Image capture use case binding failed", exc)
-                stopCurrentSessionAndKillService()
+                stopCurrentSession()
+                killService()
                 return@addListener
             }
 
@@ -163,9 +171,14 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
         }
     }
 
-    private fun startSession(name: String?, settings: ImagingSettings) {
-        if (imagingManager != null) {
-            Log.d(TAG, "Imaging session already in progress")
+    private fun startSession(name: String?, settings: ImagingSettings, cancelExisting: Boolean) {
+        if (cancelExisting) {
+            stopCurrentSession()
+        } else if (imagingManager != null) {
+            Log.w(
+                TAG,
+                "Imaging session $name will not be started because a session is already in progress and cancelExisting=false"
+            )
             return
         }
         startCamera {
@@ -182,10 +195,16 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
         }
     }
 
-    private fun stopCurrentSessionAndKillService() {
+    private fun stopCurrentSession() {
         imagingManager?.stop()
         imagingManager = null
-        killService()
+        isRestartingCamera.set(false)
+    }
+
+    private fun killServiceIfInactive() {
+        if (imagingManager == null) {
+            killService()
+        }
     }
 
     private fun killService() {
@@ -194,11 +213,35 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
     }
 
     companion object {
-        const val TAG = "[SERVICE]"
-        const val SERVICE_NOTIFICATION_ID: Int = 1297044552
-        const val SERVICE_CHANNEL_ID: String = "com.uf.automoth.notification.serviceChannel"
+        private const val TAG = "[SERVICE]"
+        private const val SERVICE_NOTIFICATION_ID: Int = 1297044552
+        private const val SERVICE_CHANNEL_ID: String = "com.uf.automoth.notification.serviceChannel"
         const val ACTION_START_SESSION = "com.uf.automoth.action.START_SESSION"
         const val ACTION_STOP_SESSION = "com.uf.automoth.action.STOP_SESSION"
+        private const val KEY_IMAGING_SETTINGS = "com.uf.automoth.extra.IMAGING_SETTINGS"
+        private const val KEY_SESSION_NAME = "com.uf.automoth.extra.SESSION_NAME"
+        private const val KEY_CANCEL_EXISTING = "com.automoth.extra.CANCEL_EXISTING"
+        private const val KEY_REQUEST_CODE = "com.uf.automoth.extra.REQUEST_CODE"
         val IS_RUNNING = MutableLiveData(false)
+
+        fun getStartSessionIntent(
+            context: Context,
+            settings: ImagingSettings,
+            cancelExisting: Boolean,
+            name: String?,
+            requestCode: Int? = null
+        ): Intent {
+            return Intent(context, ImagingService::class.java).apply {
+                action = ACTION_START_SESSION
+                putExtra(KEY_IMAGING_SETTINGS, settings)
+                putExtra(KEY_CANCEL_EXISTING, cancelExisting)
+                name?.let {
+                    putExtra(KEY_SESSION_NAME, it)
+                }
+                requestCode?.let {
+                    putExtra(KEY_REQUEST_CODE, it)
+                }
+            }
+        }
     }
 }

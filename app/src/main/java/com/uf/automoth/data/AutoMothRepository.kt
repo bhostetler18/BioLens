@@ -14,18 +14,18 @@ import java.time.OffsetDateTime
 
 object AutoMothRepository {
 
-    private lateinit var imageDatabase: ImageDatabase
+    private lateinit var database: AutoMothDatabase
     private lateinit var coroutineScope: CoroutineScope
     lateinit var storageLocation: File
 
     operator fun invoke(context: Context, coroutineScope: CoroutineScope) {
-        if (this::imageDatabase.isInitialized) {
+        if (this::database.isInitialized) {
             return
         }
-        imageDatabase = Room.databaseBuilder(
+        database = Room.databaseBuilder(
             context,
-            ImageDatabase::class.java,
-            "image-db"
+            AutoMothDatabase::class.java,
+            "automoth-db"
         ).fallbackToDestructiveMigration() // TODO: remove when ready to release
             .build()
         storageLocation = context.getExternalFilesDir(null)!! // TODO: handle ejection?
@@ -34,7 +34,13 @@ object AutoMothRepository {
     }
 
     val allSessionsFlow by lazy {
-        imageDatabase.sessionDAO().getAllSessions()
+        database.sessionDAO().getAllSessions()
+    }
+    val allPendingSessionsFlow by lazy {
+        database.pendingSessionDAO().getAllPendingSessionsFlow()
+    }
+    val earliestPendingSessionFlow by lazy {
+        database.pendingSessionDAO().getEarliestPendingSession()
     }
 
     // TODO: indicate filesystem errors in below functions either by exception or return
@@ -45,7 +51,7 @@ object AutoMothRepository {
             return@withContext sessionDir.mkdir()
         }
         if (created) {
-            session.sessionID = imageDatabase.sessionDAO().insert(session)
+            session.sessionID = database.sessionDAO().insert(session)
             return session.sessionID
         }
         return null
@@ -57,16 +63,25 @@ object AutoMothRepository {
             return@withContext sessionDir.deleteRecursively()
         }
         if (deleted) {
-            imageDatabase.sessionDAO().delete(session)
+            database.sessionDAO().delete(session)
         }
     }
 
+    suspend fun create(pendingSession: PendingSession): Long {
+        pendingSession.requestCode = database.pendingSessionDAO().insert(pendingSession)
+        return pendingSession.requestCode
+    }
+
+    fun deletePendingSession(requestCode: Long) = coroutineScope.launch {
+        database.pendingSessionDAO().deleteByRequestCode(requestCode)
+    }
+
     fun insert(image: Image) = coroutineScope.launch {
-        image.imageID = imageDatabase.imageDAO().insert(image)
+        image.imageID = database.imageDAO().insert(image)
     }
 
     fun delete(image: Image) = coroutineScope.launch {
-        val session = imageDatabase.sessionDAO().getSession(image.parentSessionID) ?: return@launch
+        val session = database.sessionDAO().getSession(image.parentSessionID) ?: return@launch
         val sessionDir = File(storageLocation, session.directory)
         val imagePath = File(sessionDir, image.filename)
 
@@ -75,35 +90,40 @@ object AutoMothRepository {
         }
 
         if (deleted) {
-            imageDatabase.imageDAO().delete(image)
+            database.imageDAO().delete(image)
         }
     }
 
-    suspend fun getSession(id: Long): Session? = imageDatabase.sessionDAO().getSession(id)
-    suspend fun getImage(id: Long): Image? = imageDatabase.imageDAO().getImage(id)
+    suspend fun getSession(id: Long): Session? = database.sessionDAO().getSession(id)
+    suspend fun getPendingSession(requestCode: Long) =
+        database.pendingSessionDAO().getPendingSession(requestCode)
+
+    suspend fun getImage(id: Long): Image? = database.imageDAO().getImage(id)
+    suspend fun getAllPendingSessions(): List<PendingSession> =
+        database.pendingSessionDAO().getAllPendingSessions()
 
     fun getImagesInSession(id: Long): Flow<List<Image>> {
-        return imageDatabase.sessionDAO().getImagesInSession(id)
+        return database.sessionDAO().getImagesInSession(id)
     }
 
     fun getImagesInSessionBlocking(id: Long): List<Image> {
-        return imageDatabase.sessionDAO().getImagesInSessionBlocking(id)
+        return database.sessionDAO().getImagesInSessionBlocking(id)
     }
 
     fun getNumImagesInSession(id: Long): Flow<Int> {
-        return imageDatabase.sessionDAO().getNumImagesInSession(id)
+        return database.sessionDAO().getNumImagesInSession(id)
     }
 
     fun updateSessionLocation(id: Long, location: Location) = coroutineScope.launch {
-        imageDatabase.sessionDAO().updateSessionLocation(id, location.latitude, location.longitude)
+        database.sessionDAO().updateSessionLocation(id, location.latitude, location.longitude)
     }
 
     fun updateSessionCompletion(id: Long, time: OffsetDateTime) = coroutineScope.launch {
-        imageDatabase.sessionDAO().updateSessionCompletion(id, time)
+        database.sessionDAO().updateSessionCompletion(id, time)
     }
 
     fun renameSession(id: Long, name: String) = coroutineScope.launch {
-        imageDatabase.sessionDAO().renameSession(id, name)
+        database.sessionDAO().renameSession(id, name)
     }
 
     fun resolve(session: Session): File {

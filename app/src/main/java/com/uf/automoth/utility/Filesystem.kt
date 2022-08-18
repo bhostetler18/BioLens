@@ -4,7 +4,6 @@ import android.content.ContentResolver
 import android.content.ContentValues
 import android.os.Build
 import android.provider.MediaStore
-import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
@@ -12,7 +11,12 @@ import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
 
-suspend fun saveImageToMediaStore(image: File, name: String, mimeType: String, contentResolver: ContentResolver): Boolean = coroutineScope {
+suspend fun saveImageToMediaStore(
+    image: File,
+    name: String,
+    mimeType: String,
+    contentResolver: ContentResolver
+): Boolean = coroutineScope {
     val imageStore =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
@@ -43,6 +47,4 @@ suspend fun saveImageToMediaStore(image: File, name: String, mimeType: String, c
             return@withContext true
         }
     }.getOrElse { false }
-
-
 }

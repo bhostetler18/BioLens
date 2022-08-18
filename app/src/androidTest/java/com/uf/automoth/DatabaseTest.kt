@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.uf.automoth.data.Image
-import com.uf.automoth.data.ImageDatabase
+import com.uf.automoth.data.AutoMothDatabase
 import com.uf.automoth.data.Session
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.equalTo
@@ -22,12 +22,12 @@ import kotlin.test.assertFailsWith
 @RunWith(AndroidJUnit4::class)
 class DatabaseTest {
 
-    private lateinit var db: ImageDatabase
+    private lateinit var db: AutoMothDatabase
 
     @Before
     fun createDb() {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        db = Room.inMemoryDatabaseBuilder(context, ImageDatabase::class.java).build()
+        db = Room.inMemoryDatabaseBuilder(context, AutoMothDatabase::class.java).build()
     }
 
     @After

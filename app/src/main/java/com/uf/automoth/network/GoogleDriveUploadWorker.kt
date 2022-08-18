@@ -75,9 +75,9 @@ class GoogleDriveUploadWorker(
     }
 
     companion object {
-        const val KEY_SESSION_ID = "SESSION_ID"
-        const val KEY_ACCOUNT_NAME = "ACCOUNT_NAME"
-        const val KEY_ACCOUNT_TYPE = "ACCOUNT_TYPE"
-        const val KEY_PROGRESS = "PROGRESS"
+        const val KEY_SESSION_ID = "com.uf.automoth.extra.SESSION_ID"
+        const val KEY_ACCOUNT_NAME = "com.uf.automoth.extra.ACCOUNT_NAME"
+        const val KEY_ACCOUNT_TYPE = "com.uf.automoth.extra.ACCOUNT_TYPE"
+        const val KEY_PROGRESS = "com.uf.automoth.extra.PROGRESS"
     }
 }

@@ -212,12 +212,9 @@ class AutoStopDialog(
     // TODO: refactor this (and other generic number picker methods) into a custom view
     private fun setImageCountPlurality() {
         val ctx = imageCountBinding.root.context
-        val count = imageCountBinding.numberEntry.text.toString().toIntOrNull()
-        if (count == 1) {
-            imageCountBinding.unitLabel.text = ctx.getString(R.string.image_singular)
-        } else {
-            imageCountBinding.unitLabel.text = ctx.getString(R.string.image_plural)
-        }
+        val count = imageCountBinding.numberEntry.text.toString().toIntOrNull() ?: 0
+        imageCountBinding.unitLabel.text =
+            ctx.resources.getQuantityString(R.plurals.unit_images, count)
     }
 
     fun show() = dialog.show()

@@ -63,8 +63,7 @@ class ImageGridActivity : AppCompatActivity(), GoogleDriveSignInActivity {
 
             AutoMothRepository.getNumImagesInSession(sessionID).asLiveData()
                 .observe(this@ImageGridActivity) { count ->
-                    val imageString =
-                        if (count != 1) getString(R.string.image_plural) else getString(R.string.image_singular)
+                    val imageString = resources.getQuantityString(R.plurals.unit_images, count)
                     binding.imgCount.text = "$count $imageString"
                 }
 

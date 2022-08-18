@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "f97d93c88b3664f63d84cf2be629f054",
+    "identityHash": "07d4c91975c916eda44030218eee9383",
     "entities": [
       {
         "tableName": "images",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`filename` TEXT NOT NULL, `timestamp` TEXT NOT NULL, `parentSessionID` INTEGER NOT NULL, `imageID` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `containsMoths` INTEGER NOT NULL, FOREIGN KEY(`parentSessionID`) REFERENCES `sessions`(`sessionID`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`filename` TEXT NOT NULL, `timestamp` TEXT NOT NULL, `parentSessionID` INTEGER NOT NULL, `imageID` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, FOREIGN KEY(`parentSessionID`) REFERENCES `sessions`(`sessionID`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "filename",
@@ -29,12 +29,6 @@
           {
             "fieldPath": "imageID",
             "columnName": "imageID",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "containsMoths",
-            "columnName": "containsMoths",
             "affinity": "INTEGER",
             "notNull": true
           }
@@ -72,7 +66,7 @@
       },
       {
         "tableName": "sessions",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `directory` TEXT NOT NULL, `started` TEXT NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `sessionID` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `completed` TEXT)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `directory` TEXT NOT NULL, `started` TEXT NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `interval` INTEGER NOT NULL, `completed` TEXT, `sessionID` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)",
         "fields": [
           {
             "fieldPath": "name",
@@ -105,8 +99,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "sessionID",
-            "columnName": "sessionID",
+            "fieldPath": "interval",
+            "columnName": "interval",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -115,6 +109,12 @@
             "columnName": "completed",
             "affinity": "TEXT",
             "notNull": false
+          },
+          {
+            "fieldPath": "sessionID",
+            "columnName": "sessionID",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -125,12 +125,62 @@
         },
         "indices": [],
         "foreignKeys": []
+      },
+      {
+        "tableName": "pending_sessions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `interval` INTEGER NOT NULL, `autoStopMode` TEXT NOT NULL, `autoStopValue` INTEGER NOT NULL, `scheduledDateTime` TEXT NOT NULL, `requestCode` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "interval",
+            "columnName": "interval",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "autoStopMode",
+            "columnName": "autoStopMode",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "autoStopValue",
+            "columnName": "autoStopValue",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scheduledDateTime",
+            "columnName": "scheduledDateTime",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "requestCode",
+            "columnName": "requestCode",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "requestCode"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": []
       }
     ],
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f97d93c88b3664f63d84cf2be629f054')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '07d4c91975c916eda44030218eee9383')"
     ]
   }
 }

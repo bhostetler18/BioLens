@@ -20,26 +20,34 @@
     <string name="rename_session">Rename session</string>
     <string name="interval_dialog_title">Imaging Interval</string>
     <string name="OK">OK</string>
-    <string name="unit_minutes_plural">minutes</string>
-    <string name="unit_seconds_plural">seconds</string>
-    <string name="unit_minutes_singular">minute</string>
-    <string name="unit_seconds_singular">second</string>
+    <plurals name="unit_hours">
+        <item quantity="one">hour</item>
+        <item quantity="other">hours</item>
+    </plurals>
+    <plurals name="unit_minutes">
+        <item quantity="one">minute</item>
+        <item quantity="other">minutes</item>
+    </plurals>
+    <plurals name="unit_seconds">
+        <item quantity="one">second</item>
+        <item quantity="other">seconds</item>
+    </plurals>
     <string name="per_hour">per hour</string>
     <string name="service_notification_title">Imaging session in progress</string>
     <string name="service_notification_message">Please do not open any other camera apps</string>
     <string name="service_notification_channel">AutoMoth Imaging Service</string>
     <string name="active_session_indication">An image capture session is currently running</string>
     <string name="default_session_name">Untitled session</string>
-    <string name="image_plural">images</string>
-    <string name="image_singular">image</string>
+    <plurals name="unit_images">
+        <item quantity="one">image</item>
+        <item quantity="other">images</item>
+    </plurals>
     <string name="time_delimiter">:</string>
     <string name="auto_stop_image">Count</string>
     <string name="auto_stop_time">Time</string>
     <string name="auto_stop_never">Never</string>
     <string name="autostop_dialog_title">Auto-Stop Settings</string>
     <string name="auto_stop_off_description">The session will continue until it is stopped manually or your device runs out of battery.</string>
-    <string name="unit_hours_singular">hour</string>
-    <string name="unit_hours_plural">hours</string>
     <string name="per_session">per session</string>
     <string name="background_session_complete_toast">Background session completed!</string>
     <string name="schedule_session">Schedule Session</string>
@@ -47,4 +55,7 @@
     <string name="save_media_menu_title">Save to Gallery</string>
     <string name="image_saved_success">Image saved successfully</string>
     <string name="image_saved_failure">Failed to save image</string>
+    <string name="go_to_settings">Continue to settings</string>
+    <string name="warn_needs_alarm_permission">AutoMoth needs special permissions to schedule a future session</string>
+    <string name="scheduled_session_indication">An image capture session is scheduled for %s</string>
 </resources>
