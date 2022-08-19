@@ -5,13 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.uf.automoth.databinding.FragmentSessionsBinding
 
 class SessionsFragment : Fragment() {
 
     private var _binding: FragmentSessionsBinding? = null
+    private val viewModel: SessionsViewModel by viewModels()
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -22,20 +23,17 @@ class SessionsFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val sessionsViewModel: SessionsViewModel =
-            ViewModelProvider(this)[SessionsViewModel::class.java]
-
         _binding = FragmentSessionsBinding.inflate(inflater, container, false)
 
-        val recyclerView = binding.recyclerview
+        val recyclerView = binding.recyclerView
         val adapter = SessionListAdapter()
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(activity)
 
-        sessionsViewModel.allSessions.observe(viewLifecycleOwner) { sessions ->
+        viewModel.allSessions.observe(viewLifecycleOwner) { sessions ->
             sessions?.let { adapter.submitList(it) }
             binding.noSessionsText.visibility = if (sessions.isEmpty()) View.VISIBLE else View.GONE
-            binding.recyclerview.visibility = if (sessions.isEmpty()) View.GONE else View.VISIBLE
+            binding.recyclerView.visibility = if (sessions.isEmpty()) View.GONE else View.VISIBLE
         }
 
         return binding.root

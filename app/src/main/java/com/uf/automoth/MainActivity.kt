@@ -1,5 +1,6 @@
 package com.uf.automoth
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -14,8 +15,8 @@ import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.PendingSession
 import com.uf.automoth.databinding.ActivityMainBinding
 import com.uf.automoth.imaging.ImagingService
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
+import com.uf.automoth.ui.imaging.scheduler.ImagingSchedulerActivity
+import com.uf.automoth.utility.SHORT_TIME_FORMATTER
 
 class MainActivity : AppCompatActivity() {
 
@@ -54,6 +55,10 @@ class MainActivity : AppCompatActivity() {
         AutoMothRepository.earliestPendingSessionFlow.asLiveData().observe(this) {
             setScheduledServiceIndicator(it)
         }
+
+        binding.sessionScheduledNotification.setOnClickListener {
+            startActivity(Intent(this, ImagingSchedulerActivity::class.java))
+        }
     }
 
     override fun onResume() {
@@ -77,13 +82,9 @@ class MainActivity : AppCompatActivity() {
     private fun setScheduledServiceIndicator(pendingSession: PendingSession?) {
         binding.sessionScheduledNotification.isVisible = pendingSession != null
         pendingSession?.let {
-            val time = pendingSession.scheduledDateTime.toLocalTime().format(timeFormatter)
+            val time = pendingSession.scheduledDateTime.toLocalTime().format(SHORT_TIME_FORMATTER)
             binding.sessionScheduledNotification.text =
                 getString(R.string.scheduled_session_indication, time)
         }
-    }
-
-    companion object {
-        private val timeFormatter = DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT)
     }
 }

@@ -21,10 +21,9 @@ import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.ActivityImageViewerBinding
 import com.uf.automoth.network.MimeTypes
 import com.uf.automoth.ui.common.GlideApp
+import com.uf.automoth.utility.SHORT_DATE_TIME_FORMATTER
 import com.uf.automoth.utility.saveImageToMediaStore
 import kotlinx.coroutines.launch
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 
 class ImageViewerActivity : AppCompatActivity() {
 
@@ -86,7 +85,7 @@ class ImageViewerActivity : AppCompatActivity() {
             })
             .into(binding.photoView)
 
-        supportActionBar?.title = dateFormatter.format(image.timestamp)
+        supportActionBar?.title = image.timestamp.format(SHORT_DATE_TIME_FORMATTER)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -139,10 +138,5 @@ class ImageViewerActivity : AppCompatActivity() {
     private fun displayNoImage() {
         // TODO: Implement image/session not found error screen
         setShareVisible(false)
-    }
-
-    companion object {
-        val dateFormatter: DateTimeFormatter =
-            DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
     }
 }

@@ -17,25 +17,25 @@ enum class AutoStopMode {
 @Serializable
 @Parcelize
 data class ImagingSettings(
-    var interval: Int = 10,
-    var autoStopMode: AutoStopMode = AutoStopMode.IMAGE_COUNT,
-    var autoStopValue: Int = 100
+    var interval: Int = 60,
+    var autoStopMode: AutoStopMode = AutoStopMode.TIME,
+    var autoStopValue: Int = 720
 ) : Parcelable {
 
     fun saveToFile(context: Context) {
         val encoded = JSON.encodeToString(this)
-        context.openFileOutput(PATH, Context.MODE_PRIVATE).use {
+        context.openFileOutput(FILENAME, Context.MODE_PRIVATE).use {
             it.write(encoded.encodeToByteArray())
         }
     }
 
     companion object {
-        const val PATH: String = "imaging_settings.json"
+        const val FILENAME: String = "imaging_settings.json"
         private var JSON = Json { encodeDefaults = true }
 
-        fun loadFromFile(context: Context): ImagingSettings? {
+        fun loadDefaultsFromFile(context: Context): ImagingSettings? {
             return try {
-                context.openFileInput(PATH)?.use { input ->
+                context.openFileInput(FILENAME)?.use { input ->
                     input.bufferedReader().use {
                         return Json.decodeFromString(it.readText())
                     }

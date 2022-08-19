@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="@dimen/session_card_margin"
+    android:layout_marginTop="@dimen/session_card_margin"
+    android:layout_marginRight="@dimen/session_card_margin"
+    android:elevation="5dp"
+    app:cardBackgroundColor="@color/white"
+    app:cardCornerRadius="5dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/session_title"
+                style="@style/title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:text="Session Title" />
+
+            <TextView
+                android:id="@+id/start_time_text"
+                style="@style/info_small"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:text="Scheduled for: today at 8:00pm" />
+
+            <TextView
+                android:id="@+id/interval_text"
+                style="@style/info_small"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:text="Imaging Interval: 20s" />
+
+            <TextView
+                android:id="@+id/auto_stop_text"
+                style="@style/info_small"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:text="Auto-stop: after 1000 images" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/cancel_button"
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
+            android:background="?android:attr/selectableItemBackground"
+            android:src="@drawable/ic_cancel_24"
+            app:tint="@color/destructive_red" />
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

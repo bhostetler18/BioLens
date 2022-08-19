@@ -6,12 +6,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import com.uf.automoth.databinding.FragmentInfoBinding
 
 class InfoFragment : Fragment() {
 
     private var _binding: FragmentInfoBinding? = null
+    private val viewModel: InfoViewModel by viewModels()
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -22,14 +23,11 @@ class InfoFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val infoViewModel =
-            ViewModelProvider(this)[InfoViewModel::class.java]
-
         _binding = FragmentInfoBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
         val textView: TextView = binding.textNotifications
-        infoViewModel.text.observe(viewLifecycleOwner) {
+        viewModel.text.observe(viewLifecycleOwner) {
             textView.text = it
         }
         return root

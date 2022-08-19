@@ -44,17 +44,20 @@
             </intent-filter>
         </activity>
         <activity
+            android:name="com.uf.automoth.ui.imaging.scheduler.ImagingSchedulerActivity"
+            android:exported="false" />
+        <activity
             android:name="com.uf.automoth.ui.imageGrid.ImageGridActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.imageView.ImageViewerActivity"
+            android:name="com.uf.automoth.ui.imageView.ImageViewerActivity"
             android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.uf.automoth.fileprovider"
-            android:grantUriPermissions="true"
-            android:exported="false">
+            android:exported="false"
+            android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths" />

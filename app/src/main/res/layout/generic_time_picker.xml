@@ -50,7 +50,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center_horizontal"
-            tools:text="@string/unit_minutes_plural" />
+            tools:text="minutes" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -66,6 +66,6 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center_horizontal"
-            tools:text="@string/unit_seconds_plural" />
+            tools:text="seconds" />
     </LinearLayout>
 </merge>

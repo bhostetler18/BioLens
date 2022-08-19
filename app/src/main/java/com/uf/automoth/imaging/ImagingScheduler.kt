@@ -44,8 +44,7 @@ class ImagingScheduler(context: Context) {
         context: Context,
         name: String,
         settings: ImagingSettings,
-        startTime: OffsetDateTime,
-        cancelExisting: Boolean
+        startTime: OffsetDateTime
     ): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
             return false
@@ -57,7 +56,7 @@ class ImagingScheduler(context: Context) {
         val intent = ImagingService.getStartSessionIntent(
             context,
             settings,
-            cancelExisting,
+            true,
             name,
             requestCode
         )
@@ -116,18 +115,20 @@ class ImagingScheduler(context: Context) {
         AutoMothRepository.deletePendingSession(session.requestCode)
     }
 
-    suspend fun checkForSchedulingConflicts(
-        startTime: OffsetDateTime,
-        settings: ImagingSettings
-    ): Pair<SchedulingConflictType, PendingSession>? {
-        val pendingSessions = AutoMothRepository.getAllPendingSessions()
-        val proposedSession = PendingSession("", settings, startTime)
-        for (existing in pendingSessions) {
-            proposedSession.conflictWith(existing)?.let {
-                return Pair(it, existing)
+    companion object {
+        suspend fun checkForSchedulingConflicts(
+            startTime: OffsetDateTime,
+            settings: ImagingSettings
+        ): Pair<SchedulingConflictType, PendingSession>? {
+            val pendingSessions = AutoMothRepository.getAllPendingSessions()
+            val proposedSession = PendingSession("", settings, startTime)
+            for (existing in pendingSessions) {
+                proposedSession.conflictWith(existing)?.let {
+                    return Pair(it, existing)
+                }
             }
+            return null
         }
-        return null
     }
 }
 

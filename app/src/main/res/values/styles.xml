@@ -7,7 +7,12 @@
         <item name="android:textColor">@color/black</item>
     </style>
 
-    <style name="info">
+    <style name="info_medium">
+        <item name="android:textAppearance">@android:style/TextAppearance.Medium</item>
+        <item name="android:textColor">@color/dark_grey</item>
+    </style>
+
+    <style name="info_small">
         <item name="android:textAppearance">@android:style/TextAppearance.Small</item>
         <item name="android:textColor">@color/dark_grey</item>
     </style>

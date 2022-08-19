@@ -6,7 +6,12 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
@@ -16,34 +21,31 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.timepicker.MaterialTimePicker
-import com.google.android.material.timepicker.MaterialTimePicker.INPUT_MODE_KEYBOARD
-import com.google.android.material.timepicker.TimeFormat.CLOCK_12H
 import com.uf.automoth.R
-import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.FragmentImagingBinding
-import com.uf.automoth.imaging.*
+import com.uf.automoth.imaging.ImageCaptureInterface
+import com.uf.automoth.imaging.ImagingManager
+import com.uf.automoth.imaging.ImagingService
+import com.uf.automoth.imaging.ImagingSettings
 import com.uf.automoth.network.SingleLocationProvider
 import com.uf.automoth.ui.common.EditTextDialog
-import kotlinx.coroutines.delay
+import com.uf.automoth.ui.imaging.scheduler.ImagingSchedulerActivity
 import kotlinx.coroutines.launch
 import java.io.File
 import java.lang.ref.WeakReference
-import java.time.OffsetDateTime
 import java.util.concurrent.atomic.AtomicBoolean
 
 class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
 
     private var _binding: FragmentImagingBinding? = null
-    private lateinit var viewModel: ImagingViewModel
+    private val viewModel: ImagingViewModel by viewModels()
 
     private var menu: Menu? = null
     private lateinit var locationProvider: SingleLocationProvider
-    private lateinit var imagingScheduler: ImagingScheduler
     private var imageCapture = ImageCapture.Builder().build()
 
     override var isRestartingCamera = AtomicBoolean(false)
@@ -57,11 +59,9 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        viewModel = ViewModelProvider(this)[ImagingViewModel::class.java]
         locationProvider = SingleLocationProvider(requireContext())
-        imagingScheduler = ImagingScheduler(requireContext())
 
-        ImagingSettings.loadFromFile(requireContext())?.let {
+        ImagingSettings.loadDefaultsFromFile(requireContext())?.let {
             viewModel.imagingSettings = it
         }
 
@@ -114,7 +114,12 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
     override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
         return when (menuItem.itemId) {
             R.id.imaging_schedule -> {
-                scheduleSession()
+                val intent = Intent(requireContext(), ImagingSchedulerActivity::class.java)
+                intent.putExtra(
+                    ImagingSchedulerActivity.KEY_ESTIMATED_IMAGE_SIZE_BYTES,
+                    estimatedImageSizeInBytes()
+                )
+                startActivity(intent)
                 true
             }
             else -> false
@@ -272,35 +277,6 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
         setButtonsEnabled(true)
     }
 
-    private fun scheduleSession() {
-        imagingScheduler.requestExactAlarmPermissionIfNecessary(requireContext())
-        val defaultHour = (OffsetDateTime.now().hour + 1) % 24
-        val timePicker = MaterialTimePicker.Builder()
-            .setTitleText(R.string.schedule_session)
-            .setHour(defaultHour)
-            .setMinute(0)
-            .setTimeFormat(CLOCK_12H)
-            .setInputMode(INPUT_MODE_KEYBOARD)
-            .setNegativeButtonText(R.string.cancel)
-            .setPositiveButtonText(R.string.schedule_session)
-
-        lifecycleScope.launch {
-            imagingScheduler.scheduleSession(
-                requireContext(),
-                "test",
-                viewModel.imagingSettings,
-                OffsetDateTime.now().plusSeconds(10),
-                false
-            )
-
-            delay(5 * 1000)
-            val pending = AutoMothRepository.getAllPendingSessions()
-            if (pending.isNotEmpty()) {
-                imagingScheduler.cancelPendingSession(pending[0], requireContext())
-            }
-        }
-    }
-
     private fun setButtonsEnabled(enabled: Boolean) {
         if (!USE_SERVICE) {
             val bar: BottomNavigationView = requireActivity().findViewById(R.id.bottom_nav_bar)
@@ -349,6 +325,11 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
         refreshUI()
     }
 
+    override fun onPause() {
+        super.onPause()
+        viewModel.imagingSettings.saveToFile(requireContext())
+    }
+
     private fun refreshUI() {
         if (isSessionInProgress()) {
             binding.captureButton.text = getString(R.string.stop_session)
@@ -366,8 +347,9 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
 
     override fun onStop() {
         super.onStop()
-        finishSession()
-        viewModel.imagingSettings.saveToFile(requireContext())
+        if (!USE_SERVICE) {
+            finishSession()
+        }
     }
 
     companion object {

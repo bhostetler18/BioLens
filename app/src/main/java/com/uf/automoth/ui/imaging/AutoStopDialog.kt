@@ -41,8 +41,8 @@ class AutoStopDialog(
 
     init {
         val dialogBuilder = MaterialAlertDialogBuilder(context)
-        dialogBuilder.setTitle(R.string.autostop_dialog_title)
-        dialogBuilder.setMessage("Automatically stop the session after...")
+        dialogBuilder.setTitle(R.string.auto_stop_dialog_title)
+        dialogBuilder.setMessage(R.string.auto_stop_dialog_message)
         dialogBuilder.setView(binding.root)
 
         dialogBuilder.setNegativeButton(R.string.cancel) { dialog, _ ->

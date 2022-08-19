@@ -9,8 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.SessionListItemBinding
 import com.uf.automoth.ui.imageGrid.ImageGridActivity
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
+import com.uf.automoth.utility.SHORT_DATE_TIME_FORMATTER
 
 class SessionListAdapter :
     ListAdapter<Session, SessionListAdapter.SessionViewHolder>(SESSION_COMPARATOR) {
@@ -30,8 +29,8 @@ class SessionListAdapter :
         RecyclerView.ViewHolder(viewBinding.root) {
 
         fun bind(session: Session) {
-            viewBinding.titleView.text = session.name
-            viewBinding.infoView.text = dateFormatter.format(session.started)
+            viewBinding.sessionTitle.text = session.name
+            viewBinding.infoView.text = session.started.format(SHORT_DATE_TIME_FORMATTER)
             viewBinding.root.setOnClickListener {
                 val ctx = viewBinding.root.context
                 val intent = Intent(ctx, ImageGridActivity::class.java)
@@ -39,17 +38,12 @@ class SessionListAdapter :
                 ctx.startActivity(intent)
             }
         }
-
-        companion object {
-            val dateFormatter: DateTimeFormatter =
-                DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
-        }
     }
 
     companion object {
         private val SESSION_COMPARATOR = object : DiffUtil.ItemCallback<Session>() {
             override fun areItemsTheSame(oldItem: Session, newItem: Session): Boolean {
-                return oldItem === newItem
+                return oldItem.sessionID == newItem.sessionID
             }
 
             override fun areContentsTheSame(oldItem: Session, newItem: Session): Boolean {
