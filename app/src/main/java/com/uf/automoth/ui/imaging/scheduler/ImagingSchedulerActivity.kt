@@ -193,6 +193,7 @@ class ImagingSchedulerActivity : AppCompatActivity() {
                 return false
             }
             if (start <= OffsetDateTime.now()) {
+                binding.scheduleButton.isEnabled = false
                 binding.time.setTextColor(
                     ContextCompat.getColor(
                         this@ImagingSchedulerActivity,
