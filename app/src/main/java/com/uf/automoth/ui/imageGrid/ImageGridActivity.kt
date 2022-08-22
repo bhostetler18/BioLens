@@ -7,7 +7,6 @@ import android.view.MenuItem
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
@@ -57,15 +56,20 @@ class ImageGridActivity : AppCompatActivity(), GoogleDriveSignInActivity {
             val adapter = ImageGridAdapter(session)
             binding.imageGrid.adapter = adapter
 
-            viewModel.allImages.observe(this@ImageGridActivity) { images ->
+            viewModel.images.observe(this@ImageGridActivity) { images ->
                 images?.let { adapter.submitList(it) }
             }
 
-            AutoMothRepository.getNumImagesInSession(sessionID).asLiveData()
-                .observe(this@ImageGridActivity) { count ->
-                    val imageString = resources.getQuantityString(R.plurals.unit_images, count)
-                    binding.imgCount.text = "$count $imageString"
+            viewModel.displayCounts.observe(this@ImageGridActivity) {
+                val total = it.first
+                val skip = it.second
+                val imageString = resources.getQuantityString(R.plurals.unit_images, total)
+                var text = "$total $imageString"
+                if (skip != 0) {
+                    text += " ${getString(R.string.showing_every_x, skip)}"
                 }
+                binding.imgCount.text = text
+            }
 
             setSupportActionBar(binding.appBar.toolbar)
             setContentView(binding.root)
@@ -115,6 +119,22 @@ class ImageGridActivity : AppCompatActivity(), GoogleDriveSignInActivity {
             }
             R.id.delete -> {
                 deleteCurrentSession()
+                true
+            }
+            R.id.show_all_images -> {
+                viewModel.skipCount.value = 0
+                true
+            }
+            R.id.show_every_10 -> {
+                viewModel.skipCount.value = 10
+                true
+            }
+            R.id.show_every_25 -> {
+                viewModel.skipCount.value = 25
+                true
+            }
+            R.id.show_every_100 -> {
+                viewModel.skipCount.value = 100
                 true
             }
             else -> super.onOptionsItemSelected(item)

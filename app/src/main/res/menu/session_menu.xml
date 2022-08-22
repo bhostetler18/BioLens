@@ -2,14 +2,34 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/rename"
-        android:icon="@drawable/ic_edit_24"
-        android:title="@string/rename"
-        app:showAsAction="ifRoom" />
+        android:id="@+id/filter"
+        android:icon="@drawable/ic_filter_list_24"
+        android:title="@string/filter"
+        app:showAsAction="always">
+        <menu>
+            <item
+                android:id="@+id/show_all_images"
+                android:title="@string/show_all_images" />
+            <item
+                android:id="@+id/show_every_10"
+                android:title="@string/show_every_10" />
+            <item
+                android:id="@+id/show_every_25"
+                android:title="@string/show_every_25" />
+            <item
+                android:id="@+id/show_every_100"
+                android:title="@string/show_every_100" />
+        </menu>
+    </item>
     <item
         android:id="@+id/upload"
         android:icon="@drawable/ic_cloud_upload_24"
         android:title="@string/upload"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/rename"
+        android:icon="@drawable/ic_edit_24"
+        android:title="@string/rename"
         app:showAsAction="ifRoom" />
     <item
         android:id="@+id/delete"

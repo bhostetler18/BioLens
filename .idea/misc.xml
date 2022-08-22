@@ -8,6 +8,7 @@
         <entry key="app/src/main/res/drawable/ic_cloud_upload_24.xml" value="0.155" />
         <entry key="app/src/main/res/drawable/ic_delete_24.xml" value="0.155" />
         <entry key="app/src/main/res/drawable/ic_edit_24.xml" value="0.155" />
+        <entry key="app/src/main/res/drawable/ic_filter_list_24.xml" value="0.155" />
         <entry key="app/src/main/res/drawable/ic_home_black_24dp.xml" value="0.2045" />
         <entry key="app/src/main/res/drawable/ic_image_24.xml" value="0.155" />
         <entry key="app/src/main/res/drawable/ic_info_24.xml" value="0.195" />
@@ -16,6 +17,8 @@
         <entry key="app/src/main/res/drawable/ic_list_24.xml" value="0.195" />
         <entry key="app/src/main/res/drawable/ic_notifications_black_24dp.xml" value="0.2045" />
         <entry key="app/src/main/res/drawable/ic_settings_24.xml" value="0.131" />
+        <entry key="app/src/main/res/drawable/ic_share_24.xml" value="0.2125" />
+        <entry key="app/src/main/res/drawable/ic_sort_24.xml" value="0.2125" />
         <entry key="app/src/main/res/drawable/ic_time_filled_24.xml" value="0.155" />
         <entry key="app/src/main/res/drawable/ic_timer_24.xml" value="0.155" />
         <entry key="app/src/main/res/layout/activity_image_grid.xml" value="0.1" />

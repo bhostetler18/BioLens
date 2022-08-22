@@ -71,4 +71,10 @@
     <string name="session_will_be_cancelled">This session will be terminated early by the session \"%s\".</string>
     <string name="today">Today</string>
     <string name="tomorrow">Tomorrow</string>
+    <string name="filter">Filter</string>
+    <string name="show_all_images">Show all images</string>
+    <string name="show_every_10">Show every 10th</string>
+    <string name="show_every_25">Show every 25th</string>
+    <string name="show_every_100">Show every 100th</string>
+    <string name="showing_every_x">(showing every %d)</string>
 </resources>
