@@ -148,7 +148,7 @@ class ImagingManager(
     }
 
     companion object {
-        const val TAG = "[IMAGING]"
+        private const val TAG = "[IMAGING]"
         const val DEFAULT_MAX_RESTART_COUNT = 3
         private val formatter: DateTimeFormatter =
             DateTimeFormatter.ofPattern("yyyy_MM_dd_kk_mm_ss_SSSS")

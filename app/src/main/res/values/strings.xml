@@ -77,4 +77,11 @@
     <string name="show_every_25">Show every 25th</string>
     <string name="show_every_100">Show every 100th</string>
     <string name="showing_every_x">(showing every %d)</string>
+    <string name="waiting_internet">Waiting for Internet connection…</string>
+    <string name="uploading_images">Uploading images…</string>
+    <string name="upload_complete">Upload complete!</string>
+    <string name="upload_failed">Upload failed</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="retry">Retry</string>
+    <string name="upload_cancelled">Upload cancelled</string>
 </resources>

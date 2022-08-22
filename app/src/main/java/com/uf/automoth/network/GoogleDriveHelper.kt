@@ -1,7 +1,6 @@
 package com.uf.automoth.network
 
 import android.util.Log
-import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.googleapis.media.MediaHttpUploader
 import com.google.api.client.googleapis.media.MediaHttpUploaderProgressListener
 import com.google.api.client.http.FileContent
@@ -10,6 +9,24 @@ import java.io.File
 import java.util.*
 
 class GoogleDriveHelper(private val drive: Drive) {
+
+    fun uploadOrGetFile(
+        file: File,
+        mimeType: String,
+        folderID: String = "root",
+        progressListener: MediaHttpUploaderProgressListener = DUMMY_LISTENER
+    ): String {
+        val request = drive.files().list().setQ(
+            "mimeType='$mimeType' and trashed=false and name='${file.name}' and '$folderID' in parents"
+        )
+
+        val result = request.execute()
+        return if (result.files.isEmpty()) {
+            upload(file, mimeType, folderID, progressListener)
+        } else {
+            result.files[0].id
+        }
+    }
 
     fun upload(
         file: File,
@@ -26,30 +43,22 @@ class GoogleDriveHelper(private val drive: Drive) {
         fileMetadata.name = file.name
         fileMetadata.mimeType = mimeType
 
-        try {
-            val request = drive.files().create(fileMetadata, fileContent).setFields("id")
-            request.mediaHttpUploader.progressListener = progressListener
-            val result = request.execute()
-            Log.d(TAG, "Uploaded file with id: $result.id")
-            return result.id
-        } catch (e: GoogleJsonResponseException) {
-            TODO("Handle exception")
-        }
+        val request = drive.files().create(fileMetadata, fileContent).setFields("id")
+        request.mediaHttpUploader.progressListener = progressListener
+        val result = request.execute()
+        Log.d(TAG, "Uploaded file with id: $result.id")
+        return result.id
     }
 
     fun createOrGetFolder(name: String, parent: String = "root"): String {
         val request = drive.files().list().setQ(
             "mimeType='${MimeTypes.GDRIVE_FOLDER}' and trashed=false and name='$name' and '$parent' in parents"
         )
-        try {
-            val result = request.execute()
-            return if (result.files.isEmpty()) {
-                createFolder(name, parent)
-            } else {
-                result.files[0].id
-            }
-        } catch (e: GoogleJsonResponseException) {
-            TODO("Handle exception")
+        val result = request.execute()
+        return if (result.files.isEmpty()) {
+            createFolder(name, parent)
+        } else {
+            result.files[0].id
         }
     }
 
@@ -58,14 +67,10 @@ class GoogleDriveHelper(private val drive: Drive) {
         fileMetadata.name = name
         fileMetadata.mimeType = MimeTypes.GDRIVE_FOLDER
         fileMetadata.parents = Collections.singletonList(parent)
-        return try {
-            val file = drive.files().create(fileMetadata)
-                .setFields("id")
-                .execute()
-            file.id
-        } catch (e: GoogleJsonResponseException) {
-            TODO("Handle create exception")
-        }
+        val file = drive.files().create(fileMetadata)
+            .setFields("id")
+            .execute()
+        return file.id
     }
 
     companion object {

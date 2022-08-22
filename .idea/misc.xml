@@ -21,7 +21,7 @@
         <entry key="app/src/main/res/drawable/ic_sort_24.xml" value="0.2125" />
         <entry key="app/src/main/res/drawable/ic_time_filled_24.xml" value="0.155" />
         <entry key="app/src/main/res/drawable/ic_timer_24.xml" value="0.155" />
-        <entry key="app/src/main/res/layout/activity_image_grid.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/activity_image_grid.xml" value="0.2976730346679688" />
         <entry key="app/src/main/res/layout/activity_image_viewer.xml" value="0.13854166666666667" />
         <entry key="app/src/main/res/layout/activity_imaging_scheduler.xml" value="0.2974212646484375" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.10156097412109376" />
@@ -45,6 +45,7 @@
         <entry key="app/src/main/res/layout/imaging_settings.xml" value="0.11574074074074074" />
         <entry key="app/src/main/res/layout/pending_session_list_item.xml" value="0.28013829575507343" />
         <entry key="app/src/main/res/layout/session_list_item.xml" value="0.3142857142857143" />
+        <entry key="app/src/main/res/layout/upload_progress_bar.xml" value="0.3079788208007812" />
         <entry key="app/src/main/res/layout/vertical_divider.xml" value="0.1586147926464301" />
         <entry key="app/src/main/res/menu/bottom_nav_menu.xml" value="0.2703125" />
         <entry key="app/src/main/res/menu/image_share_menu.xml" value="0.1" />
