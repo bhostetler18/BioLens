@@ -22,6 +22,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:background="?android:attr/selectableItemBackground"
             android:padding="10dp">
 
             <ImageView
@@ -58,6 +59,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:background="?android:attr/selectableItemBackground"
             android:padding="10dp">
 
             <ImageView
@@ -105,10 +107,11 @@
                 android:id="@+id/date"
                 style="@style/info_medium"
                 android:layout_width="wrap_content"
-                android:layout_height="35dp"
+                android:layout_height="40dp"
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="@string/date"
+                android:background="?android:attr/selectableItemBackground"
                 android:textAlignment="center" />
 
             <include layout="@layout/vertical_divider" />
@@ -121,6 +124,7 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="@string/time"
+                android:background="?android:attr/selectableItemBackground"
                 android:textAlignment="center" />
 
         </LinearLayout>

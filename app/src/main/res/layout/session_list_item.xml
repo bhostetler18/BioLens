@@ -8,6 +8,7 @@
     android:layout_marginTop="@dimen/session_card_margin"
     android:layout_marginRight="@dimen/session_card_margin"
     android:elevation="5dp"
+    android:foreground="?android:attr/selectableItemBackground"
     app:cardBackgroundColor="@color/white"
     app:cardCornerRadius="5dp">
 
