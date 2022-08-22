@@ -16,8 +16,8 @@ fun ImagingSettings.autoStopDescription(context: Context): String {
 fun intervalDescription(interval: Int, context: Context): String {
     val minutes = interval / 60
     val seconds = interval % 60
-    val unitMinutes = context.resources.getQuantityString(R.plurals.unit_minutes, interval)
-    val unitSeconds = context.resources.getQuantityString(R.plurals.unit_seconds, interval)
+    val unitMinutes = context.resources.getQuantityString(R.plurals.unit_minutes, minutes)
+    val unitSeconds = context.resources.getQuantityString(R.plurals.unit_seconds, seconds)
     return if (minutes > 0 && seconds > 0) {
         "$minutes $unitMinutes $seconds $unitSeconds"
     } else if (minutes > 0) {
