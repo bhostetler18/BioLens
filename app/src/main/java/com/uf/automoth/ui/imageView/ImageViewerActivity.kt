@@ -36,6 +36,7 @@ class ImageViewerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         binding = ActivityImageViewerBinding.inflate(layoutInflater)
+        binding.photoView.setScaleLevels(1f, 2f, 10f)
         setSupportActionBar(binding.appBar.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = ""
