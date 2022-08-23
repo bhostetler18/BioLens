@@ -98,12 +98,9 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
             }
         }
 
-        return root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
         requireActivity().addMenuProvider(this, viewLifecycleOwner)
+
+        return root
     }
 
     override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {

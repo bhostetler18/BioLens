@@ -1,12 +1,22 @@
 package com.uf.automoth.ui.sessions
 
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import com.uf.automoth.data.AutoMothRepository
-import com.uf.automoth.data.Session
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 
 class SessionsViewModel : ViewModel() {
 
-    val allSessions: LiveData<List<Session>> = AutoMothRepository.allSessionsFlow.asLiveData()
+    enum class SessionSortMode {
+        ASCENDING, DESCENDING
+    }
+
+    val sortMode = MutableStateFlow(SessionSortMode.ASCENDING)
+    val allSessions = sortMode.combine(AutoMothRepository.allSessionsFlow) { sort, sessions ->
+        when (sort) {
+            SessionSortMode.ASCENDING -> sessions.sortedBy { it.started }
+            SessionSortMode.DESCENDING -> sessions.sortedByDescending { it.started }
+        }
+    }.asLiveData()
 }

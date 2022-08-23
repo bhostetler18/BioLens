@@ -85,4 +85,7 @@
     <string name="retry">Retry</string>
     <string name="upload_cancelled">Upload cancelled</string>
     <string name="please_go_to_settings">Please go to settings and enable camera access to use the imaging features</string>
+    <string name="sort">Sort</string>
+    <string name="oldest_first">Oldest first</string>
+    <string name="newest_first">Newest first</string>
 </resources>

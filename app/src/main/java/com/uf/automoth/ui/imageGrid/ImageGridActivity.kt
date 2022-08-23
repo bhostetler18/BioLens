@@ -68,8 +68,6 @@ class ImageGridActivity : AppCompatActivity(), GoogleDriveSignInActivity {
         val adapter = ImageGridAdapter(session)
         binding.imageGrid.adapter = adapter
 
-//       set max
-
         viewModel.images.observe(this@ImageGridActivity) { images ->
             images?.let { adapter.submitList(it) }
         }
@@ -106,7 +104,7 @@ class ImageGridActivity : AppCompatActivity(), GoogleDriveSignInActivity {
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.session_menu, menu)
+        menuInflater.inflate(R.menu.image_grid_menu, menu)
         return true
     }
 
@@ -130,18 +128,22 @@ class ImageGridActivity : AppCompatActivity(), GoogleDriveSignInActivity {
             }
             R.id.show_all_images -> {
                 viewModel.skipCount.value = 0
+                item.isChecked = true
                 true
             }
             R.id.show_every_10 -> {
                 viewModel.skipCount.value = 10
+                item.isChecked = true
                 true
             }
             R.id.show_every_25 -> {
                 viewModel.skipCount.value = 25
+                item.isChecked = true
                 true
             }
             R.id.show_every_100 -> {
                 viewModel.skipCount.value = 100
+                item.isChecked = true
                 true
             }
             else -> super.onOptionsItemSelected(item)
