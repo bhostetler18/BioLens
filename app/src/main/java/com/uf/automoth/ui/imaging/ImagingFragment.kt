@@ -12,7 +12,6 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -20,10 +19,12 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.core.view.MenuProvider
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.uf.automoth.R
 import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.FragmentImagingBinding
@@ -68,12 +69,6 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
         _binding = FragmentImagingBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        requestPermissionsIfNecessary {
-            if (!isSessionInProgress()) {
-                startCamera()
-            }
-        }
-
         binding.captureButton.setOnClickListener {
             captureButtonPressed()
         }
@@ -94,6 +89,12 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
                 binding.captureButton.text = getString(R.string.start_session)
                 startCamera() // Restart preview
                 setButtonsEnabled(true)
+            }
+        }
+
+        requestPermissionsIfNecessary {
+            if (!isSessionInProgress()) {
+                startCamera()
             }
         }
 
@@ -155,7 +156,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
         }, ContextCompat.getMainExecutor(requireContext()))
     }
 
-    // TODO: this is a placeholder – should probably take a test image for a better estimate
+    // Could probably take a test image for a better estimate
     private fun estimatedImageSizeInBytes(): Double {
         val resolution = imageCapture.resolutionInfo?.resolution ?: return 0.0
         val pixels = resolution.height * resolution.width
@@ -277,7 +278,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
         setButtonsEnabled(true)
     }
 
-    private fun setButtonsEnabled(enabled: Boolean) {
+    private fun setButtonsEnabled(enabled: Boolean, includeCaptureButton: Boolean = false) {
         if (!USE_SERVICE) {
             val bar: BottomNavigationView = requireActivity().findViewById(R.id.bottom_nav_bar)
             bar.visibility = if (enabled) View.VISIBLE else View.GONE
@@ -288,36 +289,43 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
         listOf(binding.intervalButton, binding.autoStopButton).forEach {
             it.visibility = if (enabled) View.VISIBLE else View.INVISIBLE
         }
+        if (includeCaptureButton) {
+            binding.captureButton.isVisible = enabled
+        } else {
+            binding.captureButton.isVisible = true
+        }
     }
 
-    private fun requestPermissionsIfNecessary(onAllPermissionGranted: () -> Unit) {
-        if (allPermissionsGranted()) {
-            onAllPermissionGranted()
+    private fun requestPermissionsIfNecessary(onRequiredPermissionsGranted: () -> Unit) {
+        if (allRequiredPermissionsGranted()) {
+            onRequiredPermissionsGranted()
         } else {
             val permissionLauncher = registerForActivityResult(
                 ActivityResultContracts.RequestMultiplePermissions()
             ) { isGranted ->
-                if (isGranted.values.all { it }) {
-                    onAllPermissionGranted()
+                if (REQUIRED_PERMISSIONS.all { isGranted[it] == true }) {
+                    onRequiredPermissionsGranted()
                 } else {
-                    warnPermissionsDenied()
+                    warnRequiredPermissionsDenied()
                 }
             }
-            permissionLauncher.launch(REQUIRED_PERMISSIONS)
+            permissionLauncher.launch(REQUIRED_PERMISSIONS + OPTIONAL_PERMISSIONS)
         }
     }
 
-    private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
+    private fun allRequiredPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(requireContext(), it) == PackageManager.PERMISSION_GRANTED
     }
 
-    private fun warnPermissionsDenied() {
-        Toast.makeText(
-            requireContext(),
-            R.string.permissions_denied_toast,
-            Toast.LENGTH_SHORT
-        ).show()
-        // TODO: more persistent warning, disable capture button and maybe mention going to settings
+    private fun warnRequiredPermissionsDenied() {
+        val alertBuilder = MaterialAlertDialogBuilder(requireContext())
+        alertBuilder.setTitle(R.string.warn_required_permissions_denied)
+        alertBuilder.setPositiveButton(R.string.OK) { dialog, _ ->
+            dialog.dismiss()
+            setButtonsEnabled(enabled = false, includeCaptureButton = true)
+            binding.permissionText.isVisible = true
+        }
+        alertBuilder.create().show()
     }
 
     override fun onResume() {
@@ -356,12 +364,12 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
         private var USE_SERVICE = true
         private val REQUIRED_PERMISSIONS =
             mutableListOf(
-                Manifest.permission.CAMERA,
-                Manifest.permission.ACCESS_FINE_LOCATION
+                Manifest.permission.CAMERA
             ).apply {
                 if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
                     add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 }
             }.toTypedArray()
+        private val OPTIONAL_PERMISSIONS = listOf(Manifest.permission.ACCESS_FINE_LOCATION)
     }
 }

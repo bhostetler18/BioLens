@@ -3,7 +3,7 @@
     <string name="title_imaging">Imaging</string>
     <string name="title_sessions">Sessions</string>
     <string name="title_info">Info</string>
-    <string name="permissions_denied_toast">Cannot capture images without permission</string>
+    <string name="warn_required_permissions_denied">AutoMoth needs permission to capture images</string>
     <string name="start_session">Start</string>
     <string name="stop_session">Stop</string>
     <string name="settings">Settings</string>
@@ -84,4 +84,5 @@
     <string name="dismiss">Dismiss</string>
     <string name="retry">Retry</string>
     <string name="upload_cancelled">Upload cancelled</string>
+    <string name="please_go_to_settings">Please go to settings and enable camera access to use the imaging features</string>
 </resources>
