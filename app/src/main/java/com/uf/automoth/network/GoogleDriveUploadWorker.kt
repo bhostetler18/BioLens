@@ -25,7 +25,6 @@ class GoogleDriveUploadWorker(
     workerParams: WorkerParameters
 ) : CoroutineWorker(appContext, workerParams) {
 
-    // TODO: handle connectivity issues
     override suspend fun doWork(): Result {
         val sessionId = inputData.getLong(KEY_SESSION_ID, -1)
         val accountName = inputData.getString(KEY_ACCOUNT_NAME)
