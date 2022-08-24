@@ -58,16 +58,17 @@ class GoogleDriveUploadWorker(
             Collections.singleton(DriveScopes.DRIVE_FILE)
         )
         credential.selectedAccount = account
+        val appName = applicationContext.getString(R.string.app_name)
         val drive = Drive.Builder(
             AndroidHttp.newCompatibleTransport(),
             GsonFactory(),
             credential
-        ).setApplicationName(applicationContext.getString(R.string.app_name)).build()
-        return GoogleDriveHelper(drive)
+        ).setApplicationName(appName).build()
+        return GoogleDriveHelper(drive, appName)
     }
 
     private suspend fun uploadSession(session: Session, driveHelper: GoogleDriveHelper) {
-        val autoMothFolder = driveHelper.createOrGetFolder(GoogleDriveHelper.APP_FOLDER_NAME)
+        val autoMothFolder = driveHelper.createOrGetFolder(driveHelper.appFolderName)
         val folder = driveHelper.createOrGetFolder(session.directory, autoMothFolder)
         val images = AutoMothRepository.getImagesInSessionBlocking(session.sessionID)
         val total = images.size

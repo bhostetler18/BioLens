@@ -8,7 +8,7 @@ import com.google.api.services.drive.Drive
 import java.io.File
 import java.util.*
 
-class GoogleDriveHelper(private val drive: Drive) {
+class GoogleDriveHelper(private val drive: Drive, val appFolderName: String) {
 
     fun uploadOrGetFile(
         file: File,
@@ -75,7 +75,6 @@ class GoogleDriveHelper(private val drive: Drive) {
 
     companion object {
         private const val TAG = "[DRIVE_HELPER]"
-        const val APP_FOLDER_NAME = "AutoMoth" // TODO: i18n
         val DUMMY_LISTENER = MediaHttpUploaderProgressListener { uploader ->
             when (uploader.uploadState) {
                 MediaHttpUploader.UploadState.INITIATION_STARTED -> Log.d(TAG, "Initiation started")
