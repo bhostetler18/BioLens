@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.uf.automoth.R
 import com.uf.automoth.databinding.FragmentSessionsBinding
@@ -41,7 +42,7 @@ class SessionsFragment : Fragment(), MenuProvider {
             binding.recyclerView.visibility = if (sessions.isEmpty()) View.GONE else View.VISIBLE
         }
 
-        requireActivity().addMenuProvider(this, viewLifecycleOwner)
+        requireActivity().addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.RESUMED)
 
         return binding.root
     }
