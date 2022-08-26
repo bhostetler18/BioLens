@@ -42,7 +42,7 @@ class SessionsFragment : Fragment(), MenuProvider {
             binding.recyclerView.visibility = if (sessions.isEmpty()) View.GONE else View.VISIBLE
         }
 
-        requireActivity().addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.RESUMED)
+        requireActivity().addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.STARTED)
 
         return binding.root
     }

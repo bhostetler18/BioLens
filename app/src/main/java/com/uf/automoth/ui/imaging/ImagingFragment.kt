@@ -108,7 +108,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
             }
         }
 
-        requireActivity().addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.RESUMED)
+        requireActivity().addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.STARTED)
 
         return root
     }
