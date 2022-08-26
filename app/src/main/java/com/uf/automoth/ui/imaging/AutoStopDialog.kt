@@ -42,7 +42,6 @@ class AutoStopDialog(
     init {
         val dialogBuilder = MaterialAlertDialogBuilder(context)
         dialogBuilder.setTitle(R.string.auto_stop_dialog_title)
-        dialogBuilder.setMessage(R.string.auto_stop_dialog_message)
         dialogBuilder.setView(binding.root)
 
         dialogBuilder.setNegativeButton(R.string.cancel) { dialog, _ ->
@@ -141,7 +140,7 @@ class AutoStopDialog(
                     binding.sizeEstimate.visibility = View.VISIBLE
                     displaySize(count)
                 } else {
-                    binding.sizeEstimate.visibility = View.INVISIBLE
+                    binding.sizeEstimate.visibility = View.GONE
                 }
             }
             AutoStopMode.TIME -> {
@@ -149,13 +148,13 @@ class AutoStopDialog(
                 val numImages = 60 * minutes / currentSettings.interval
                 displaySize(numImages)
             }
-            AutoStopMode.OFF -> binding.sizeEstimate.visibility = View.INVISIBLE
+            AutoStopMode.OFF -> binding.sizeEstimate.visibility = View.GONE
         }
     }
 
     private fun displaySize(numImages: Int) {
         if (numImages == 0) {
-            binding.sizeEstimate.visibility = View.INVISIBLE
+            binding.sizeEstimate.visibility = View.GONE
         } else {
             binding.sizeEstimate.visibility = View.VISIBLE
             val ctx = binding.root.context

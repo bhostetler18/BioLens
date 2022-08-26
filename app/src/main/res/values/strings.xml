@@ -47,7 +47,7 @@
     <string name="auto_stop_image">Count</string>
     <string name="auto_stop_time">Time</string>
     <string name="auto_stop_never">Never</string>
-    <string name="auto_stop_dialog_title">Auto-Stop Settings</string>
+    <string name="auto_stop_dialog_title">Automatically stop after…</string>
     <string name="auto_stop_off_description">The session will continue until it is stopped manually or your device runs out of battery.</string>
     <string name="per_session">per session</string>
     <string name="background_session_complete_toast">Background session completed!</string>
@@ -65,7 +65,6 @@
     <string name="time">Time</string>
     <string name="interval">Interval</string>
     <string name="scheduling_conflict_dialog_title">Scheduling Conflict</string>
-    <string name="auto_stop_dialog_message">Automatically stop the session after…</string>
     <string name="schedule_anyway">Schedule Anyway</string>
     <string name="session_will_cancel">Scheduling this session will cause the session \"%s\" to terminate early.</string>
     <string name="session_will_be_cancelled">This session will be terminated early by the session \"%s\".</string>

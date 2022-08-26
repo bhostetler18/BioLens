@@ -62,23 +62,23 @@ class ImagingSchedulerActivity : AppCompatActivity() {
             sessions?.let { adapter.submitList(it) }
         }
 
-        binding.intervalContainer.setOnClickListener {
+        binding.sessionOptions.intervalContainer.setOnClickListener {
             selectInterval()
         }
 
-        binding.autoStopContainer.setOnClickListener {
+        binding.sessionOptions.autoStopContainer.setOnClickListener {
             selectAutoStop()
         }
 
-        binding.date.setOnClickListener {
+        binding.sessionOptions.date.setOnClickListener {
             selectDate()
         }
 
-        binding.time.setOnClickListener {
+        binding.sessionOptions.time.setOnClickListener {
             selectTime()
         }
 
-        binding.sessionName.doOnTextChanged { text, _, _, _ ->
+        binding.sessionOptions.sessionName.doOnTextChanged { text, _, _, _ ->
             val string = text.toString()
             if (string != "") {
                 viewModel.sessionName = string
@@ -87,7 +87,7 @@ class ImagingSchedulerActivity : AppCompatActivity() {
             }
         }
 
-        binding.scheduleButton.setOnClickListener {
+        binding.sessionOptions.scheduleButton.setOnClickListener {
             tryScheduleSession()
         }
 
@@ -124,7 +124,7 @@ class ImagingSchedulerActivity : AppCompatActivity() {
             val day = calendar.get(Calendar.DAY_OF_MONTH)
             val date = LocalDate.of(year, month, day)
             viewModel.sessionDate = date
-            binding.date.text = date.formatDateTodayTomorrow(this)
+            binding.sessionOptions.date.text = date.formatDateTodayTomorrow(this)
             validate()
         }
         datePicker.show(supportFragmentManager, null)
@@ -144,7 +144,7 @@ class ImagingSchedulerActivity : AppCompatActivity() {
         timePicker.addOnPositiveButtonClickListener {
             val time = LocalTime.of(timePicker.hour, timePicker.minute)
             viewModel.sessionTime = time
-            binding.time.text = time.format(SHORT_TIME_FORMATTER)
+            binding.sessionOptions.time.text = time.format(SHORT_TIME_FORMATTER)
             validate()
         }
         timePicker.show(supportFragmentManager, null)
@@ -183,8 +183,8 @@ class ImagingSchedulerActivity : AppCompatActivity() {
         with(viewModel) {
             val start = scheduleStartTime
             if (start == null) {
-                binding.scheduleButton.isEnabled = false
-                binding.time.setTextColor(
+                binding.sessionOptions.scheduleButton.isEnabled = false
+                binding.sessionOptions.time.setTextColor(
                     ContextCompat.getColor(
                         this@ImagingSchedulerActivity,
                         R.color.dark_grey
@@ -193,8 +193,8 @@ class ImagingSchedulerActivity : AppCompatActivity() {
                 return false
             }
             if (start <= OffsetDateTime.now()) {
-                binding.scheduleButton.isEnabled = false
-                binding.time.setTextColor(
+                binding.sessionOptions.scheduleButton.isEnabled = false
+                binding.sessionOptions.time.setTextColor(
                     ContextCompat.getColor(
                         this@ImagingSchedulerActivity,
                         R.color.destructive_red
@@ -203,22 +203,22 @@ class ImagingSchedulerActivity : AppCompatActivity() {
                 return false
             }
         }
-        binding.time.setTextColor(
+        binding.sessionOptions.time.setTextColor(
             ContextCompat.getColor(
                 this@ImagingSchedulerActivity,
                 R.color.dark_grey
             )
         )
-        binding.scheduleButton.isEnabled = true
+        binding.sessionOptions.scheduleButton.isEnabled = true
         return true
     }
 
     private fun updateIntervalText() {
-        binding.intervalText.text = viewModel.imagingSettings.intervalDescription(this)
+        binding.sessionOptions.intervalText.text = viewModel.imagingSettings.intervalDescription(this)
     }
 
     private fun updateAutoStopText() {
-        binding.autoStopText.text = viewModel.imagingSettings.autoStopDescription(this)
+        binding.sessionOptions.autoStopText.text = viewModel.imagingSettings.autoStopDescription(this)
     }
 
     private fun tryScheduleSession() {
@@ -263,7 +263,7 @@ class ImagingSchedulerActivity : AppCompatActivity() {
             // Reset to make it harder to spam a bunch of identical sessions
             viewModel.sessionTime = null
             viewModel.sessionName = null
-            binding.time.text = getString(R.string.time)
+            binding.sessionOptions.time.text = getString(R.string.time)
         }
     }
 

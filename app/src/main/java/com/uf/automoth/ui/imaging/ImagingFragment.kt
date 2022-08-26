@@ -3,6 +3,7 @@ package com.uf.automoth.ui.imaging
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration.ORIENTATION_LANDSCAPE
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -17,6 +18,7 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
@@ -69,6 +71,13 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
 
         _binding = FragmentImagingBinding.inflate(inflater, container, false)
         val root: View = binding.root
+
+        val orientation = resources.configuration.orientation
+        if (orientation == ORIENTATION_LANDSCAPE) {
+            binding.cameraPreview.scaleType = PreviewView.ScaleType.FIT_CENTER
+        } else {
+            binding.cameraPreview.scaleType = PreviewView.ScaleType.FILL_CENTER
+        }
 
         binding.captureButton.setOnClickListener {
             captureButtonPressed()
