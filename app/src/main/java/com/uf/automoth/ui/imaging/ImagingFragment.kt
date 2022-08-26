@@ -89,6 +89,20 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
             changeAutoStopPressed()
         }
 
+        requireActivity().addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.STARTED)
+
+        return root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        requestPermissionsIfNecessary {
+            if (!isSessionInProgress()) {
+                startCamera()
+            }
+        }
+
         // Though unlikely, this ensures that the UI will display correctly if the user has it open
         // and is watching while a background service session auto-stops or starts.
         ImagingService.IS_RUNNING.observe(viewLifecycleOwner) { isRunning ->
@@ -101,16 +115,6 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
                 setButtonsEnabled(true)
             }
         }
-
-        requestPermissionsIfNecessary {
-            if (!isSessionInProgress()) {
-                startCamera()
-            }
-        }
-
-        requireActivity().addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.STARTED)
-
-        return root
     }
 
     override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -151,7 +155,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
             try {
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(
-                    this,
+                    viewLifecycleOwner,
                     cameraSelector,
                     preview,
                     imageCapture
@@ -277,7 +281,6 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
             val intent = Intent(requireContext().applicationContext, ImagingService::class.java)
             intent.action = ImagingService.ACTION_STOP_SESSION
             requireContext().applicationContext.startService(intent)
-            startCamera() // Restart preview
         } else {
             viewModel.imagingManager?.stop()
             viewModel.imagingManager = null

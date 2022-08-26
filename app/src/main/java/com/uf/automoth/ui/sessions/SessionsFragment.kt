@@ -19,6 +19,7 @@ class SessionsFragment : Fragment(), MenuProvider {
 
     private var _binding: FragmentSessionsBinding? = null
     private val viewModel: SessionsViewModel by viewModels()
+    private val adapter = SessionListAdapter()
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -32,19 +33,21 @@ class SessionsFragment : Fragment(), MenuProvider {
         _binding = FragmentSessionsBinding.inflate(inflater, container, false)
 
         val recyclerView = binding.recyclerView
-        val adapter = SessionListAdapter()
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(activity)
 
+        requireActivity().addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.STARTED)
+
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         viewModel.allSessions.observe(viewLifecycleOwner) { sessions ->
             sessions?.let { adapter.submitList(it) }
             binding.noSessionsText.visibility = if (sessions.isEmpty()) View.VISIBLE else View.GONE
             binding.recyclerView.visibility = if (sessions.isEmpty()) View.GONE else View.VISIBLE
         }
-
-        requireActivity().addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.STARTED)
-
-        return binding.root
     }
 
     override fun onDestroyView() {

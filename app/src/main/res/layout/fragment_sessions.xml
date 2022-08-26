@@ -12,7 +12,8 @@
         android:layout_height="match_parent"
         android:gravity="center"
         android:text="@string/no_sessions"
-        android:textSize="20sp" />
+        android:textSize="20sp"
+        android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"

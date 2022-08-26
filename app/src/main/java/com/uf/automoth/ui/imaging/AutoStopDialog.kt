@@ -165,6 +165,7 @@ class AutoStopDialog(
     }
 
     private fun toggleButtonSelected(
+        @Suppress("UNUSED_PARAMETER")
         group: MaterialButtonToggleGroup,
         index: Int,
         checked: Boolean

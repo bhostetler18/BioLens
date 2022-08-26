@@ -230,7 +230,6 @@ class ImagingSchedulerActivity : AppCompatActivity() {
 
         val startTime = viewModel.scheduleStartTime!!
         val settings = viewModel.imagingSettings
-        val name = viewModel.sessionName ?: getString(R.string.default_session_name)
 
         lifecycleScope.launch {
             val conflict = ImagingScheduler.checkForSchedulingConflicts(startTime, settings)
@@ -238,25 +237,21 @@ class ImagingSchedulerActivity : AppCompatActivity() {
                 runOnUiThread {
                     showSchedulingConflictDialog(conflict) {
                         lifecycleScope.launch {
-                            scheduleSession(name, settings, startTime)
+                            scheduleSession(startTime)
                         }
                     }
                 }
             } else {
-                scheduleSession(name, settings, startTime)
+                scheduleSession(startTime)
             }
         }
     }
 
-    private suspend fun scheduleSession(
-        name: String,
-        settings: ImagingSettings,
-        startTime: OffsetDateTime
-    ) {
+    private suspend fun scheduleSession(startTime: OffsetDateTime) {
         imagingScheduler.scheduleSession(
             this@ImagingSchedulerActivity,
             viewModel.sessionName ?: getString(R.string.default_session_name),
-            settings,
+            viewModel.imagingSettings,
             startTime
         )
         runOnUiThread {
