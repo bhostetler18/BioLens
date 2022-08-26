@@ -18,8 +18,13 @@
         tools:layout="@layout/fragment_sessions" />
 
     <fragment
-        android:id="@+id/navigation_other"
+        android:id="@+id/navigation_info"
         android:name="com.uf.automoth.ui.info.InfoFragment"
         android:label="@string/title_info"
         tools:layout="@layout/fragment_info" />
+
+    <fragment
+        android:id="@+id/navigation_settings"
+        android:name="com.uf.automoth.ui.AutoMothPreferenceFragment"
+        android:label="@string/settings" />
 </navigation>

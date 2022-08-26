@@ -41,7 +41,6 @@ import com.uf.automoth.ui.imaging.scheduler.ImagingSchedulerActivity
 import kotlinx.coroutines.launch
 import java.io.File
 import java.lang.ref.WeakReference
-import java.util.concurrent.atomic.AtomicBoolean
 
 class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
 
@@ -52,7 +51,8 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
     private lateinit var locationProvider: SingleLocationProvider
     private var imageCapture = ImageCapture.Builder().build()
 
-    override var isRestartingCamera = AtomicBoolean(false)
+    override val isCameraStarted: Boolean
+        get() = TODO("")
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -65,7 +65,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
     ): View {
         locationProvider = SingleLocationProvider(requireContext())
 
-        ImagingSettings.loadDefaultsFromFile(requireContext())?.let {
+        ImagingSettings.loadDefaults(requireContext())?.let {
             viewModel.imagingSettings = it
         }
 
@@ -99,7 +99,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
 
         requestPermissionsIfNecessary {
             if (!isSessionInProgress()) {
-                startCamera()
+                startCamera(null)
             }
         }
 
@@ -111,7 +111,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
                 setButtonsEnabled(false)
             } else {
                 binding.captureButton.text = getString(R.string.start_session)
-                startCamera() // Restart preview
+                startCamera(null) // Restart preview
                 setButtonsEnabled(true)
             }
         }
@@ -138,7 +138,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
         }
     }
 
-    private fun startCamera() {
+    override fun startCamera(onStart: (() -> Unit)?) {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
 
         cameraProviderFuture.addListener({
@@ -163,7 +163,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
             } catch (exc: Exception) {
                 Log.e("Camera", "Use case binding failed", exc)
             }
-            isRestartingCamera.set(false)
+            onStart?.invoke()
         }, ContextCompat.getMainExecutor(requireContext()))
     }
 
@@ -192,9 +192,8 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
         )
     }
 
-    override fun restartCamera() {
-        isRestartingCamera.set(true)
-        startCamera()
+    override fun stopCamera() {
+        TODO("Not yet implemented")
     }
 
     private fun isSessionInProgress(): Boolean {
@@ -269,7 +268,8 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
                 manager.start(
                     name ?: getString(R.string.default_session_name),
                     requireContext(),
-                    locationProvider
+                    locationProvider,
+                    1000
                 )
             }
         }

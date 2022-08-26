@@ -75,6 +75,7 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1'
     implementation 'androidx.navigation:navigation-fragment-ktx:2.5.1'
     implementation 'androidx.navigation:navigation-ui-ktx:2.5.1'
+    implementation 'androidx.preference:preference-ktx:1.2.0'
 
     // Camera
     def camerax_version = "1.1.0-rc02"

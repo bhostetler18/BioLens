@@ -2,6 +2,8 @@ package com.uf.automoth.imaging
 
 import android.content.Context
 import android.os.Parcelable
+import androidx.preference.PreferenceManager
+import com.uf.automoth.R
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
@@ -19,7 +21,8 @@ enum class AutoStopMode {
 data class ImagingSettings(
     var interval: Int = 60,
     var autoStopMode: AutoStopMode = AutoStopMode.TIME,
-    var autoStopValue: Int = 720
+    var autoStopValue: Int = 720,
+    var shutdownCameraWhenPossible: Boolean = false
 ) : Parcelable {
 
     fun saveToFile(context: Context) {
@@ -33,11 +36,15 @@ data class ImagingSettings(
         const val FILENAME: String = "imaging_settings.json"
         private var JSON = Json { encodeDefaults = true }
 
-        fun loadDefaultsFromFile(context: Context): ImagingSettings? {
+        fun loadDefaults(context: Context): ImagingSettings? {
             return try {
                 context.openFileInput(FILENAME)?.use { input ->
                     input.bufferedReader().use {
-                        return Json.decodeFromString(it.readText())
+                        val settings: ImagingSettings = Json.decodeFromString(it.readText())
+                        settings.shutdownCameraWhenPossible =
+                            PreferenceManager.getDefaultSharedPreferences(context)
+                                .getBoolean(context.getString(R.string.PREF_SHUTDOWN_CAMERA), false)
+                        return settings
                     }
                 }
             } catch (e: IOException) {

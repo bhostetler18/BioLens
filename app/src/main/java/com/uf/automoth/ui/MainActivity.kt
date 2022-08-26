@@ -1,4 +1,4 @@
-package com.uf.automoth
+package com.uf.automoth.ui
 
 import android.content.Intent
 import android.os.Bundle
@@ -11,6 +11,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.uf.automoth.R
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.PendingSession
 import com.uf.automoth.databinding.ActivityMainBinding
@@ -42,7 +43,8 @@ class MainActivity : AppCompatActivity() {
             setOf(
                 R.id.navigation_imaging,
                 R.id.navigation_data,
-                R.id.navigation_other
+                R.id.navigation_info,
+                R.id.navigation_settings
             )
         )
         setupActionBarWithNavController(navController, appBarConfiguration)

@@ -108,8 +108,8 @@ class ImagingScheduler(context: Context) {
                 context,
                 requestCode,
                 intent,
-                PendingIntent.FLAG_CANCEL_CURRENT
-            ) // warning here is a lint bug
+                PendingIntent.FLAG_CANCEL_CURRENT // warning here is a lint bug
+            )
         }
         alarmManager.cancel(pendingIntent)
         AutoMothRepository.deletePendingSession(session.requestCode)

@@ -8,6 +8,7 @@ import androidx.core.net.toFile
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Image
 import com.uf.automoth.data.Session
+import com.uf.automoth.databinding.DialogIntervalPickerBinding
 import com.uf.automoth.network.SingleLocationProvider
 import java.io.File
 import java.lang.ref.WeakReference
@@ -21,12 +22,15 @@ class ImagingManager(
     private val settings: ImagingSettings,
     private val imageCapture: WeakReference<ImageCaptureInterface>,
     private val maxCameraRestarts: Int = DEFAULT_MAX_RESTART_COUNT,
+    private val minShutdownInterval: Int = DEFAULT_MIN_SHUTDOWN_INTERVAL,
     private val onAutoStopCallback: (() -> Unit)? = null
 ) : ImageCapture.OnImageSavedCallback {
+
     private lateinit var session: Session
     private var timer: Timer? = null
     private var imageRequestNumber: Int = 0
     private var imagesTaken: Int = 0
+    private var isRestartingCamera: Boolean = false
     private var cameraRestartCount: Int = 0
 
     private val sessionDirectory by lazy {
@@ -37,7 +41,7 @@ class ImagingManager(
         sessionName: String,
         context: Context,
         locationProvider: SingleLocationProvider,
-        initialDelay: Long = 1000
+        initialDelay: Long
     ) {
         val start = OffsetDateTime.now()
         session = Session(
@@ -70,11 +74,26 @@ class ImagingManager(
         }
         val capture = imageCapture.get()
         if (capture != null) {
-            if (!capture.isRestartingCamera.get()) {
+            takePhoto(capture)
+        } else {
+            stop("Image capture was garbage collected")
+        }
+    }
+
+    private fun takePhoto(capture: ImageCaptureInterface) {
+        settings.shutdownCameraWhenPossible = true
+        if (isRestartingCamera) {
+            Log.d(TAG, "Tried to take photo while restarting the camera")
+            return
+        }
+
+        if (shouldShutdownCamera()) {
+            Log.d(TAG, "Starting camera")
+            capture.startCamera {
                 capture.takePhoto(getUniqueFile(), this@ImagingManager)
             }
         } else {
-            stop("Image capture was garbage collected")
+            capture.takePhoto(getUniqueFile(), this@ImagingManager)
         }
     }
 
@@ -99,6 +118,9 @@ class ImagingManager(
         imagesTaken++
         if (shouldAutoStop()) {
             stop("Auto-stop")
+        } else if (shouldShutdownCamera()) {
+            Log.d(TAG, "Stopping camera")
+            imageCapture.get()?.stopCamera()
         }
     }
 
@@ -110,7 +132,8 @@ class ImagingManager(
             ImageCapture.ERROR_CAPTURE_FAILED -> {
                 tryRestartCamera()
             }
-            ImageCapture.ERROR_UNKNOWN, ImageCapture.ERROR_FILE_IO -> {
+            ImageCapture.ERROR_UNKNOWN,
+            ImageCapture.ERROR_FILE_IO -> {
                 stop(exception.localizedMessage ?: "Unknown exception")
             }
         }
@@ -122,12 +145,15 @@ class ImagingManager(
             return
         }
 
-        if (capture.isRestartingCamera.get()) {
+        if (isRestartingCamera) {
             Log.d(TAG, "Camera restart requested while camera was already restarting")
         } else if (cameraRestartCount < maxCameraRestarts) {
+            isRestartingCamera = true
             cameraRestartCount++
             Log.d(TAG, "Attempting to restart camera: attempt #$cameraRestartCount")
-            capture.restartCamera()
+            capture.startCamera {
+                isRestartingCamera = false
+            }
         } else {
             stop("Camera restart unsuccessful")
         }
@@ -145,6 +171,10 @@ class ImagingManager(
         }
     }
 
+    private fun shouldShutdownCamera(): Boolean {
+        return settings.shutdownCameraWhenPossible && settings.interval >= minShutdownInterval
+    }
+
     private fun getUniqueFile(): File {
         return File(sessionDirectory, "img${++imageRequestNumber}.jpg")
     }
@@ -152,6 +182,7 @@ class ImagingManager(
     companion object {
         private const val TAG = "[IMAGING]"
         const val DEFAULT_MAX_RESTART_COUNT = 3
+        const val DEFAULT_MIN_SHUTDOWN_INTERVAL = 60
         private val formatter: DateTimeFormatter =
             DateTimeFormatter.ofPattern("yyyy_MM_dd_kk_mm_ss_SSSS")
 

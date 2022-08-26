@@ -12,8 +12,13 @@
         android:title="@string/title_sessions" />
 
     <item
-        android:id="@+id/navigation_other"
+        android:id="@+id/navigation_info"
         android:icon="@drawable/ic_info_24"
         android:title="@string/title_info" />
+
+    <item
+        android:id="@+id/navigation_settings"
+        android:icon="@drawable/ic_settings_24"
+        android:title="@string/settings" />
 
 </menu>

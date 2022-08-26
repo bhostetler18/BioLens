@@ -34,7 +34,7 @@
             android:foregroundServiceType="location|camera" />
 
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.AutoMoth.SplashScreen">
             <intent-filter>
