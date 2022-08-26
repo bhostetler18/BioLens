@@ -25,7 +25,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.uf.automoth.R
 import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.FragmentImagingBinding
@@ -35,6 +34,7 @@ import com.uf.automoth.imaging.ImagingService
 import com.uf.automoth.imaging.ImagingSettings
 import com.uf.automoth.network.SingleLocationProvider
 import com.uf.automoth.ui.common.EditTextDialog
+import com.uf.automoth.ui.common.simpleAlertDialogWithOk
 import com.uf.automoth.ui.imaging.scheduler.ImagingSchedulerActivity
 import kotlinx.coroutines.launch
 import java.io.File
@@ -316,14 +316,13 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
     }
 
     private fun warnRequiredPermissionsDenied() {
-        val alertBuilder = MaterialAlertDialogBuilder(requireContext())
-        alertBuilder.setTitle(R.string.warn_required_permissions_denied)
-        alertBuilder.setPositiveButton(R.string.OK) { dialog, _ ->
-            dialog.dismiss()
+        simpleAlertDialogWithOk(
+            requireContext(),
+            R.string.warn_required_permissions_denied
+        ) {
             setButtonsEnabled(enabled = false, includeCaptureButton = true)
             binding.permissionText.isVisible = true
-        }
-        alertBuilder.create().show()
+        }.show()
     }
 
     override fun onResume() {
