@@ -53,29 +53,33 @@ class ImagingManager(
             return
         }
 
-        locationProvider.getCurrentLocation(context) { location ->
-            location?.let {
-                AutoMothRepository.updateSessionLocation(sessionID, it)
-            }
-        }
-
         val milliseconds: Long = settings.interval * 1000L
         timer = fixedRateTimer(TAG, false, initialDelay, milliseconds) {
-            if (shouldAutoStop()) {
-                stop()
-            } else {
-                val capture = imageCapture.get()
-                if (capture != null && !capture.isRestartingCamera.get()) {
-                    capture.takePhoto(getUniqueFile(), this@ImagingManager)
-                } else {
-                    Log.d(TAG, "Image capture was garbage collected, stopping session")
-                    stop()
-                }
-            }
+            onTimerTick()
+        }
+
+        locationProvider.getCurrentLocation(context, true)?.let {
+            AutoMothRepository.updateSessionLocation(sessionID, it)
         }
     }
 
-    fun stop() {
+    private fun onTimerTick() {
+        if (shouldAutoStop()) {
+            stop("Auto-stop")
+            return
+        }
+        val capture = imageCapture.get()
+        if (capture != null) {
+            if (!capture.isRestartingCamera.get()) {
+                capture.takePhoto(getUniqueFile(), this@ImagingManager)
+            }
+        } else {
+            stop("Image capture was garbage collected")
+        }
+    }
+
+    fun stop(reason: String = "Manual stop") {
+        Log.d(TAG, "Stopping session: $reason") // TODO: store this so user can see?
         val end = OffsetDateTime.now()
         timer?.cancel()
         timer = null
@@ -88,12 +92,13 @@ class ImagingManager(
 
     override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
         val file = outputFileResults.savedUri?.toFile() ?: return
+        // TODO: use exif time instead?
         val image = Image(file.name, OffsetDateTime.now(), session.sessionID)
         AutoMothRepository.insert(image)
         Log.d(TAG, "Image captured at $file")
         imagesTaken++
         if (shouldAutoStop()) {
-            stop()
+            stop("Auto-stop")
         }
     }
 
@@ -106,16 +111,14 @@ class ImagingManager(
                 tryRestartCamera()
             }
             ImageCapture.ERROR_UNKNOWN, ImageCapture.ERROR_FILE_IO -> {
-                Log.d(TAG, "Stopping session due to ${exception.localizedMessage}")
-                stop()
+                stop(exception.localizedMessage ?: "Unknown exception")
             }
         }
     }
 
     private fun tryRestartCamera() {
         val capture = imageCapture.get() ?: run {
-            Log.d(TAG, "Failed to restart camera; image capture was garbage collected")
-            stop()
+            stop("Failed to restart camera; image capture was garbage collected")
             return
         }
 
@@ -126,8 +129,7 @@ class ImagingManager(
             Log.d(TAG, "Attempting to restart camera: attempt #$cameraRestartCount")
             capture.restartCamera()
         } else {
-            Log.d(TAG, "Camera restart unsuccessful; stopping session")
-            stop()
+            stop("Camera restart unsuccessful")
         }
     }
 
