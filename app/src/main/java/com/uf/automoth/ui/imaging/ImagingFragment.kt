@@ -16,7 +16,9 @@ import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
+import androidx.camera.core.UseCase
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
@@ -26,6 +28,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.work.await
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.uf.automoth.R
 import com.uf.automoth.data.Session
@@ -38,10 +41,13 @@ import com.uf.automoth.network.SingleLocationProvider
 import com.uf.automoth.ui.common.EditTextDialog
 import com.uf.automoth.ui.common.simpleAlertDialogWithOk
 import com.uf.automoth.ui.imaging.scheduler.ImagingSchedulerActivity
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.lang.ref.WeakReference
-import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
 
@@ -50,9 +56,13 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
 
     private var menu: Menu? = null
     private lateinit var locationProvider: SingleLocationProvider
+    private var cameraProvider: ProcessCameraProvider? = null
+    private val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
     private var imageCapture = ImageCapture.Builder().build()
+    private var preview = Preview.Builder().build()
 
-    override var isRestartingCamera = AtomicBoolean(false)
+    override val isCameraStarted: Boolean
+        get() = cameraProvider?.isBound(imageCapture) ?: false
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -65,7 +75,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
     ): View {
         locationProvider = SingleLocationProvider(requireContext())
 
-        ImagingSettings.loadDefaultsFromFile(requireContext())?.let {
+        ImagingSettings.loadDefaults(requireContext())?.let {
             viewModel.imagingSettings = it
         }
 
@@ -99,7 +109,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
 
         requestPermissionsIfNecessary {
             if (!isSessionInProgress()) {
-                startCamera()
+                launchStartCamera()
             }
         }
 
@@ -111,7 +121,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
                 setButtonsEnabled(false)
             } else {
                 binding.captureButton.text = getString(R.string.start_session)
-                startCamera() // Restart preview
+                launchStartCamera() // Restart preview
                 setButtonsEnabled(true)
             }
         }
@@ -138,38 +148,53 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
         }
     }
 
-    private fun startCamera() {
+    private fun launchStartCamera() = lifecycleScope.launch {
+        startCamera()
+    }
+
+    override suspend fun startCamera() {
+        cameraProvider?.let {
+            bindUseCases(it)
+            return@startCamera
+        }
         val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
+        cameraProviderFuture.await()?.let {
+            this.cameraProvider = it
+            bindUseCases(it)
+        }
+    }
 
-        cameraProviderFuture.addListener({
-            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
-            val preview = Preview.Builder()
-                .build()
-                .also {
-                    it.setSurfaceProvider(binding.cameraPreview.surfaceProvider)
-                }
-
-            imageCapture = ImageCapture.Builder().build()
-
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-            try {
-                cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(
-                    viewLifecycleOwner,
-                    cameraSelector,
-                    preview,
-                    imageCapture
-                )
-            } catch (exc: Exception) {
-                Log.e("Camera", "Use case binding failed", exc)
+    private suspend fun bindUseCases(cameraProvider: ProcessCameraProvider) = withContext(
+        Dispatchers.Main
+    ) {
+        preview = Preview.Builder()
+            .build()
+            .also {
+                it.setSurfaceProvider(binding.cameraPreview.surfaceProvider)
             }
-            isRestartingCamera.set(false)
-        }, ContextCompat.getMainExecutor(requireContext()))
+
+        val useCases = if (USE_SERVICE) {
+            arrayOf<UseCase>(preview)
+        } else {
+            imageCapture = ImageCapture.Builder().build()
+            arrayOf(preview, imageCapture)
+        }
+
+        try {
+            cameraProvider.unbindAll()
+            cameraProvider.bindToLifecycle(
+                this@ImagingFragment,
+                cameraSelector,
+                *useCases
+            )
+        } catch (exc: Exception) {
+            exc.localizedMessage?.let { Log.d(TAG, it) }
+        }
     }
 
     // Could probably take a test image for a better estimate
     private fun estimatedImageSizeInBytes(): Double {
-        val resolution = imageCapture.resolutionInfo?.resolution ?: return 0.0
+        val resolution = preview.resolutionInfo?.resolution ?: return 0.0
         val pixels = resolution.height * resolution.width
         val bytes = 24.0 * pixels / 8.0 // 8 bits each for RGB channels
         // see https://www.graphicsmill.com/blog/2014/11/06/Compression-ratio-for-different-JPEG-quality-values
@@ -177,24 +202,32 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
         return bytes / avgCompression
     }
 
-    override fun takePhoto(
-        saveLocation: File,
-        onSaved: ImageCapture.OnImageSavedCallback
-    ) {
-        val outputOptions = ImageCapture.OutputFileOptions
-            .Builder(saveLocation)
-            .build()
+    override suspend fun takePhoto(saveLocation: File): Result<ImageCapture.OutputFileResults> =
+        suspendCoroutine { continuation ->
+            val outputOptions = ImageCapture.OutputFileOptions
+                .Builder(saveLocation)
+                .build()
 
-        imageCapture.takePicture(
-            outputOptions,
-            ContextCompat.getMainExecutor(requireContext()),
-            onSaved
-        )
-    }
+            imageCapture.takePicture(
+                outputOptions,
+                ContextCompat.getMainExecutor(requireContext()),
+                object : ImageCapture.OnImageSavedCallback {
 
-    override fun restartCamera() {
-        isRestartingCamera.set(true)
-        startCamera()
+                    override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                        continuation.resume(Result.success(outputFileResults))
+                    }
+
+                    override fun onError(exception: ImageCaptureException) {
+                        continuation.resume(Result.failure(exception))
+                    }
+                }
+            )
+        }
+
+    override suspend fun stopCamera() {
+        withContext(Dispatchers.Main) {
+            cameraProvider?.unbindAll()
+        }
     }
 
     private fun isSessionInProgress(): Boolean {
@@ -266,10 +299,12 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
             val manager = ImagingManager(viewModel.imagingSettings, WeakReference(this))
             viewModel.imagingManager = manager
             lifecycleScope.launch {
+                startCamera()
                 manager.start(
                     name ?: getString(R.string.default_session_name),
                     requireContext(),
-                    locationProvider
+                    locationProvider,
+                    1000
                 )
             }
         }
@@ -370,7 +405,10 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
     }
 
     companion object {
+        // Set USE_SERVICE = false if you want to run everything inside the main application
+        // for debugging purposes
         private var USE_SERVICE = true
+        private const val TAG = "[IMAGING FRAGMENT]"
         private val REQUIRED_PERMISSIONS =
             mutableListOf(
                 Manifest.permission.CAMERA

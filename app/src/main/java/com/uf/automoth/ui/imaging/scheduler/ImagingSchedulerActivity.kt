@@ -39,7 +39,7 @@ class ImagingSchedulerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        ImagingSettings.loadDefaultsFromFile(this)?.let {
+        ImagingSettings.loadDefaults(this)?.let {
             viewModel.imagingSettings = it
         }
         updateIntervalText()

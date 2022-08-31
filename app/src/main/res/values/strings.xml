@@ -87,4 +87,6 @@
     <string name="sort">Sort</string>
     <string name="oldest_first">Oldest first</string>
     <string name="newest_first">Newest first</string>
+    <string name="preference_shutdown_camera_title">Turn off camera when possible</string>
+    <string name="preference_shutdown_camera_description">Enabling this setting will improve battery life, but may introduce extra jitter in the timestamps of captured images</string>
 </resources>
