@@ -35,7 +35,7 @@ class ImageGridAdapter(val session: Session) :
         fun bind(image: Image) {
             val file = AutoMothRepository.resolve(image, session)
             val thumbnailRequest = GlideApp.with(viewBinding.root.context)
-                .asDrawable()
+                .load(file)
                 .sizeMultiplier(0.1f)
             GlideApp.with(viewBinding.root.context)
                 .load(file)
