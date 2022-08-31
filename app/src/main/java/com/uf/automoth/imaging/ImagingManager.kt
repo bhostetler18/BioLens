@@ -8,8 +8,10 @@ import androidx.core.net.toFile
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Image
 import com.uf.automoth.data.Session
-import com.uf.automoth.databinding.DialogIntervalPickerBinding
 import com.uf.automoth.network.SingleLocationProvider
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.lang.ref.WeakReference
 import java.time.OffsetDateTime
@@ -24,13 +26,14 @@ class ImagingManager(
     private val maxCameraRestarts: Int = DEFAULT_MAX_RESTART_COUNT,
     private val minShutdownInterval: Int = DEFAULT_MIN_SHUTDOWN_INTERVAL,
     private val onAutoStopCallback: (() -> Unit)? = null
-) : ImageCapture.OnImageSavedCallback {
+) {
 
     private lateinit var session: Session
     private var timer: Timer? = null
+
     private var imageRequestNumber: Int = 0
     private var imagesTaken: Int = 0
-    private var isRestartingCamera: Boolean = false
+
     private var cameraRestartCount: Int = 0
 
     private val sessionDirectory by lazy {
@@ -42,7 +45,12 @@ class ImagingManager(
         context: Context,
         locationProvider: SingleLocationProvider,
         initialDelay: Long
-    ) {
+    ) = coroutineScope {
+        if (timer != null) {
+            Log.d(TAG, "Manager was already started")
+            return@coroutineScope
+        }
+
         val start = OffsetDateTime.now()
         session = Session(
             sessionName,
@@ -54,46 +62,91 @@ class ImagingManager(
         )
         val sessionID = AutoMothRepository.create(session) ?: run {
             Log.d(TAG, "Failed to create new session")
-            return
+            return@coroutineScope
+        }
+
+        launch {
+            locationProvider.getCurrentLocation(context, true)?.let {
+                AutoMothRepository.updateSessionLocation(sessionID, it)
+            }
         }
 
         val milliseconds: Long = settings.interval * 1000L
         timer = fixedRateTimer(TAG, false, initialDelay, milliseconds) {
-            onTimerTick()
-        }
-
-        locationProvider.getCurrentLocation(context, true)?.let {
-            AutoMothRepository.updateSessionLocation(sessionID, it)
+            // The runBlocking call is an acceptable bridge between the coroutine-oriented image
+            // capture methods and a traditional timer. It will only ever block the timer thread,
+            // which is actually desirable since each image capture should complete before a new one
+            // begins. fixedRateTimer was used instead of a coroutine-based delay() because (at
+            // least as of now) the coroutine "timer" implementation is not overly precise.
+            runBlocking {
+                onTimerTick()
+            }
         }
     }
 
-    private fun onTimerTick() {
+    private suspend fun onTimerTick() {
         if (shouldAutoStop()) {
             stop("Auto-stop")
             return
         }
         val capture = imageCapture.get()
         if (capture != null) {
-            takePhoto(capture)
+            runCapture(capture)
         } else {
             stop("Image capture was garbage collected")
         }
     }
 
-    private fun takePhoto(capture: ImageCaptureInterface) {
-        settings.shutdownCameraWhenPossible = true
-        if (isRestartingCamera) {
-            Log.d(TAG, "Tried to take photo while restarting the camera")
-            return
-        }
-
+    private suspend fun runCapture(capture: ImageCaptureInterface) {
         if (shouldShutdownCamera()) {
             Log.d(TAG, "Starting camera")
-            capture.startCamera {
-                capture.takePhoto(getUniqueFile(), this@ImagingManager)
+            capture.startCamera()
+        }
+
+        takePhoto(capture)
+
+        if (shouldShutdownCamera()) {
+            Log.d(TAG, "Stopping camera")
+            capture.stopCamera()
+        }
+
+        if (shouldAutoStop()) {
+            stop("Auto-stop")
+        }
+    }
+
+    private suspend fun takePhoto(capture: ImageCaptureInterface) {
+        val result = capture.takePhoto(getUniqueFile())
+        result.onSuccess {
+            onImageSaved(it)
+        }.onFailure {
+            (it as? ImageCaptureException)?.let { error ->
+                onError(error)
             }
-        } else {
-            capture.takePhoto(getUniqueFile(), this@ImagingManager)
+        }
+    }
+
+    private fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+        val file = outputFileResults.savedUri?.toFile() ?: return
+        // TODO: use exif time instead?
+        val image = Image(file.name, OffsetDateTime.now(), session.sessionID)
+        AutoMothRepository.insert(image)
+        Log.d(TAG, "Image captured at $file")
+        imagesTaken++
+    }
+
+    private suspend fun onError(exception: ImageCaptureException) {
+        Log.d(TAG, "Image failed to capture: " + exception.localizedMessage)
+        when (exception.imageCaptureError) {
+            ImageCapture.ERROR_CAMERA_CLOSED,
+            ImageCapture.ERROR_INVALID_CAMERA,
+            ImageCapture.ERROR_CAPTURE_FAILED -> {
+                tryRestartCamera()
+            }
+            ImageCapture.ERROR_UNKNOWN,
+            ImageCapture.ERROR_FILE_IO -> {
+                stop(exception.localizedMessage ?: "Unknown exception")
+            }
         }
     }
 
@@ -109,51 +162,16 @@ class ImagingManager(
         cameraRestartCount = 0
     }
 
-    override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-        val file = outputFileResults.savedUri?.toFile() ?: return
-        // TODO: use exif time instead?
-        val image = Image(file.name, OffsetDateTime.now(), session.sessionID)
-        AutoMothRepository.insert(image)
-        Log.d(TAG, "Image captured at $file")
-        imagesTaken++
-        if (shouldAutoStop()) {
-            stop("Auto-stop")
-        } else if (shouldShutdownCamera()) {
-            Log.d(TAG, "Stopping camera")
-            imageCapture.get()?.stopCamera()
-        }
-    }
-
-    override fun onError(exception: ImageCaptureException) {
-        Log.d(TAG, "Image failed to capture: " + exception.localizedMessage)
-        when (exception.imageCaptureError) {
-            ImageCapture.ERROR_CAMERA_CLOSED,
-            ImageCapture.ERROR_INVALID_CAMERA,
-            ImageCapture.ERROR_CAPTURE_FAILED -> {
-                tryRestartCamera()
-            }
-            ImageCapture.ERROR_UNKNOWN,
-            ImageCapture.ERROR_FILE_IO -> {
-                stop(exception.localizedMessage ?: "Unknown exception")
-            }
-        }
-    }
-
-    private fun tryRestartCamera() {
+    private suspend fun tryRestartCamera() {
         val capture = imageCapture.get() ?: run {
             stop("Failed to restart camera; image capture was garbage collected")
             return
         }
 
-        if (isRestartingCamera) {
-            Log.d(TAG, "Camera restart requested while camera was already restarting")
-        } else if (cameraRestartCount < maxCameraRestarts) {
-            isRestartingCamera = true
+        if (cameraRestartCount < maxCameraRestarts) {
             cameraRestartCount++
             Log.d(TAG, "Attempting to restart camera: attempt #$cameraRestartCount")
-            capture.startCamera {
-                isRestartingCamera = false
-            }
+            capture.startCamera()
         } else {
             stop("Camera restart unsuccessful")
         }

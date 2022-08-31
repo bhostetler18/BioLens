@@ -10,6 +10,7 @@ import android.os.Build
 import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
@@ -22,10 +23,14 @@ import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.network.SingleLocationProvider
 import com.uf.automoth.ui.MainActivity
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.lang.ref.WeakReference
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class ImagingService : LifecycleService(), ImageCaptureInterface {
 
@@ -124,58 +129,62 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
         startForeground(SERVICE_NOTIFICATION_ID, notification)
     }
 
-    override fun startCamera(onStart: (() -> Unit)?) {
+    override suspend fun startCamera() {
         cameraProvider?.let {
-            bindCaptureUseCase(it, onStart)
+            bindCaptureUseCase(it)
             return@startCamera
         }
-
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-        cameraProviderFuture.addListener({
-            cameraProviderFuture.get()?.let {
-                this.cameraProvider = it
-                bindCaptureUseCase(it, onStart)
-            }
-        }, ContextCompat.getMainExecutor(this))
+        cameraProviderFuture.await()?.let {
+            this.cameraProvider = it
+            bindCaptureUseCase(it)
+        }
     }
 
-    private fun bindCaptureUseCase(cameraProvider: ProcessCameraProvider, onStart: (() -> Unit)?) {
-        imageCapture = ImageCapture.Builder().build()
+    private suspend fun bindCaptureUseCase(cameraProvider: ProcessCameraProvider) =
+        withContext(Dispatchers.Main) {
+            imageCapture = ImageCapture.Builder().build()
 
-        try {
-            cameraProvider.unbindAll()
-            cameraProvider.bindToLifecycle(
-                this,
-                cameraSelector,
-                imageCapture
-            )
-        } catch (exc: Exception) {
-            stopCurrentSession("Image capture use case binding failed")
-            killService()
-            return
+            try {
+                cameraProvider.unbindAll()
+                cameraProvider.bindToLifecycle(
+                    this@ImagingService,
+                    cameraSelector,
+                    imageCapture
+                )
+            } catch (exc: Exception) {
+                stopCurrentSession("Image capture use case binding failed")
+                killService()
+            }
         }
 
-        onStart?.invoke()
+    override suspend fun stopCamera() {
+        withContext(Dispatchers.Main) {
+            cameraProvider?.unbindAll()
+        }
     }
 
-    override fun stopCamera() {
-        cameraProvider?.unbindAll()
-    }
+    override suspend fun takePhoto(saveLocation: File): Result<ImageCapture.OutputFileResults> =
+        suspendCoroutine { continuation ->
+            val outputOptions = ImageCapture.OutputFileOptions
+                .Builder(saveLocation)
+                .build()
 
-    override fun takePhoto(
-        saveLocation: File,
-        onSaved: ImageCapture.OnImageSavedCallback
-    ) {
-        val outputOptions = ImageCapture.OutputFileOptions
-            .Builder(saveLocation)
-            .build()
+            imageCapture.takePicture(
+                outputOptions,
+                ContextCompat.getMainExecutor(this),
+                object : ImageCapture.OnImageSavedCallback {
 
-        imageCapture.takePicture(
-            outputOptions,
-            ContextCompat.getMainExecutor(this),
-            onSaved
-        )
-    }
+                    override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                        continuation.resume(Result.success(outputFileResults))
+                    }
+
+                    override fun onError(exception: ImageCaptureException) {
+                        continuation.resume(Result.failure(exception))
+                    }
+                }
+            )
+        }
 
     private fun startSession(name: String?, settings: ImagingSettings, cancelExisting: Boolean) {
         if (cancelExisting) {
@@ -187,18 +196,18 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
             )
             return
         }
-        startCamera {
-            imagingManager = ImagingManager(settings, WeakReference(this)) {
-                killService()
-            }
-            lifecycleScope.launch {
-                imagingManager?.start(
-                    name ?: getString(R.string.default_session_name),
-                    this@ImagingService,
-                    locationProvider,
-                    0L
-                )
-            }
+
+        imagingManager = ImagingManager(settings, WeakReference(this)) {
+            killService()
+        }
+        lifecycleScope.launch {
+            startCamera()
+            imagingManager?.start(
+                name ?: getString(R.string.default_session_name),
+                this@ImagingService,
+                locationProvider,
+                0L
+            )
         }
     }
 
