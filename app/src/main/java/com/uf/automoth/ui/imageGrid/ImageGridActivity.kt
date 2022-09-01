@@ -1,10 +1,8 @@
 package com.uf.automoth.ui.imageGrid
 
-import android.content.Context
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
@@ -21,23 +19,15 @@ import com.uf.automoth.R
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.ActivityImageGridBinding
-import com.uf.automoth.network.GoogleDriveLoginManager
-import com.uf.automoth.network.GoogleDriveSignInActivity
 import com.uf.automoth.network.GoogleDriveUploadWorker
+import com.uf.automoth.network.GoogleSignInHelper
 import com.uf.automoth.ui.common.EditTextDialog
+import com.uf.automoth.ui.common.simpleAlertDialogWithOk
 import kotlinx.coroutines.launch
 
-class ImageGridActivity : AppCompatActivity(), GoogleDriveSignInActivity {
+class ImageGridActivity : AppCompatActivity() {
     private lateinit var viewModel: ImageGridViewModel
     private val binding by lazy { ActivityImageGridBinding.inflate(layoutInflater) }
-
-    private val driveManager = GoogleDriveLoginManager(this)
-    override val appContext: Context get() = applicationContext
-    override val applicationName: String get() = getString(R.string.app_name)
-    override val signInLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            driveManager.handleSignInResult(result)
-        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -169,14 +159,13 @@ class ImageGridActivity : AppCompatActivity(), GoogleDriveSignInActivity {
     }
 
     private fun uploadSession() {
-        driveManager.signInIfNecessary()
-        val account = driveManager.currentAccount?.account
+        val account = GoogleSignInHelper.getGoogleAccountIfValid(this)?.account
         if (account != null) {
             val workRequest = OneTimeWorkRequestBuilder<GoogleDriveUploadWorker>()
                 .setInputData(
                     workDataOf(
                         GoogleDriveUploadWorker.KEY_SESSION_ID to viewModel.session.sessionID,
-                        GoogleDriveUploadWorker.KEY_ACCOUNT_NAME to account.name,
+                        GoogleDriveUploadWorker.KEY_ACCOUNT_EMAIL to account.name,
                         GoogleDriveUploadWorker.KEY_ACCOUNT_TYPE to account.type
                     )
                 ).setConstraints(
@@ -189,7 +178,11 @@ class ImageGridActivity : AppCompatActivity(), GoogleDriveSignInActivity {
                 workRequest
             )
         } else {
-            // TODO: handle sign in failure
+            simpleAlertDialogWithOk(
+                this,
+                R.string.no_google_account,
+                R.string.please_sign_in
+            ).show()
         }
     }
 

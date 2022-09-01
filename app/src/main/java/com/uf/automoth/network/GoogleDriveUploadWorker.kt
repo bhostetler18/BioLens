@@ -27,7 +27,7 @@ class GoogleDriveUploadWorker(
 
     override suspend fun doWork(): Result {
         val sessionId = inputData.getLong(KEY_SESSION_ID, -1)
-        val accountName = inputData.getString(KEY_ACCOUNT_NAME)
+        val accountName = inputData.getString(KEY_ACCOUNT_EMAIL)
         val accountType = inputData.getString(KEY_ACCOUNT_TYPE)
 
         if (sessionId <= 0 || accountName == null || accountType == null) {
@@ -44,9 +44,7 @@ class GoogleDriveUploadWorker(
                 uploadSession(session, driveHelper)
                 return@withContext Result.success()
             } catch (e: IOException) {
-                e.localizedMessage?.let {
-                    Log.d(TAG, it)
-                }
+                Log.e(TAG, e.toString())
                 return@withContext Result.failure()
             }
         }
@@ -92,7 +90,7 @@ class GoogleDriveUploadWorker(
     companion object {
         private const val TAG = "[UPLOAD_WORKER]"
         const val KEY_SESSION_ID = "com.uf.automoth.extra.SESSION_ID"
-        const val KEY_ACCOUNT_NAME = "com.uf.automoth.extra.ACCOUNT_NAME"
+        const val KEY_ACCOUNT_EMAIL = "com.uf.automoth.extra.ACCOUNT_EMAIL"
         const val KEY_ACCOUNT_TYPE = "com.uf.automoth.extra.ACCOUNT_TYPE"
         const val KEY_PROGRESS = "com.uf.automoth.extra.PROGRESS"
         const val KEY_MAX_PROGRESS = "com.uf.automoth.extra.MAX_PROGRESS"

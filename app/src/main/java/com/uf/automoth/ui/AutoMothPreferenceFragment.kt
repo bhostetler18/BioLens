@@ -1,11 +1,90 @@
 package com.uf.automoth.ui
 
+import android.app.Activity
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.res.ResourcesCompat
+import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.uf.automoth.R
+import com.uf.automoth.network.GoogleSignInHelper
 
 class AutoMothPreferenceFragment : PreferenceFragmentCompat() {
+
+    private val signInClient: GoogleSignInClient by lazy {
+        val options = GoogleSignInOptions.Builder()
+            .requestScopes(GoogleSignInHelper.DRIVE_FILE_SCOPE)
+            .requestEmail()
+            .build()
+        GoogleSignIn.getClient(requireContext(), options)
+    }
+    private val signInLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+                GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                    .addOnSuccessListener { account: GoogleSignInAccount ->
+                        setGoogleAccount(account)
+                    }
+            }
+        }
+
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.app_preferences, rootKey)
+        setGoogleAccount(GoogleSignInHelper.getGoogleAccountIfValid(requireContext()))
+    }
+
+    private fun signIn() {
+        val account = GoogleSignInHelper.getGoogleAccountIfValid(requireContext())
+        if (account == null) {
+            signInLauncher.launch(signInClient.signInIntent)
+        } else {
+            setGoogleAccount(account)
+        }
+    }
+
+    private fun signOut() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.warn_sign_out)
+            .setPositiveButton(R.string.sign_out) { dialog, _ ->
+                signInClient.signOut().addOnSuccessListener {
+                    setGoogleAccount(null)
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton(R.string.cancel) { dialog, _ ->
+                dialog.dismiss()
+            }
+            .create()
+            .show()
+    }
+
+    private fun setGoogleAccount(account: GoogleSignInAccount?) {
+        val pref =
+            preferenceScreen.findPreference<Preference>(getString(R.string.PREF_GOOGLE_ACCOUNT))
+                ?: return
+        if (account != null && account.email != null) {
+            pref.title = getString(R.string.signed_in_as_email, account.email)
+            pref.summary = getString(R.string.sign_out)
+            pref.icon = ResourcesCompat.getDrawable(resources, R.drawable.ic_logout_24, null)
+            pref.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+                signOut()
+                true
+            }
+        } else {
+            pref.title = getString(R.string.no_google_account)
+            pref.summary = getString(R.string.sign_in)
+            pref.icon = ResourcesCompat.getDrawable(resources, R.drawable.ic_login_24, null)
+            pref.onPreferenceClickListener = Preference.OnPreferenceClickListener {
+                signIn()
+                true
+            }
+        }
     }
 }

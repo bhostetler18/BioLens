@@ -21,7 +21,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="center"
         android:gravity="center"
-        android:text="@string/please_go_to_settings"
+        android:text="@string/please_enable_camera"
         android:textColor="@color/white"
         android:visibility="gone" />
 
