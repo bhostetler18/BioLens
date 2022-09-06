@@ -17,7 +17,8 @@
             android:id="@+id/unit1_picker"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/number_picker_height"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:scrollbarSize="0dp" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -31,7 +32,8 @@
             android:id="@+id/unit2_picker"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/number_picker_height"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:scrollbarSize="0dp" />
     </LinearLayout>
 
     <LinearLayout
