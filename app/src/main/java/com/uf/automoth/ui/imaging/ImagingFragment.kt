@@ -31,12 +31,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.work.await
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.uf.automoth.R
+import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Session
 import com.uf.automoth.databinding.FragmentImagingBinding
 import com.uf.automoth.imaging.ImageCaptureInterface
 import com.uf.automoth.imaging.ImagingManager
 import com.uf.automoth.imaging.ImagingService
-import com.uf.automoth.imaging.ImagingSettings
 import com.uf.automoth.network.SingleLocationProvider
 import com.uf.automoth.ui.common.EditTextDialog
 import com.uf.automoth.ui.common.simpleAlertDialogWithOk
@@ -75,7 +75,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
     ): View {
         locationProvider = SingleLocationProvider(requireContext())
 
-        ImagingSettings.loadDefaults(requireContext())?.let {
+        AutoMothRepository.loadDefaultImagingSettings(requireContext())?.let {
             viewModel.imagingSettings = it
         }
 
@@ -379,7 +379,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
 
     override fun onPause() {
         super.onPause()
-        viewModel.imagingSettings.saveToFile(requireContext())
+        AutoMothRepository.saveDefaultImagingSettings(viewModel.imagingSettings, requireContext())
     }
 
     private fun refreshUI() {

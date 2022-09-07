@@ -2,12 +2,18 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "07d4c91975c916eda44030218eee9383",
+    "identityHash": "50593a96aa0eb07680209407cc09df22",
     "entities": [
       {
         "tableName": "images",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`filename` TEXT NOT NULL, `timestamp` TEXT NOT NULL, `parentSessionID` INTEGER NOT NULL, `imageID` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, FOREIGN KEY(`parentSessionID`) REFERENCES `sessions`(`sessionID`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`index` INTEGER NOT NULL, `filename` TEXT NOT NULL, `timestamp` TEXT NOT NULL, `parentSessionID` INTEGER NOT NULL, `imageID` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, FOREIGN KEY(`parentSessionID`) REFERENCES `sessions`(`sessionID`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
+          {
+            "fieldPath": "index",
+            "columnName": "index",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
           {
             "fieldPath": "filename",
             "columnName": "filename",
@@ -66,7 +72,7 @@
       },
       {
         "tableName": "sessions",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `directory` TEXT NOT NULL, `started` TEXT NOT NULL, `latitude` REAL NOT NULL, `longitude` REAL NOT NULL, `interval` INTEGER NOT NULL, `completed` TEXT, `sessionID` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT NOT NULL, `directory` TEXT NOT NULL, `started` TEXT NOT NULL, `latitude` REAL, `longitude` REAL, `interval` INTEGER NOT NULL, `completed` TEXT, `sessionID` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)",
         "fields": [
           {
             "fieldPath": "name",
@@ -90,13 +96,13 @@
             "fieldPath": "latitude",
             "columnName": "latitude",
             "affinity": "REAL",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "longitude",
             "columnName": "longitude",
             "affinity": "REAL",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "interval",
@@ -180,7 +186,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '07d4c91975c916eda44030218eee9383')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '50593a96aa0eb07680209407cc09df22')"
     ]
   }
 }

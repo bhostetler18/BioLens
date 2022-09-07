@@ -3,20 +3,38 @@ package com.uf.automoth.data
 import android.content.Context
 import android.location.Location
 import android.util.Log
+import androidx.preference.PreferenceManager
 import androidx.room.Room
+import com.uf.automoth.R
+import com.uf.automoth.imaging.ImagingSettings
+import com.uf.automoth.utility.getRandomString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.io.File
+import java.io.IOException
 import java.time.OffsetDateTime
 
+// TODO: see https://www.techyourchance.com/repository-android-anti-pattern/...
 object AutoMothRepository {
 
     private lateinit var database: AutoMothDatabase
     private lateinit var coroutineScope: CoroutineScope
     lateinit var storageLocation: File
+    lateinit var userID: String
+
+    private const val DEFAULT_IMAGING_SETTINGS_FILENAME = "imaging_settings.json"
+    private var JSON = Json { encodeDefaults = true }
+
+    private const val TAG = "[Repository]"
+    private const val KEY_SHARED_PREFERENCE_FILE = "com.uf.automoth.SHARED_PREFERENCES"
+    private const val KEY_USER_ID = "com.uf.automoth.preference.USER_ID"
 
     operator fun invoke(context: Context, coroutineScope: CoroutineScope) {
         if (this::database.isInitialized) {
@@ -30,7 +48,25 @@ object AutoMothRepository {
             .build()
         storageLocation = context.getExternalFilesDir(null)!! // TODO: handle ejection?
         this.coroutineScope = coroutineScope
-        Log.d("[INFO]", "External file path is ${storageLocation.path}")
+        Log.d(TAG, "External file path is ${storageLocation.path}")
+        userID = createOrGetUserId(context)
+        Log.d(TAG, "User ID is $userID")
+    }
+
+    // These aren't truly unique, but should work until we decide how to manage unique users
+    private fun createOrGetUserId(context: Context): String {
+        val prefs = context.getSharedPreferences(KEY_SHARED_PREFERENCE_FILE, Context.MODE_PRIVATE)
+        val id = prefs.all[KEY_USER_ID] as? String
+        return if (id == null) {
+            val newId = getRandomString(5)
+            with(prefs.edit()) {
+                putString(KEY_USER_ID, newId)
+                apply()
+            }
+            newId
+        } else {
+            id
+        }
     }
 
     val allSessionsFlow by lazy {
@@ -102,12 +138,12 @@ object AutoMothRepository {
     suspend fun getAllPendingSessions(): List<PendingSession> =
         database.pendingSessionDAO().getAllPendingSessions()
 
-    fun getImagesInSession(id: Long): Flow<List<Image>> {
-        return database.sessionDAO().getImagesInSession(id)
+    fun getImagesInSessionFlow(id: Long): Flow<List<Image>> {
+        return database.sessionDAO().getImagesInSessionFlow(id)
     }
 
-    fun getImagesInSessionBlocking(id: Long): List<Image> {
-        return database.sessionDAO().getImagesInSessionBlocking(id)
+    suspend fun getImagesInSession(id: Long): List<Image> {
+        return database.sessionDAO().getImagesInSession(id)
     }
 
     fun getNumImagesInSession(id: Long): Flow<Int> {
@@ -132,5 +168,30 @@ object AutoMothRepository {
 
     fun resolve(image: Image, session: Session): File {
         return File(resolve(session), image.filename)
+    }
+
+    fun saveDefaultImagingSettings(settings: ImagingSettings, context: Context) {
+        val encoded = JSON.encodeToString(settings)
+        context.openFileOutput(DEFAULT_IMAGING_SETTINGS_FILENAME, Context.MODE_PRIVATE).use {
+            it.write(encoded.encodeToByteArray())
+        }
+    }
+
+    fun loadDefaultImagingSettings(context: Context): ImagingSettings? {
+        return try {
+            context.openFileInput(DEFAULT_IMAGING_SETTINGS_FILENAME)?.use { input ->
+                input.bufferedReader().use {
+                    val settings: ImagingSettings = Json.decodeFromString(it.readText())
+                    settings.shutdownCameraWhenPossible =
+                        PreferenceManager.getDefaultSharedPreferences(context)
+                            .getBoolean(context.getString(R.string.PREF_SHUTDOWN_CAMERA), false)
+                    return settings
+                }
+            }
+        } catch (e: IOException) {
+            return null
+        } catch (e: SerializationException) {
+            return null
+        }
     }
 }

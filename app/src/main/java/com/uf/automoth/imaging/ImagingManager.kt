@@ -33,7 +33,6 @@ class ImagingManager(
     private var timer: Timer? = null
     private var locationJob: Job? = null
 
-    private var imageRequestNumber: Int = 0
     private var imagesTaken: Int = 0
 
     private var cameraRestartCount: Int = 0
@@ -58,8 +57,8 @@ class ImagingManager(
             sessionName,
             getUniqueDirectory(start),
             start,
-            -1.0,
-            -1.0,
+            null,
+            null,
             settings.interval
         )
         val sessionID = AutoMothRepository.create(session) ?: run {
@@ -119,9 +118,10 @@ class ImagingManager(
     }
 
     private suspend fun takePhoto(capture: ImageCaptureInterface) {
-        val result = capture.takePhoto(getUniqueFile())
+        val requestNumber = imagesTaken + 1
+        val result = capture.takePhoto(getUniqueFile(requestNumber))
         result.onSuccess {
-            onImageSaved(it)
+            onImageSaved(requestNumber, it)
         }.onFailure {
             (it as? ImageCaptureException)?.let { error ->
                 onError(error)
@@ -129,10 +129,13 @@ class ImagingManager(
         }
     }
 
-    private fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+    private fun onImageSaved(
+        requestNumber: Int,
+        outputFileResults: ImageCapture.OutputFileResults
+    ) {
         val file = outputFileResults.savedUri?.toFile() ?: return
         // TODO: use exif time instead?
-        val image = Image(file.name, OffsetDateTime.now(), session.sessionID)
+        val image = Image(requestNumber, file.name, OffsetDateTime.now(), session.sessionID)
         AutoMothRepository.insert(image)
         Log.d(TAG, "Image captured at $file")
         imagesTaken++
@@ -163,7 +166,6 @@ class ImagingManager(
         AutoMothRepository.updateSessionCompletion(session.sessionID, end)
         onAutoStopCallback?.invoke()
         imagesTaken = 0
-        imageRequestNumber = 0
         cameraRestartCount = 0
     }
 
@@ -198,8 +200,8 @@ class ImagingManager(
         return settings.shutdownCameraWhenPossible && settings.interval >= minShutdownInterval
     }
 
-    private fun getUniqueFile(): File {
-        return File(sessionDirectory, "img${++imageRequestNumber}.jpg")
+    private fun getUniqueFile(requestNumber: Int): File {
+        return File(sessionDirectory, "img$requestNumber.jpg")
     }
 
     companion object {

@@ -28,11 +28,11 @@ interface SessionDAO {
 
     @Transaction
     @Query("SELECT * FROM images WHERE parentSessionID = :id")
-    fun getImagesInSession(id: Long): Flow<List<Image>>
+    fun getImagesInSessionFlow(id: Long): Flow<List<Image>>
 
     @Transaction
     @Query("SELECT * FROM images WHERE parentSessionID = :id")
-    fun getImagesInSessionBlocking(id: Long): List<Image>
+    suspend fun getImagesInSession(id: Long): List<Image>
 
     @Transaction
     @Query("SELECT COUNT(imageID) FROM images WHERE parentSessionID = :id")

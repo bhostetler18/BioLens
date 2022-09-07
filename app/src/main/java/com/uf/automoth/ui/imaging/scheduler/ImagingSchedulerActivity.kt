@@ -15,10 +15,10 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat.CLOCK_12H
 import com.uf.automoth.R
+import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.PendingSession
 import com.uf.automoth.databinding.ActivityImagingSchedulerBinding
 import com.uf.automoth.imaging.ImagingScheduler
-import com.uf.automoth.imaging.ImagingSettings
 import com.uf.automoth.ui.imaging.AutoStopDialog
 import com.uf.automoth.ui.imaging.IntervalDialog
 import com.uf.automoth.ui.imaging.autoStopDescription
@@ -39,7 +39,7 @@ class ImagingSchedulerActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        ImagingSettings.loadDefaults(this)?.let {
+        AutoMothRepository.loadDefaultImagingSettings(this)?.let {
             viewModel.imagingSettings = it
         }
         updateIntervalText()

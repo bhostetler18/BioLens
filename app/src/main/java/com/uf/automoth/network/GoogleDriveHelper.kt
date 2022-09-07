@@ -14,15 +14,16 @@ class GoogleDriveHelper(private val drive: Drive, val appFolderName: String) {
         file: File,
         mimeType: String,
         folderID: String = "root",
+        overrideFilename: String? = null,
         progressListener: MediaHttpUploaderProgressListener = DUMMY_LISTENER
     ): String {
+        val filename = overrideFilename ?: file.name
         val request = drive.files().list().setQ(
-            "mimeType='$mimeType' and trashed=false and name='${file.name}' and '$folderID' in parents"
+            "mimeType='$mimeType' and trashed=false and name='$filename' and '$folderID' in parents"
         )
-
         val result = request.execute()
         return if (result.files.isEmpty()) {
-            upload(file, mimeType, folderID, progressListener)
+            upload(file, mimeType, folderID, overrideFilename, progressListener)
         } else {
             result.files[0].id
         }
@@ -32,15 +33,16 @@ class GoogleDriveHelper(private val drive: Drive, val appFolderName: String) {
         file: File,
         mimeType: String,
         folderID: String? = null,
+        overrideFilename: String? = null,
         progressListener: MediaHttpUploaderProgressListener = DUMMY_LISTENER
     ): String {
+        val filename = overrideFilename ?: file.name
         val fileContent = FileContent(mimeType, file)
-
         val fileMetadata = com.google.api.services.drive.model.File()
         folderID?.let {
             fileMetadata.parents = Collections.singletonList(folderID)
         }
-        fileMetadata.name = file.name
+        fileMetadata.name = filename
         fileMetadata.mimeType = mimeType
 
         val request = drive.files().create(fileMetadata, fileContent).setFields("id")

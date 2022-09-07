@@ -15,15 +15,19 @@ data class Session(
     val name: String,
     val directory: String,
     val started: OffsetDateTime,
-    val latitude: Double,
-    val longitude: Double,
+    val latitude: Double?,
+    val longitude: Double?,
     val interval: Int,
     var completed: OffsetDateTime? = null,
     @PrimaryKey(autoGenerate = true) var sessionID: Long = 0
 ) {
+    fun hasLocation(): Boolean {
+        return latitude != null && longitude != null
+    }
+
     companion object {
         fun isValid(sessionName: String): Boolean {
-            return sessionName.trim().isNotEmpty()
+            return sessionName.trim().isNotEmpty() // TODO: validate for CSV inclusion?
         }
     }
 }
@@ -40,6 +44,7 @@ data class Session(
     ]
 )
 data class Image(
+    val index: Int,
     val filename: String,
     val timestamp: OffsetDateTime,
     @ColumnInfo(index = true) val parentSessionID: Long,

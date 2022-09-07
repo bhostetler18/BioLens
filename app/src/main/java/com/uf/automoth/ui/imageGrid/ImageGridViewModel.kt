@@ -15,7 +15,7 @@ class ImageGridViewModel(val session: Session) : ViewModel() {
 
     val skipCount = MutableStateFlow(0)
     val images =
-        skipCount.combine(AutoMothRepository.getImagesInSession(session.sessionID)) { skip, images ->
+        skipCount.combine(AutoMothRepository.getImagesInSessionFlow(session.sessionID)) { skip, images ->
             return@combine if (skip == 0) {
                 images
             } else {

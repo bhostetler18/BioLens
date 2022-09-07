@@ -14,8 +14,11 @@ import com.google.api.services.drive.DriveScopes
 import com.uf.automoth.R
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Session
+import com.uf.automoth.data.export.AutoMothSessionCSVFormatter
+import com.uf.automoth.data.export.SessionCSVExporter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.IOException
 import java.util.*
 
@@ -66,16 +69,38 @@ class GoogleDriveUploadWorker(
     }
 
     private suspend fun uploadSession(session: Session, driveHelper: GoogleDriveHelper) {
+        val formatter = AutoMothSessionCSVFormatter(session)
+
         val autoMothFolder = driveHelper.createOrGetFolder(driveHelper.appFolderName)
-        val folder = driveHelper.createOrGetFolder(session.directory, autoMothFolder)
-        val images = AutoMothRepository.getImagesInSessionBlocking(session.sessionID)
+        val sessionDirectory = "${session.name}-${formatter.uniqueSessionId}"
+        val folder = driveHelper.createOrGetFolder(sessionDirectory, autoMothFolder)
+
+        // TODO: show progress "uploading metadata" or similar?
+        uploadMetadata(session, formatter, driveHelper, folder)
+
+        val images = AutoMothRepository.getImagesInSession(session.sessionID)
         val total = images.size
         setProgress(0, total)
         images.forEachIndexed { i, image ->
             val file = AutoMothRepository.resolve(image, session)
-            driveHelper.uploadOrGetFile(file, MimeTypes.JPEG, folder)
+            val filename = formatter.getUniqueImageId(image)
+            driveHelper.uploadOrGetFile(file, MimeTypes.JPEG, folder, filename)
             setProgress(i + 1, total)
         }
+    }
+
+    private suspend fun uploadMetadata(
+        session: Session,
+        formatter: AutoMothSessionCSVFormatter,
+        driveHelper: GoogleDriveHelper,
+        folder: String
+    ) {
+        val exporter = SessionCSVExporter(formatter)
+
+        val tmp = File(applicationContext.cacheDir, "metadata.csv")
+        exporter.export(session, tmp)
+        driveHelper.uploadOrGetFile(tmp, MimeTypes.CSV, folder)
+        tmp.delete()
     }
 
     private suspend fun setProgress(progress: Int, max: Int) {
