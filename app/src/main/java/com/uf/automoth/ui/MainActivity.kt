@@ -63,20 +63,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        refreshUI()
-    }
-
-    override fun onRestart() {
-        super.onRestart()
-        refreshUI()
-    }
-
-    private fun refreshUI() {
-        setRunningSessionIndicatorVisible(ImagingService.IS_RUNNING.value ?: false)
-    }
-
     private fun setRunningSessionIndicatorVisible(visible: Boolean) {
         binding.sessionRunningNotification.isVisible = visible
     }
