@@ -10,9 +10,12 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.uf.automoth.R
 import com.uf.automoth.network.GoogleSignInHelper
+import com.uf.automoth.ui.common.simpleAlertDialogWithOk
 
 class AutoMothPreferenceFragment : PreferenceFragmentCompat() {
 
@@ -41,6 +44,20 @@ class AutoMothPreferenceFragment : PreferenceFragmentCompat() {
     }
 
     private fun signIn() {
+        val googleAvailability = GoogleApiAvailability.getInstance()
+        val resultCode = googleAvailability.isGooglePlayServicesAvailable(requireContext())
+        if (resultCode != ConnectionResult.SUCCESS) {
+            if (googleAvailability.isUserResolvableError(resultCode)) {
+                googleAvailability.getErrorDialog(this, resultCode, 1)?.show()
+            } else {
+                simpleAlertDialogWithOk(
+                    requireContext(),
+                    R.string.cannot_sign_in,
+                    R.string.warn_no_google_services
+                ).show()
+            }
+            return
+        }
         val account = GoogleSignInHelper.getGoogleAccountIfValid(requireContext())
         if (account == null) {
             signInLauncher.launch(signInClient.signInIntent)
