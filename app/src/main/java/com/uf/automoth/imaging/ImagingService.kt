@@ -229,14 +229,19 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
 
     companion object {
         private const val TAG = "[SERVICE]"
+
+        // Just for fun: this is "MOTH" in ASCII when expressed as four byte unsigned binary
         private const val SERVICE_NOTIFICATION_ID: Int = 1297044552
         private const val SERVICE_CHANNEL_ID: String = "com.uf.automoth.notification.serviceChannel"
+
         const val ACTION_START_SESSION = "com.uf.automoth.action.START_SESSION"
         const val ACTION_STOP_SESSION = "com.uf.automoth.action.STOP_SESSION"
+
         private const val KEY_IMAGING_SETTINGS = "com.uf.automoth.extra.IMAGING_SETTINGS"
         private const val KEY_SESSION_NAME = "com.uf.automoth.extra.SESSION_NAME"
         private const val KEY_CANCEL_EXISTING = "com.automoth.extra.CANCEL_EXISTING"
         private const val KEY_REQUEST_CODE = "com.uf.automoth.extra.REQUEST_CODE"
+
         val IS_RUNNING = MutableLiveData(false)
 
         fun getStartSessionIntent(

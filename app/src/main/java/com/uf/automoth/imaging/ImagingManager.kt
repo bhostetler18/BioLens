@@ -9,6 +9,7 @@ import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Image
 import com.uf.automoth.data.Session
 import com.uf.automoth.network.SingleLocationProvider
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -30,6 +31,7 @@ class ImagingManager(
 
     private lateinit var session: Session
     private var timer: Timer? = null
+    private var locationJob: Job? = null
 
     private var imageRequestNumber: Int = 0
     private var imagesTaken: Int = 0
@@ -65,8 +67,9 @@ class ImagingManager(
             return@coroutineScope
         }
 
-        launch {
+        locationJob = launch {
             locationProvider.getCurrentLocation(context, true)?.let {
+                Log.d(TAG, "Setting session location to $it")
                 AutoMothRepository.updateSessionLocation(sessionID, it)
             }
         }
@@ -155,6 +158,8 @@ class ImagingManager(
         val end = OffsetDateTime.now()
         timer?.cancel()
         timer = null
+        locationJob?.cancel()
+        locationJob = null
         AutoMothRepository.updateSessionCompletion(session.sessionID, end)
         onAutoStopCallback?.invoke()
         imagesTaken = 0
