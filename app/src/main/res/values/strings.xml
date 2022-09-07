@@ -94,7 +94,7 @@
     <string name="no_google_account">No Google account connected</string>
     <string name="signed_in_as_email">Signed in as %s</string>
     <string name="warn_sign_out">Are you sure you want to sign out?</string>
-    <string name="please_sign_in">In order to upload images, please go to the settings tab and and sign in to your Google account</string>
+    <string name="please_sign_in">In order to upload images, please go to the settings tab and sign in to your Google account</string>
     <string name="cannot_sign_in">Cannot sign in</string>
     <string name="warn_no_google_services">This device does not support the required Google services</string>
 </resources>
