@@ -18,15 +18,8 @@ class GoogleDriveHelper(private val drive: Drive, val appFolderName: String) {
         progressListener: MediaHttpUploaderProgressListener = DUMMY_LISTENER
     ): String {
         val filename = overrideFilename ?: file.name
-        val request = drive.files().list().setQ(
-            "mimeType='$mimeType' and trashed=false and name='$filename' and '$folderID' in parents"
-        )
-        val result = request.execute()
-        return if (result.files.isEmpty()) {
-            upload(file, mimeType, folderID, overrideFilename, progressListener)
-        } else {
-            result.files[0].id
-        }
+        return getFileIdIfExists(filename, mimeType, folderID)
+            ?: upload(file, mimeType, folderID, overrideFilename, progressListener)
     }
 
     fun upload(
@@ -53,12 +46,19 @@ class GoogleDriveHelper(private val drive: Drive, val appFolderName: String) {
     }
 
     fun createOrGetFolder(name: String, parent: String = "root"): String {
+        return getFileIdIfExists(name, MimeTypes.GDRIVE_FOLDER, parent) ?: createFolder(
+            name,
+            parent
+        )
+    }
+
+    fun getFileIdIfExists(name: String, mimeType: String, parent: String): String? {
         val request = drive.files().list().setQ(
-            "mimeType='${MimeTypes.GDRIVE_FOLDER}' and trashed=false and name='$name' and '$parent' in parents"
+            "name='$name' and '$parent' in parents and mimeType='$mimeType' and trashed=false"
         )
         val result = request.execute()
         return if (result.files.isEmpty()) {
-            createFolder(name, parent)
+            null
         } else {
             result.files[0].id
         }
