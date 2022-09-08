@@ -1,9 +1,16 @@
 package com.uf.automoth.network
 
 import android.accounts.Account
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import android.os.Build
 import android.util.Log
+import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
+import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.google.api.client.extensions.android.http.AndroidHttp
@@ -22,7 +29,6 @@ import java.io.File
 import java.io.IOException
 import java.util.*
 
-// TODO: CoroutineWorker, long-running as in https://developer.android.com/topic/libraries/architecture/workmanager/advanced/long-running
 class GoogleDriveUploadWorker(
     appContext: Context,
     workerParams: WorkerParameters
@@ -36,8 +42,10 @@ class GoogleDriveUploadWorker(
         if (sessionId <= 0 || accountName == null || accountType == null) {
             return Result.failure()
         }
-
         val session = AutoMothRepository.getSession(sessionId) ?: return Result.failure()
+
+        val info = createForegroundInfo(session)
+        setForeground(info)
 
         val account = Account(accountName, accountType)
 
@@ -123,6 +131,36 @@ class GoogleDriveUploadWorker(
         )
     }
 
+    private fun createForegroundInfo(session: Session): ForegroundInfo {
+        val title = applicationContext.getString(R.string.uploading_session, session.name)
+        val cancel = applicationContext.getString(R.string.cancel)
+
+        val cancelIntent =
+            WorkManager.getInstance(applicationContext).createCancelPendingIntent(this.id)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val uploadChannel = NotificationChannel(
+                UPLOAD_CHANNEL_ID,
+                applicationContext.getString(R.string.upload_notification_channel),
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+            uploadChannel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+            val manager =
+                applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            manager.createNotificationChannel(uploadChannel)
+        }
+
+        val notification = NotificationCompat.Builder(applicationContext, UPLOAD_CHANNEL_ID)
+            .setContentTitle(title)
+            .setTicker(title)
+            .setSmallIcon(R.drawable.ic_cloud_upload_24)
+            .setOngoing(true)
+            .addAction(R.drawable.ic_cancel_24, cancel, cancelIntent)
+            .build()
+
+        return ForegroundInfo(session.sessionID.toInt(), notification)
+    }
+
     companion object {
         private const val TAG = "[UPLOAD_WORKER]"
         const val KEY_SESSION_ID = "com.uf.automoth.extra.SESSION_ID"
@@ -131,6 +169,8 @@ class GoogleDriveUploadWorker(
         const val KEY_PROGRESS = "com.uf.automoth.extra.PROGRESS"
         const val KEY_MAX_PROGRESS = "com.uf.automoth.extra.MAX_PROGRESS"
         const val KEY_METADATA = "com.uf.automoth.extra.METADATA"
+
+        private const val UPLOAD_CHANNEL_ID: String = "com.uf.automoth.notification.uploadChannel"
 
         fun uniqueWorkerTag(session: Session): String {
             return "UPLOAD_${session.sessionID}"

@@ -102,4 +102,6 @@
     <string name="export_crop">Export cropped</string>
     <string name="exporting_metadata">Exporting metadata…</string>
     <string name="connecting_to_drive">Connecting to Google Drive…</string>
+    <string name="upload_notification_channel">AutoMoth Upload Service</string>
+    <string name="uploading_session">Uploading session: %s</string>
 </resources>
