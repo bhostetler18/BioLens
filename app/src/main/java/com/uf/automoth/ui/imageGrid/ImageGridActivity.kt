@@ -226,12 +226,19 @@ class ImageGridActivity : AppCompatActivity() {
                 }
             }
             WorkInfo.State.RUNNING -> {
-                val progress =
-                    info.progress.keyValueMap[GoogleDriveUploadWorker.KEY_PROGRESS] as? Int
-                binding.progressBar.setLabel(getString(R.string.uploading_images))
-                progress?.let {
-                    binding.progressBar.setProgress(it)
+                if (info.progress.keyValueMap.containsKey(GoogleDriveUploadWorker.KEY_METADATA)) {
+                    binding.progressBar.setLabel(getString(R.string.exporting_metadata))
+                } else if (info.progress.keyValueMap.containsKey(GoogleDriveUploadWorker.KEY_PROGRESS)) {
+                    val progress =
+                        info.progress.keyValueMap[GoogleDriveUploadWorker.KEY_PROGRESS] as? Int
+                    binding.progressBar.setLabel(getString(R.string.uploading_images))
+                    progress?.let {
+                        binding.progressBar.setProgress(it)
+                    }
+                } else {
+                    binding.progressBar.setLabel(getString(R.string.connecting_to_drive))
                 }
+
                 binding.progressBar.configureActionButton(getString(R.string.cancel)) {
                     WorkManager.getInstance(this).cancelUniqueWork(
                         GoogleDriveUploadWorker.uniqueWorkerTag(viewModel.session)

@@ -100,4 +100,6 @@
     <string name="warn_no_google_services">This device does not support the required Google services</string>
     <string name="export_region">Export Region</string>
     <string name="export_crop">Export cropped</string>
+    <string name="exporting_metadata">Exporting metadata…</string>
+    <string name="connecting_to_drive">Connecting to Google Drive…</string>
 </resources>

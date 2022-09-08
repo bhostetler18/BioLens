@@ -75,9 +75,34 @@ class GoogleDriveUploadWorker(
         val sessionDirectory = "${session.name}-${formatter.uniqueSessionId}"
         val folder = driveHelper.createOrGetFolder(sessionDirectory, autoMothFolder)
 
-        // TODO: show progress "uploading metadata" or similar?
         uploadMetadata(session, formatter, driveHelper, folder)
+        uploadImages(session, formatter, driveHelper, folder)
+    }
 
+    private suspend fun uploadMetadata(
+        session: Session,
+        formatter: AutoMothSessionCSVFormatter,
+        driveHelper: GoogleDriveHelper,
+        folder: String
+    ) {
+        setProgress(
+            workDataOf(
+                KEY_METADATA to true
+            )
+        )
+        val exporter = SessionCSVExporter(formatter)
+        val tmp = File(applicationContext.cacheDir, "metadata.csv")
+        exporter.export(session, tmp)
+        driveHelper.uploadOrGetFile(tmp, MimeTypes.CSV, folder)
+        tmp.delete()
+    }
+
+    private suspend fun uploadImages(
+        session: Session,
+        formatter: AutoMothSessionCSVFormatter,
+        driveHelper: GoogleDriveHelper,
+        folder: String
+    ) {
         val images = AutoMothRepository.getImagesInSession(session.sessionID)
         val total = images.size
         setProgress(0, total)
@@ -87,20 +112,6 @@ class GoogleDriveUploadWorker(
             driveHelper.uploadOrGetFile(file, MimeTypes.JPEG, folder, filename)
             setProgress(i + 1, total)
         }
-    }
-
-    private suspend fun uploadMetadata(
-        session: Session,
-        formatter: AutoMothSessionCSVFormatter,
-        driveHelper: GoogleDriveHelper,
-        folder: String
-    ) {
-        val exporter = SessionCSVExporter(formatter)
-
-        val tmp = File(applicationContext.cacheDir, "metadata.csv")
-        exporter.export(session, tmp)
-        driveHelper.uploadOrGetFile(tmp, MimeTypes.CSV, folder)
-        tmp.delete()
     }
 
     private suspend fun setProgress(progress: Int, max: Int) {
@@ -119,6 +130,7 @@ class GoogleDriveUploadWorker(
         const val KEY_ACCOUNT_TYPE = "com.uf.automoth.extra.ACCOUNT_TYPE"
         const val KEY_PROGRESS = "com.uf.automoth.extra.PROGRESS"
         const val KEY_MAX_PROGRESS = "com.uf.automoth.extra.MAX_PROGRESS"
+        const val KEY_METADATA = "com.uf.automoth.extra.METADATA"
 
         fun uniqueWorkerTag(session: Session): String {
             return "UPLOAD_${session.sessionID}"
