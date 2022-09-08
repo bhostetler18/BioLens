@@ -46,4 +46,3 @@ fun simpleAlertDialogWithOkAndCancel(
     }
     return alertBuilder.create()
 }
-

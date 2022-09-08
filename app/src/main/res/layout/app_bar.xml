@@ -8,4 +8,4 @@
     android:elevation="4dp"
     android:theme="@style/AutoMoth.AppToolbar"
     app:layout_constraintTop_toTopOf="parent"
-    app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+    app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />

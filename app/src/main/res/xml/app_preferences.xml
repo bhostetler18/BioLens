@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_height="match_parent"
-    android:layout_width="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
     <SwitchPreference
-        android:key="@string/PREF_SHUTDOWN_CAMERA"
-        android:title="@string/preference_shutdown_camera_title"
-        android:summary="@string/preference_shutdown_camera_description"
+        android:defaultValue="false"
         android:icon="@drawable/ic_camera_24"
-        android:defaultValue="false" />
+        android:key="@string/PREF_SHUTDOWN_CAMERA"
+        android:summary="@string/preference_shutdown_camera_description"
+        android:title="@string/preference_shutdown_camera_title" />
     <Preference
         android:icon="@drawable/ic_logout_24"
         android:key="@string/PREF_GOOGLE_ACCOUNT"
         android:summary="Currently signed in as"
-        android:title="Logout"></Preference>
+        android:title="Logout" />
 
 </PreferenceScreen>

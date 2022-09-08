@@ -8,8 +8,9 @@
     android:fitsSystemWindows="true">
 
     <include
-        layout="@layout/app_bar"
-        android:id="@+id/app_bar"/>
+        android:id="@+id/app_bar"
+        layout="@layout/app_bar" />
+
     <LinearLayout
         android:id="@+id/notification_bar"
         android:layout_width="match_parent"
@@ -23,21 +24,22 @@
             android:id="@+id/session_running_notification"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@color/attention"
             android:gravity="center_horizontal"
             android:paddingTop="5dp"
             android:paddingBottom="5dp"
             android:text="@string/active_session_indication"
-            android:background="@color/attention"
             android:textColor="@color/white" />
+
         <TextView
             android:id="@+id/session_scheduled_notification"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@color/attention2"
             android:gravity="center_horizontal"
             android:paddingTop="5dp"
             android:paddingBottom="5dp"
             android:text="@string/scheduled_session_indication"
-            android:background="@color/attention2"
             android:textColor="@color/white" />
     </LinearLayout>
 
