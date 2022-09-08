@@ -56,6 +56,7 @@
     <string name="save_media_menu_title">Save to Gallery</string>
     <string name="image_saved_success">Image saved successfully</string>
     <string name="image_saved_failure">Failed to save image</string>
+    <string name="image_crop_failure">Failed to crop image</string>
     <string name="go_to_settings">Continue to settings</string>
     <string name="warn_needs_alarm_permission">AutoMoth needs special permissions to schedule a future session</string>
     <string name="scheduled_session_indication">An image capture session is scheduled for %s</string>
@@ -97,4 +98,6 @@
     <string name="please_sign_in">In order to upload images, please go to the settings tab and sign in to your Google account</string>
     <string name="cannot_sign_in">Cannot sign in</string>
     <string name="warn_no_google_services">This device does not support the required Google services</string>
+    <string name="export_region">Export Region</string>
+    <string name="export_crop">Export cropped</string>
 </resources>

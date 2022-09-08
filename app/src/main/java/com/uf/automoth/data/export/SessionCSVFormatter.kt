@@ -12,7 +12,7 @@ data class BasicSessionFormatterColumn(
     val getter: (Image) -> String
 )
 
-open class BasicSessionCSVFormatter : SessionCSVFormatter {
+abstract class BasicSessionCSVFormatter : SessionCSVFormatter {
     private var columns = ArrayList<BasicSessionFormatterColumn>()
 
     fun addColumn(name: String, getter: (Image) -> String) {

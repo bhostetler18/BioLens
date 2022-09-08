@@ -25,7 +25,7 @@
         <entry key="app/src/main/res/layout-land/activity_imaging_scheduler.xml" value="0.24774774774774774" />
         <entry key="app/src/main/res/layout-land/generic_time_picker.xml" value="0.16576576576576577" />
         <entry key="app/src/main/res/layout/activity_image_grid.xml" value="0.2976730346679688" />
-        <entry key="app/src/main/res/layout/activity_image_viewer.xml" value="0.13854166666666667" />
+        <entry key="app/src/main/res/layout/activity_image_viewer.xml" value="0.22313639322916673" />
         <entry key="app/src/main/res/layout/activity_imaging_scheduler.xml" value="0.27607361963190186" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.10156097412109376" />
         <entry key="app/src/main/res/layout/activity_session_grid.xml" value="0.1" />
@@ -36,6 +36,7 @@
         <entry key="app/src/main/res/layout/dialog_interval_picker.xml" value="0.2620712280273438" />
         <entry key="app/src/main/res/layout/duration_picker.xml" value="0.24569549560546872" />
         <entry key="app/src/main/res/layout/fragment_data.xml" value="0.15567474365234377" />
+        <entry key="app/src/main/res/layout/fragment_image_grid.xml" value="0.11757161179991449" />
         <entry key="app/src/main/res/layout/fragment_imaging.xml" value="0.21012420654296868" />
         <entry key="app/src/main/res/layout/fragment_imaging_settings.xml" value="0.12779541015625" />
         <entry key="app/src/main/res/layout/fragment_info.xml" value="0.278253173828125" />

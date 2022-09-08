@@ -48,3 +48,11 @@ suspend fun saveImageToMediaStore(
         }
     }.getOrElse { false }
 }
+
+fun File.copyTo(file: File) {
+    inputStream().use { input ->
+        file.outputStream().use { output ->
+            input.copyTo(output)
+        }
+    }
+}

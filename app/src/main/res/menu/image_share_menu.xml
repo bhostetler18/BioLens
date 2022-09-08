@@ -8,10 +8,15 @@
             app:showAsAction="always"
             android:title="@string/share">
             <menu>
-                <item android:id="@+id/save"
+                <item
+                    android:id="@+id/save"
                     android:title="@string/save_media_menu_title" />
-                <item android:id="@+id/share"
+                <item
+                    android:id="@+id/share"
                     android:title="@string/share" />
+                <item
+                    android:id="@+id/share_crop"
+                    android:title="@string/export_crop" />
             </menu>
 
         </item>
