@@ -13,8 +13,8 @@ import androidx.work.ForegroundInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import com.google.api.client.extensions.android.http.AndroidHttp
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
+import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
@@ -69,7 +69,7 @@ class GoogleDriveUploadWorker(
         credential.selectedAccount = account
         val appName = applicationContext.getString(R.string.app_name)
         val drive = Drive.Builder(
-            AndroidHttp.newCompatibleTransport(),
+            NetHttpTransport(),
             GsonFactory(),
             credential
         ).setApplicationName(appName).build()
