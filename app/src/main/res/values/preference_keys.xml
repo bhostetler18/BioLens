@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="PREF_SHUTDOWN_CAMERA">com.uf.automoth.preference.SHUTDOWN_CAMERA</string>
+    <string name="PREF_LOCATION_TOLERANCE">com.uf.automoth.preference.LOCATION_TOLERANCE</string>
     <string name="PREF_GOOGLE_ACCOUNT">com.uf.automoth.preference.GOOGLE_ACCOUNT</string>
 </resources>

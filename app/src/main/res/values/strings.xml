@@ -104,4 +104,6 @@
     <string name="connecting_to_drive">Connecting to Google Drive…</string>
     <string name="upload_notification_channel">AutoMoth Upload Service</string>
     <string name="uploading_session">Uploading session: %s</string>
+    <string name="preference_location_tolerance_title">Location Tolerance (Minutes)</string>
+    <string name="preference_location_tolerance_description">If the current location cannot be obtained, AutoMoth will use the last known location as long as it is not older than this value</string>
 </resources>

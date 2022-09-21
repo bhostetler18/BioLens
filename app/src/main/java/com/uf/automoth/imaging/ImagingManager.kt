@@ -67,7 +67,8 @@ class ImagingManager(
         }
 
         locationJob = launch {
-            locationProvider.getCurrentLocation(context, true)?.let {
+            val maxAge = AutoMothRepository.getLocationToleranceSeconds(context)
+            locationProvider.getCurrentLocation(context, true, maxAge)?.let {
                 Log.d(TAG, "Setting session location to $it")
                 AutoMothRepository.updateSessionLocation(sessionID, it)
             }

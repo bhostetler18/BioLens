@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <SwitchPreference
@@ -8,10 +10,20 @@
         android:key="@string/PREF_SHUTDOWN_CAMERA"
         android:summary="@string/preference_shutdown_camera_description"
         android:title="@string/preference_shutdown_camera_title" />
+    <SeekBarPreference
+        android:defaultValue="5"
+        android:icon="@drawable/ic_map_24"
+        android:key="@string/PREF_LOCATION_TOLERANCE"
+        android:max="60"
+        android:summary="@string/preference_location_tolerance_description"
+        android:title="@string/preference_location_tolerance_title"
+        app:showSeekBarValue="true">
+
+    </SeekBarPreference>
     <Preference
         android:icon="@drawable/ic_logout_24"
         android:key="@string/PREF_GOOGLE_ACCOUNT"
-        android:summary="Currently signed in as"
-        android:title="Logout" />
+        android:title="Logout"
+        tools:summary="Currently signed in as automoth@gmail.com" />
 
 </PreferenceScreen>

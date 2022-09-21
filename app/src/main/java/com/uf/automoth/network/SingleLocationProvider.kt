@@ -20,10 +20,7 @@ import java.util.concurrent.Executors
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-class SingleLocationProvider(
-    context: Context,
-    private val maxCachedLocationAgeSeconds: Int = DEFAULT_MAX_LOCATION_AGE_SECONDS
-) {
+class SingleLocationProvider(context: Context) {
     private val locationManager: LocationManager
 
     init {
@@ -45,7 +42,11 @@ class SingleLocationProvider(
     // The permission is actually checked, but the linter doesn't recognize it because the check
     // occurs inside isLocationPermissionGranted
     @SuppressLint("MissingPermission")
-    suspend fun getCurrentLocation(context: Context, fallbackOnLastKnown: Boolean): Location? {
+    suspend fun getCurrentLocation(
+        context: Context,
+        fallbackOnLastKnown: Boolean,
+        maxCachedLocationAgeSeconds: Int = 0
+    ): Location? {
         if (!isLocationPermissionGranted(context)) {
             Log.d(TAG, "Location permission denied")
             return null
@@ -66,7 +67,7 @@ class SingleLocationProvider(
 
         if (fallbackOnLastKnown) {
             Log.d(TAG, "Falling back on last known location")
-            return getNewestCachedLocation()
+            return getNewestCachedLocation(maxCachedLocationAgeSeconds)
         }
         return null
     }
@@ -87,7 +88,7 @@ class SingleLocationProvider(
         }
 
     @RequiresPermission(anyOf = [ACCESS_COARSE_LOCATION, ACCESS_FINE_LOCATION])
-    private fun getNewestCachedLocation(): Location? {
+    private fun getNewestCachedLocation(maxCachedLocationAgeSeconds: Int): Location? {
         val now = SystemClock.elapsedRealtime()
         val maxAgeMilliseconds = maxCachedLocationAgeSeconds * 1000L
         return PREFERRED_PROVIDERS.mapNotNull {
@@ -105,7 +106,6 @@ class SingleLocationProvider(
 
     companion object {
         private const val TAG = "[LOCATION]"
-        private const val DEFAULT_MAX_LOCATION_AGE_SECONDS = 300
         private val PREFERRED_PROVIDERS = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             arrayOf(
                 LocationManager.FUSED_PROVIDER,

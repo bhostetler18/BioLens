@@ -194,4 +194,9 @@ object AutoMothRepository {
             return null
         }
     }
+
+    fun getLocationToleranceSeconds(context: Context): Int {
+        return 60 * PreferenceManager.getDefaultSharedPreferences(context)
+            .getInt(context.getString(R.string.PREF_LOCATION_TOLERANCE), 5)
+    }
 }
