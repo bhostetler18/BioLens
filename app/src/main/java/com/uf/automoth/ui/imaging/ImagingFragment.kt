@@ -1,6 +1,7 @@
 package com.uf.automoth.ui.imaging
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration.ORIENTATION_LANDSCAPE
@@ -42,6 +43,7 @@ import com.uf.automoth.ui.common.EditTextDialog
 import com.uf.automoth.ui.common.simpleAlertDialogWithOk
 import com.uf.automoth.ui.imaging.scheduler.ImagingSchedulerActivity
 import com.uf.automoth.utility.launchDialog
+import com.uf.automoth.utility.mutate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -77,7 +79,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
         locationProvider = SingleLocationProvider(requireContext())
 
         AutoMothRepository.loadDefaultImagingSettings(requireContext())?.let {
-            viewModel.imagingSettings = it
+            viewModel.imagingSettingsLiveData.postValue(it)
         }
 
         _binding = FragmentImagingBinding.inflate(inflater, container, false)
@@ -105,6 +107,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
         return root
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -112,6 +115,12 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
             if (!isSessionInProgress()) {
                 launchStartCamera()
             }
+        }
+
+        viewModel.imagingSettingsLiveData.observe(viewLifecycleOwner) { imagingSettings ->
+            val ctx = requireContext()
+            binding.intervalDescription.text = "${getString(R.string.interval)}: ${imagingSettings.intervalDescription(ctx, true)}"
+            binding.autoStopDescription.text = "${getString(R.string.auto_stop)}: ${imagingSettings.autoStopDescription(ctx, true)}"
         }
 
         // Though unlikely, this ensures that the UI will display correctly if the user has it open
@@ -265,7 +274,11 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
             layoutInflater,
             viewModel.imagingSettings.interval,
             estimatedImageSizeInBytes()
-        ) { interval -> viewModel.imagingSettings.interval = interval }
+        ) { interval ->
+            viewModel.imagingSettingsLiveData.mutate {
+                this.interval = interval
+            }
+        }
         launchDialog(dialog, binding.intervalButton)
     }
 
@@ -276,9 +289,11 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
             viewModel.imagingSettings,
             estimatedImageSizeInBytes()
         ) { mode, value ->
-            viewModel.imagingSettings.autoStopMode = mode
-            value?.let {
-                viewModel.imagingSettings.autoStopValue = it
+            viewModel.imagingSettingsLiveData.mutate {
+                this.autoStopMode = mode
+                value?.let {
+                    this.autoStopValue = it
+                }
             }
         }
         launchDialog(dialog, binding.autoStopButton)

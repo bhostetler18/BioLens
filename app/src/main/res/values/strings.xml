@@ -20,6 +20,9 @@
     <string name="rename_session">Rename session</string>
     <string name="interval_dialog_title">Imaging Interval</string>
     <string name="OK">OK</string>
+    <string name="unit_hours_short">h</string>
+    <string name="unit_minutes_short">m</string>
+    <string name="unit_seconds_short">s</string>
     <plurals name="unit_hours">
         <item quantity="one">hour</item>
         <item quantity="other">hours</item>

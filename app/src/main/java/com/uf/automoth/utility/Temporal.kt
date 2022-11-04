@@ -21,3 +21,22 @@ fun LocalDate.formatDateTodayTomorrow(context: Context): String {
         SHORT_DATE_FORMATTER.format(this)
     }
 }
+
+enum class TimeUnit {
+    HOUR, MINUTE, SECOND
+}
+
+fun getUnit(context: Context, unit: TimeUnit, value: Int, short: Boolean): String {
+    if (short) {
+        return when (unit) {
+            TimeUnit.HOUR -> context.getString(R.string.unit_hours_short)
+            TimeUnit.MINUTE -> context.getString(R.string.unit_minutes_short)
+            TimeUnit.SECOND -> context.getString(R.string.unit_seconds_short)
+        }
+    }
+    return when (unit) {
+        TimeUnit.HOUR -> context.resources.getQuantityString(R.plurals.unit_hours, value)
+        TimeUnit.MINUTE -> context.resources.getQuantityString(R.plurals.unit_minutes, value)
+        TimeUnit.SECOND -> context.resources.getQuantityString(R.plurals.unit_seconds, value)
+    }
+}

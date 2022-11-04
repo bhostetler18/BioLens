@@ -23,4 +23,12 @@
         <item name="iconTint">@android:color/white</item>
     </style>
 
+    <style name="shadowed">
+        <item name="android:shadowColor">@android:color/black</item>
+        <item name="android:shadowDx">0</item>
+        <item name="android:shadowDy">0.5</item>
+        <item name="android:shadowRadius">4</item>
+        <item name="android:clipToPadding">false</item>
+    </style>
+
 </resources>

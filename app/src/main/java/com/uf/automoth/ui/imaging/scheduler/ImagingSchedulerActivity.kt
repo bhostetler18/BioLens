@@ -215,12 +215,12 @@ class ImagingSchedulerActivity : AppCompatActivity() {
 
     private fun updateIntervalText() {
         binding.sessionOptions.intervalText.text =
-            viewModel.imagingSettings.intervalDescription(this)
+            viewModel.imagingSettings.intervalDescription(this, false)
     }
 
     private fun updateAutoStopText() {
         binding.sessionOptions.autoStopText.text =
-            viewModel.imagingSettings.autoStopDescription(this)
+            viewModel.imagingSettings.autoStopDescription(this, false)
     }
 
     private fun tryScheduleSession() {

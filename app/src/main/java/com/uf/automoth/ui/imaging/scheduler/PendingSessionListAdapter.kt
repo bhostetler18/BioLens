@@ -45,14 +45,16 @@ class PendingSessionListAdapter(private val scheduler: ImagingScheduler) :
                 "${context.getString(R.string.interval)}: ${
                 intervalDescription(
                     session.interval,
-                    context
+                    context,
+                    true
                 )
                 }"
             viewBinding.autoStopText.text = context.getString(R.string.auto_stop) +
                 ": " + autoStopDescription(
                 session.autoStopMode,
                 session.autoStopValue,
-                context
+                context,
+                true
             ).lowercase()
             viewBinding.cancelButton.setOnClickListener {
                 scheduler.cancelPendingSession(session, context)
