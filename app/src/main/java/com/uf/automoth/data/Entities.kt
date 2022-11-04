@@ -27,7 +27,8 @@ data class Session(
 
     companion object {
         fun isValid(sessionName: String): Boolean {
-            return sessionName.trim().isNotEmpty() // TODO: validate for CSV inclusion?
+            val trimmed = sessionName.trim()
+            return trimmed.isNotEmpty() && !trimmed.contains(",")
         }
     }
 }

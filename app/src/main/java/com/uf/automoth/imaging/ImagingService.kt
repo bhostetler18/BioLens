@@ -47,10 +47,15 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
     override fun onCreate() {
         Log.d(TAG, "On create called")
         super.onCreate()
-        AutoMothRepository(this, serviceScope)
-        locationProvider = SingleLocationProvider(this)
-        startInForeground()
-        IS_RUNNING.postValue(true)
+        val storageLocation = getExternalFilesDir(null)
+        if (storageLocation != null) {
+            AutoMothRepository(this, storageLocation, serviceScope)
+            locationProvider = SingleLocationProvider(this)
+            startInForeground()
+            IS_RUNNING.postValue(true)
+        } else {
+            Log.d(TAG, "Failed to access external directory")
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

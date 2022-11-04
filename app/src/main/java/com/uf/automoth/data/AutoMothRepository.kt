@@ -21,7 +21,6 @@ import java.io.File
 import java.io.IOException
 import java.time.OffsetDateTime
 
-// TODO: see https://www.techyourchance.com/repository-android-anti-pattern/...
 object AutoMothRepository {
 
     private lateinit var database: AutoMothDatabase
@@ -36,17 +35,16 @@ object AutoMothRepository {
     private const val KEY_SHARED_PREFERENCE_FILE = "com.uf.automoth.SHARED_PREFERENCES"
     private const val KEY_USER_ID = "com.uf.automoth.preference.USER_ID"
 
-    operator fun invoke(context: Context, coroutineScope: CoroutineScope) {
-        if (this::database.isInitialized) {
+    operator fun invoke(context: Context, storageLocation: File, coroutineScope: CoroutineScope) {
+        if (this.isInitialized) {
             return
         }
         database = Room.databaseBuilder(
             context,
             AutoMothDatabase::class.java,
             "automoth-db"
-        ).fallbackToDestructiveMigration() // TODO: remove when ready to release
-            .build()
-        storageLocation = context.getExternalFilesDir(null)!! // TODO: handle ejection?
+        ).build()
+        this.storageLocation = storageLocation
         this.coroutineScope = coroutineScope
         Log.d(TAG, "External file path is ${storageLocation.path}")
         userID = createOrGetUserId(context)
@@ -78,8 +76,10 @@ object AutoMothRepository {
     val earliestPendingSessionFlow by lazy {
         database.pendingSessionDAO().getEarliestPendingSession()
     }
-
-    // TODO: indicate filesystem errors in below functions either by exception or return
+    val isInitialized: Boolean
+        get() {
+            return this::database.isInitialized
+        }
 
     suspend fun create(session: Session): Long? {
         val sessionDir = File(storageLocation, session.directory)

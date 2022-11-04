@@ -106,4 +106,7 @@
     <string name="uploading_session">Uploading session: %s</string>
     <string name="preference_location_tolerance_title">Location Tolerance (Minutes)</string>
     <string name="preference_location_tolerance_description">If the current location cannot be obtained, AutoMoth will use the last known location as long as it is not older than this value</string>
+    <string name="reload">Reload</string>
+    <string name="filesystem_error">The device\'s external storage could not be accessed. Please insert your SD card and press \"reload\", or contact the developers at <a href="mailto:automothdevs@gmail.com">automothdevs@gmail.com</a>.</string>
+    <string name="failed_to_mount">Failed to mount, please try again.</string>
 </resources>

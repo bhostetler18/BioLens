@@ -7,10 +7,18 @@ import kotlinx.coroutines.SupervisorJob
 
 class AutoMothApplication : Application() {
 
-    val applicationScope = CoroutineScope(SupervisorJob())
+    private val applicationScope = CoroutineScope(SupervisorJob())
 
     override fun onCreate() {
         super.onCreate()
-        AutoMothRepository(this, applicationScope)
+        mount()
+    }
+
+    fun mount(): Boolean {
+        this.getExternalFilesDir(null)?.let {
+            AutoMothRepository(this, it, applicationScope)
+            return true
+        }
+        return false
     }
 }
