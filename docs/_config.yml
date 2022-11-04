@@ -22,8 +22,8 @@ title: AutoMoth
 email: automothdevs@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
   AutoMoth is an Android application for imaging moths.
-baseurl: "" # the subpath of your site, e.g. /blog
-url: "" # the base hostname & protocol for your site, e.g. http://example.com
+baseurl: "AutoMoth" # the subpath of your site, e.g. /blog
+url: "bhostetler18.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 
 # Build settings
 theme: minima
