@@ -59,7 +59,6 @@ class ImageViewerActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         lifecycleScope.launch {
-            // TODO: show loading indicator while this runs?
             val imageID = intent.extras?.get("IMAGE") as? Long ?: -1
             val sessionID = intent.extras?.get("SESSION") as? Long ?: -1
             val image = AutoMothRepository.getImage(imageID)
@@ -201,7 +200,13 @@ class ImageViewerActivity : AppCompatActivity() {
     }
 
     private fun displayNoImage() {
-        // TODO: Implement image/session not found error screen
+        simpleAlertDialogWithOk(
+            this,
+            R.string.image_not_found,
+            R.string.application_data_corrupted
+        ) {
+            finish()
+        }.show()
         setShareMenuVisible(false)
     }
 

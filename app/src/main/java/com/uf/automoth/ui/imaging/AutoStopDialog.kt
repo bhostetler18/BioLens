@@ -2,6 +2,7 @@ package com.uf.automoth.ui.imaging
 
 import android.app.Dialog
 import android.content.Context
+import android.content.DialogInterface
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.Gravity
@@ -18,6 +19,7 @@ import com.uf.automoth.databinding.GenericNumberEntryBinding
 import com.uf.automoth.imaging.AutoStopMode
 import com.uf.automoth.imaging.ImagingSettings
 import com.uf.automoth.ui.common.TimeDurationPicker
+import com.uf.automoth.utility.SingletonDialog
 
 class AutoStopDialog(
     context: Context,
@@ -25,7 +27,7 @@ class AutoStopDialog(
     private val currentSettings: ImagingSettings,
     private val estimatedImageSize: Double,
     onSetHandler: (AutoStopMode, Int?) -> Unit
-) {
+) : SingletonDialog {
     private val binding: DialogAutoStopBinding
 
     init {
@@ -216,5 +218,8 @@ class AutoStopDialog(
             ctx.resources.getQuantityString(R.plurals.unit_images, count)
     }
 
-    fun show() = dialog.show()
+    override fun setOnDismissListener(listener: DialogInterface.OnDismissListener) =
+        dialog.setOnDismissListener(listener)
+
+    override fun show() = dialog.show()
 }

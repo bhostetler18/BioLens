@@ -46,7 +46,7 @@ class ImageGridActivity : AppCompatActivity() {
 
     private suspend fun initialize(sessionID: Long) {
         val session = AutoMothRepository.getSession(sessionID) ?: run {
-            displayError()
+            runOnUiThread { displayError() }
             return@initialize
         }
 
@@ -90,7 +90,13 @@ class ImageGridActivity : AppCompatActivity() {
     }
 
     private fun displayError() {
-        TODO("Display session not found error")
+        simpleAlertDialogWithOk(
+            this,
+            R.string.session_not_found,
+            R.string.application_data_corrupted
+        ) {
+            finish()
+        }.show()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

@@ -2,6 +2,7 @@ package com.uf.automoth.ui.imaging
 
 import android.app.Dialog
 import android.content.Context
+import android.content.DialogInterface
 import android.view.LayoutInflater
 import android.view.View
 import androidx.appcompat.app.AlertDialog
@@ -9,6 +10,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.uf.automoth.R
 import com.uf.automoth.databinding.DialogIntervalPickerBinding
 import com.uf.automoth.ui.common.TimeDurationPicker
+import com.uf.automoth.utility.SingletonDialog
 import java.util.function.Consumer
 
 class IntervalDialog(
@@ -17,7 +19,7 @@ class IntervalDialog(
     currentInterval: Int,
     private val estimatedImageSize: Double,
     consumer: Consumer<Int>
-) {
+) : SingletonDialog {
     private val binding: DialogIntervalPickerBinding
 
     init {
@@ -80,5 +82,8 @@ class IntervalDialog(
             return 60 * minutes + seconds
         }
 
-    fun show() = dialog.show()
+    override fun setOnDismissListener(listener: DialogInterface.OnDismissListener) =
+        dialog.setOnDismissListener(listener)
+
+    override fun show() = dialog.show()
 }

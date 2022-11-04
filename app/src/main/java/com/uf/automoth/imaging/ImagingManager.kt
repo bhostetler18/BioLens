@@ -135,7 +135,6 @@ class ImagingManager(
         outputFileResults: ImageCapture.OutputFileResults
     ) {
         val file = outputFileResults.savedUri?.toFile() ?: return
-        // TODO: use exif time instead?
         val image = Image(requestNumber, file.name, OffsetDateTime.now(), session.sessionID)
         AutoMothRepository.insert(image)
         Log.d(TAG, "Image captured at $file")
@@ -157,8 +156,8 @@ class ImagingManager(
         }
     }
 
-    fun stop(reason: String = "Manual stop") {
-        Log.d(TAG, "Stopping session: $reason") // TODO: store this so user can see?
+    fun stop(reason: String) {
+        Log.d(TAG, "Stopping session: $reason")
         val end = OffsetDateTime.now()
         timer?.cancel()
         timer = null

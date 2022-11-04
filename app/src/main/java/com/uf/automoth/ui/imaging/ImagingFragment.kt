@@ -41,6 +41,7 @@ import com.uf.automoth.network.SingleLocationProvider
 import com.uf.automoth.ui.common.EditTextDialog
 import com.uf.automoth.ui.common.simpleAlertDialogWithOk
 import com.uf.automoth.ui.imaging.scheduler.ImagingSchedulerActivity
+import com.uf.automoth.utility.launchDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -265,7 +266,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
             viewModel.imagingSettings.interval,
             estimatedImageSizeInBytes()
         ) { interval -> viewModel.imagingSettings.interval = interval }
-        dialog.show()
+        launchDialog(dialog, binding.intervalButton)
     }
 
     private fun changeAutoStopPressed() {
@@ -280,11 +281,10 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
                 viewModel.imagingSettings.autoStopValue = it
             }
         }
-        dialog.show()
+        launchDialog(dialog, binding.autoStopButton)
     }
 
     private fun startSession(name: String?, service: Boolean = false) {
-        // TODO: if there are scheduled sessions, warn and ask if the user wants to cancel them
         binding.captureButton.text = getString(R.string.stop_session)
         setButtonsEnabled(false)
         if (service) {
@@ -317,7 +317,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
             intent.action = ImagingService.ACTION_STOP_SESSION
             requireContext().applicationContext.startService(intent)
         } else {
-            viewModel.imagingManager?.stop()
+            viewModel.imagingManager?.stop("Manual stop")
             viewModel.imagingManager = null
         }
         setButtonsEnabled(true)
