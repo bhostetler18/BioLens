@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <style name="title">
         <!--        <item name="android:textAppearance">@android:style/TextAppearance.Large</item>-->
         <item name="android:textSize">20sp</item>

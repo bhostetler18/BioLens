@@ -2,7 +2,6 @@ package com.uf.automoth.ui.imaging
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.uf.automoth.imaging.AutoStopMode
 import com.uf.automoth.imaging.ImagingManager
 import com.uf.automoth.imaging.ImagingSettings
 

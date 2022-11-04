@@ -119,8 +119,14 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
 
         viewModel.imagingSettingsLiveData.observe(viewLifecycleOwner) { imagingSettings ->
             val ctx = requireContext()
-            binding.intervalDescription.text = "${getString(R.string.interval)}: ${imagingSettings.intervalDescription(ctx, true)}"
-            binding.autoStopDescription.text = "${getString(R.string.auto_stop)}: ${imagingSettings.autoStopDescription(ctx, true)}"
+            binding.intervalDescription.text =
+                "${getString(R.string.interval)}: ${imagingSettings.intervalDescription(ctx, true)}"
+            binding.autoStopDescription.text = "${getString(R.string.auto_stop)}: ${
+            imagingSettings.autoStopDescription(
+                ctx,
+                true
+            )
+            }"
         }
 
         // Though unlikely, this ensures that the UI will display correctly if the user has it open

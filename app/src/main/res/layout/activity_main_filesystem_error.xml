@@ -15,10 +15,10 @@
 
         <TextView
             android:id="@+id/error_text"
+            style="@style/info_medium"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
-            style="@style/info_medium"
             android:text="@string/filesystem_error" />
 
         <Button
