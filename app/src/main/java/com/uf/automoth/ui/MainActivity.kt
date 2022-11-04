@@ -62,7 +62,7 @@ class MainActivity : AppCompatActivity() {
             setOf(
                 R.id.navigation_imaging,
                 R.id.navigation_data,
-                R.id.navigation_info,
+//                R.id.navigation_info,
                 R.id.navigation_settings
             )
         )

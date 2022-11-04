@@ -11,10 +11,10 @@
         android:icon="@drawable/ic_list_24"
         android:title="@string/title_sessions" />
 
-    <item
-        android:id="@+id/navigation_info"
-        android:icon="@drawable/ic_info_24"
-        android:title="@string/title_info" />
+<!--    <item-->
+<!--        android:id="@+id/navigation_info"-->
+<!--        android:icon="@drawable/ic_info_24"-->
+<!--        android:title="@string/title_info" />-->
 
     <item
         android:id="@+id/navigation_settings"
