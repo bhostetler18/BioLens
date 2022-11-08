@@ -48,7 +48,7 @@ class EditTextDialog(
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled =
-                    textValidator(s.toString())
+                    textValidator(s?.toString() ?: "")
             }
 
             override fun afterTextChanged(s: Editable?) {}

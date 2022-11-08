@@ -1,5 +1,6 @@
 package com.uf.automoth.ui.imageGrid
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -23,18 +24,21 @@ import com.uf.automoth.network.GoogleDriveUploadWorker
 import com.uf.automoth.network.GoogleSignInHelper
 import com.uf.automoth.ui.common.EditTextDialog
 import com.uf.automoth.ui.common.simpleAlertDialogWithOk
+import com.uf.automoth.ui.metadata.MetadataActivity
 import kotlinx.coroutines.launch
+import kotlin.properties.Delegates
 
 class ImageGridActivity : AppCompatActivity() {
     private lateinit var viewModel: ImageGridViewModel
     private val binding by lazy { ActivityImageGridBinding.inflate(layoutInflater) }
+    private var sessionID: Long = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding.progressBar.isVisible = false
 
-        val sessionID = intent.extras?.get("SESSION") as? Long ?: run {
+        sessionID = intent.extras?.get("SESSION") as? Long ?: run {
             displayError()
             return
         }
@@ -111,7 +115,10 @@ class ImageGridActivity : AppCompatActivity() {
                 true
             }
             R.id.rename -> {
-                renameCurrentSession()
+//                renameCurrentSession()
+                val intent = Intent(applicationContext, MetadataActivity::class.java)
+                intent.putExtra("SESSION", sessionID)
+                startActivity(intent)
                 true
             }
             R.id.upload -> {

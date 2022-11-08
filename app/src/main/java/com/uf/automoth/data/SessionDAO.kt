@@ -42,7 +42,7 @@ interface SessionDAO {
     suspend fun getSession(id: Long): Session?
 
     @Query("UPDATE sessions SET latitude = :latitude, longitude = :longitude WHERE sessionID = :id")
-    fun updateSessionLocation(id: Long, latitude: Double, longitude: Double)
+    fun updateSessionLocation(id: Long, latitude: Double?, longitude: Double?)
 
     @Query("UPDATE sessions SET completed = :time WHERE sessionID = :id")
     fun updateSessionCompletion(id: Long, time: OffsetDateTime)

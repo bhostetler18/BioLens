@@ -115,4 +115,14 @@
     <string name="session_not_found">Session not found</string>
     <string name="application_data_corrupted">Application data may have been corrupted or modified by an external source</string>
     <string name="image_not_found">Image not found</string>
+    <string name="latitude">Latitude</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="longitude">Longitude</string>
+    <string name="name">Name</string>
+    <string name="date_started">Date Started</string>
+    <string name="date_completed">Date Completed</string>
+    <string name="save">Save</string>
+    <string name="edit_metadata">Edit Metadata</string>
+    <string name="unknown">unknown</string>
 </resources>

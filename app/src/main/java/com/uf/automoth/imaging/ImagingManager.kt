@@ -21,6 +21,7 @@ import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
 
+// TODO: save metadata locally on session completion
 class ImagingManager(
     private val settings: ImagingSettings,
     private val imageCapture: WeakReference<ImageCaptureInterface>,
@@ -70,7 +71,7 @@ class ImagingManager(
             val maxAge = AutoMothRepository.getLocationToleranceSeconds(context)
             locationProvider.getCurrentLocation(context, true, maxAge)?.let {
                 Log.d(TAG, "Setting session location to $it")
-                AutoMothRepository.updateSessionLocation(sessionID, it)
+                AutoMothRepository.updateSessionLocation(sessionID, it.latitude, it.longitude)
             }
         }
 

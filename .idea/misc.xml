@@ -29,6 +29,7 @@
         <entry key="app/src/main/res/layout/activity_imaging_scheduler.xml" value="0.27607361963190186" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.14896087646484377" />
         <entry key="app/src/main/res/layout/activity_main_filesystem_error.xml" value="0.1827484130859375" />
+        <entry key="app/src/main/res/layout/activity_metadata_editor.xml" value="0.1" />
         <entry key="app/src/main/res/layout/activity_session_grid.xml" value="0.1" />
         <entry key="app/src/main/res/layout/app_bar.xml" value="0.11837606837606837" />
         <entry key="app/src/main/res/layout/content_session_grid.xml" value="0.1203125" />
@@ -48,12 +49,16 @@
         <entry key="app/src/main/res/layout/horizontal_divider.xml" value="0.15775972637879435" />
         <entry key="app/src/main/res/layout/image_grid_item.xml" value="0.1" />
         <entry key="app/src/main/res/layout/imaging_settings.xml" value="0.11574074074074074" />
+        <entry key="app/src/main/res/layout/metadata_editable_item.xml" value="0.2030181884765625" />
+        <entry key="app/src/main/res/layout/metadata_readonly_item.xml" value="0.2922422954303932" />
+        <entry key="app/src/main/res/layout/metadata_string_list_item.xml" value="0.48441772460937504" />
         <entry key="app/src/main/res/layout/pending_session_list_item.xml" value="0.28013829575507343" />
         <entry key="app/src/main/res/layout/schedule_session_options.xml" value="0.22103463018383926" />
         <entry key="app/src/main/res/layout/session_list_item.xml" value="0.3142857142857143" />
         <entry key="app/src/main/res/layout/upload_progress_bar.xml" value="0.3079788208007812" />
         <entry key="app/src/main/res/layout/vertical_divider.xml" value="0.1586147926464301" />
         <entry key="app/src/main/res/menu/bottom_nav_menu.xml" value="0.2703125" />
+        <entry key="app/src/main/res/menu/image_grid_menu.xml" value="0.2156341552734375" />
         <entry key="app/src/main/res/menu/image_share_menu.xml" value="0.1" />
         <entry key="app/src/main/res/menu/imaging_menu.xml" value="0.1453125" />
         <entry key="app/src/main/res/menu/session_list_menu.xml" value="0.1" />
