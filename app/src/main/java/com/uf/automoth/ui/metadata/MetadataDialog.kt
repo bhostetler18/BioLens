@@ -8,10 +8,6 @@ import com.uf.automoth.R
 
 class MetadataDialog : DialogFragment() {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
-
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         return MaterialAlertDialogBuilder(requireContext())
             .setPositiveButton(R.string.save) { dialog, _ ->

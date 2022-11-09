@@ -22,7 +22,11 @@ fun getDefaultMetadata(session: Session, context: Context): List<Metadata> {
             false,
             session.latitude,
             { latitude ->
-                AutoMothRepository.updateSessionLocation(session.sessionID, latitude, session.longitude)
+                AutoMothRepository.updateSessionLocation(
+                    session.sessionID,
+                    latitude,
+                    session.longitude
+                )
             },
             { value -> value == null || (value >= -90 && value <= 90) }
         ),
@@ -31,7 +35,11 @@ fun getDefaultMetadata(session: Session, context: Context): List<Metadata> {
             false,
             session.longitude,
             { longitude ->
-                AutoMothRepository.updateSessionLocation(session.sessionID, session.latitude, longitude)
+                AutoMothRepository.updateSessionLocation(
+                    session.sessionID,
+                    session.latitude,
+                    longitude
+                )
             },
             { value -> value == null || (value >= -180 && value <= 180) }
         ),
@@ -54,7 +62,7 @@ fun getDefaultMetadata(session: Session, context: Context): List<Metadata> {
             context.getString(R.string.device_type),
             true,
             getDeviceType()
-        ),
+        )
     )
 }
 

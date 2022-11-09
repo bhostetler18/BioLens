@@ -195,7 +195,11 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
             )
         }
 
-    private suspend fun startSession(name: String?, settings: ImagingSettings, cancelExisting: Boolean) {
+    private suspend fun startSession(
+        name: String?,
+        settings: ImagingSettings,
+        cancelExisting: Boolean
+    ) {
         if (cancelExisting) {
             stopCurrentSession("Cancelled by new session $name")
         } else if (imagingManager != null) {

@@ -94,6 +94,7 @@ sealed class Metadata : MetadataInterface {
             setValue(value)
         }
 
-        override fun stringRepresentation(context: Context) = value?.format(SHORT_DATE_TIME_FORMATTER)
+        override fun stringRepresentation(context: Context) =
+            value?.format(SHORT_DATE_TIME_FORMATTER)
     }
 }

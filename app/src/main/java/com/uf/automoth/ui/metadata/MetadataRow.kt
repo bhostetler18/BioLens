@@ -19,7 +19,10 @@ abstract class MetadataRow(context: Context, attrs: AttributeSet?) : LinearLayou
     abstract fun bind(metadata: Metadata)
     abstract fun resetHandlers()
 
-    inline fun <reified T : Metadata> requireType(metadata: Metadata, block: (metadata: T) -> Unit) {
+    inline fun <reified T : Metadata> requireType(
+        metadata: Metadata,
+        block: (metadata: T) -> Unit
+    ) {
         (metadata as? T)?.let {
             block(it)
         } ?: run {
@@ -36,9 +39,16 @@ class ReadonlyMetadataRow(context: Context, attrs: AttributeSet?) : MetadataRow(
     constructor(context: Context) : this(context, null)
 
     private val binding: MetadataReadonlyItemBinding
+
     init {
         binding =
-            MetadataReadonlyItemBinding.bind(inflate(context, R.layout.metadata_readonly_item, this))
+            MetadataReadonlyItemBinding.bind(
+                inflate(
+                    context,
+                    R.layout.metadata_readonly_item,
+                    this
+                )
+            )
     }
 
     override fun bind(metadata: Metadata) {
@@ -47,11 +57,14 @@ class ReadonlyMetadataRow(context: Context, attrs: AttributeSet?) : MetadataRow(
         binding.value.text = metadata.stringRepresentation(context)
     }
 
-    override fun resetHandlers() { }
+    override fun resetHandlers() {}
 }
 
 class BooleanMetadataRow(context: Context, attrs: AttributeSet?) : MetadataRow(context, attrs) {
-    constructor(context: Context) : this(context, null) private val binding: MetadataBooleanItemBinding
+    constructor(context: Context) : this(context, null)
+
+    private val binding: MetadataBooleanItemBinding
+
     init {
         binding =
             MetadataBooleanItemBinding.bind(inflate(context, R.layout.metadata_boolean_item, this))
@@ -121,7 +134,7 @@ abstract class EditableMetadataRow<T> constructor(context: Context, attrs: Attri
         setup(editText)
     }
 
-    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
+    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
     override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
         val new = convert(s?.toString() ?: "")
@@ -130,7 +143,7 @@ abstract class EditableMetadataRow<T> constructor(context: Context, attrs: Attri
         }
     }
 
-    override fun afterTextChanged(s: Editable?) { }
+    override fun afterTextChanged(s: Editable?) {}
 
     override fun onFocusChange(v: View?, hasFocus: Boolean) {
         // Don't show an invalid value when the user stops editing
@@ -159,7 +172,7 @@ abstract class EditableMetadataRow<T> constructor(context: Context, attrs: Attri
 
 class StringMetadataRow(context: Context) : EditableMetadataRow<String>(context) {
     override fun convert(value: String) = value
-    override fun setup(editText: EditText) { }
+    override fun setup(editText: EditText) {}
     override var onChangeValue: (String?) -> Unit = { }
     override var validateValue: (String?) -> Boolean = { true }
     override var defaultValue: String? = null

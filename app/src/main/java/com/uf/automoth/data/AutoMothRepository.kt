@@ -152,9 +152,10 @@ object AutoMothRepository {
         return database.sessionDAO().getNumImagesInSession(id)
     }
 
-    fun updateSessionLocation(id: Long, latitude: Double?, longitude: Double?) = coroutineScope.launch {
-        database.sessionDAO().updateSessionLocation(id, latitude, longitude)
-    }
+    fun updateSessionLocation(id: Long, latitude: Double?, longitude: Double?) =
+        coroutineScope.launch {
+            database.sessionDAO().updateSessionLocation(id, latitude, longitude)
+        }
 
     suspend fun updateSessionCompletion(id: Long): OffsetDateTime {
         val completed = database.sessionDAO().getLastImageTimestampInSession(id)

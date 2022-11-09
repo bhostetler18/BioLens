@@ -12,7 +12,8 @@ object MetadataViewType {
     const val DATE = 5
 }
 
-class MetadataAdapter(private val metadata: List<Metadata>) : RecyclerView.Adapter<MetadataViewHolder>() {
+class MetadataAdapter(private val metadata: List<Metadata>) :
+    RecyclerView.Adapter<MetadataViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MetadataViewHolder {
         val ctx = parent.context
         val rowView = when (viewType) {
@@ -22,9 +23,12 @@ class MetadataAdapter(private val metadata: List<Metadata>) : RecyclerView.Adapt
             MetadataViewType.DOUBLE -> DoubleMetadataRow(ctx)
             MetadataViewType.BOOLEAN -> BooleanMetadataRow(ctx)
             MetadataViewType.DATE -> ReadonlyMetadataRow(ctx) // will make a date picker
-            else -> { ReadonlyMetadataRow(ctx) }
+            else -> ReadonlyMetadataRow(ctx)
         }
-        rowView.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        rowView.layoutParams = ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
         return MetadataViewHolder(rowView)
     }
 
