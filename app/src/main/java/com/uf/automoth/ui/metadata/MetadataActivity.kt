@@ -9,7 +9,6 @@ import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.databinding.ActivityMetadataEditorBinding
 import kotlinx.coroutines.launch
 
-
 class MetadataActivity : AppCompatActivity() {
 
     private var metadata: List<Metadata>? = null
@@ -33,7 +32,7 @@ class MetadataActivity : AppCompatActivity() {
             return@initialize
         }
 
-        val metadata = getMetadata(session, this)
+        val metadata = getDefaultMetadata(session, this) + getUserMetadata(session, this)
         val binding = ActivityMetadataEditorBinding.inflate(layoutInflater)
         binding.recyclerView.adapter = MetadataAdapter(metadata)
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
@@ -49,7 +48,9 @@ class MetadataActivity : AppCompatActivity() {
 
     suspend fun saveChanges() {
         metadata?.forEach {
-            it.writeValue()
+            if (!it.readonly) {
+                it.writeValue()
+            }
         }
         // TODO: rewrite metadata file
     }

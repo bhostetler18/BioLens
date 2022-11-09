@@ -4,6 +4,7 @@ import com.uf.automoth.BuildConfig
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Image
 import com.uf.automoth.data.Session
+import com.uf.automoth.utility.getDeviceType
 
 class AutoMothSessionCSVFormatter(
     private val session: Session
@@ -47,6 +48,9 @@ class AutoMothSessionCSVFormatter(
         }
         this.addColumn("session_frame_interval_seconds") {
             session.interval.toString()
+        }
+        this.addColumn("device_type") {
+            getDeviceType()
         }
         this.addColumn("automoth_app_version") {
             BuildConfig.VERSION_NAME

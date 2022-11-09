@@ -11,16 +11,19 @@ import android.view.View
 import android.widget.EditText
 import android.widget.LinearLayout
 import com.uf.automoth.R
+import com.uf.automoth.databinding.MetadataBooleanItemBinding
 import com.uf.automoth.databinding.MetadataEditableItemBinding
 import com.uf.automoth.databinding.MetadataReadonlyItemBinding
 
 abstract class MetadataRow(context: Context, attrs: AttributeSet?) : LinearLayout(context, attrs) {
     abstract fun bind(metadata: Metadata)
+    abstract fun resetHandlers()
 
     inline fun <reified T : Metadata> requireType(metadata: Metadata, block: (metadata: T) -> Unit) {
         (metadata as? T)?.let {
             block(it)
         } ?: run {
+            resetHandlers() // Don't retain old value handlers and potentially edit the previous metadata object after failing to set a new one
             Log.e(
                 "[METADATA]",
                 "Metadata row '${metadata.name}' requires type ${T::class.simpleName} but received ${metadata.javaClass.simpleName}"
@@ -42,6 +45,33 @@ class ReadonlyMetadataRow(context: Context, attrs: AttributeSet?) : MetadataRow(
         binding.label.text = metadata.name
         // TODO: gray/italicize value if null
         binding.value.text = metadata.stringRepresentation(context)
+    }
+
+    override fun resetHandlers() { }
+}
+
+class BooleanMetadataRow(context: Context, attrs: AttributeSet?) : MetadataRow(context, attrs) {
+    constructor(context: Context) : this(context, null) private val binding: MetadataBooleanItemBinding
+    init {
+        binding =
+            MetadataBooleanItemBinding.bind(inflate(context, R.layout.metadata_boolean_item, this))
+        binding.toggle.setOnCheckedChangeListener { _, isChecked ->
+            onChangeValue(isChecked)
+        }
+    }
+
+    private var onChangeValue: ((Boolean?) -> Unit) = {}
+
+    override fun bind(metadata: Metadata) {
+        requireType<Metadata.BooleanMetadata>(metadata) {
+            binding.label.text = it.name
+            binding.toggle.isChecked = it.value ?: false
+            onChangeValue = { newValue -> it.value = newValue }
+        }
+    }
+
+    override fun resetHandlers() {
+        onChangeValue = {}
     }
 }
 
@@ -119,6 +149,12 @@ abstract class EditableMetadataRow<T> constructor(context: Context, attrs: Attri
     override fun bind(metadata: Metadata) {
         binding.label.text = metadata.name
     }
+
+    override fun resetHandlers() {
+        onChangeValue = {}
+        validateValue = { true }
+        defaultValue = null
+    }
 }
 
 class StringMetadataRow(context: Context) : EditableMetadataRow<String>(context) {
@@ -152,6 +188,14 @@ class IntMetadataRow(context: Context) : EditableMetadataRow<Int>(context) {
             setHandlers({ newValue -> it.value = newValue }, it.validate, it.value)
         }
     }
+
+    fun setSigned(allowed: Boolean) {
+        if (allowed) {
+            editText.inputType = editText.inputType or InputType.TYPE_NUMBER_FLAG_SIGNED
+        } else {
+            editText.inputType = editText.inputType and InputType.TYPE_NUMBER_FLAG_SIGNED.inv()
+        }
+    }
 }
 
 class DoubleMetadataRow(context: Context) : EditableMetadataRow<Double>(context) {
@@ -168,14 +212,6 @@ class DoubleMetadataRow(context: Context) : EditableMetadataRow<Double>(context)
         super.bind(metadata)
         requireType<Metadata.DoubleMetadata>(metadata) {
             setHandlers({ newValue -> it.value = newValue }, it.validate, it.value)
-        }
-    }
-
-    fun setSigned(allowed: Boolean) {
-        if (allowed) {
-            editText.inputType = editText.inputType or InputType.TYPE_NUMBER_FLAG_SIGNED
-        } else {
-            editText.inputType = editText.inputType and InputType.TYPE_NUMBER_FLAG_SIGNED.inv()
         }
     }
 }

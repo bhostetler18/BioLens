@@ -49,6 +49,7 @@
         <entry key="app/src/main/res/layout/horizontal_divider.xml" value="0.15775972637879435" />
         <entry key="app/src/main/res/layout/image_grid_item.xml" value="0.1" />
         <entry key="app/src/main/res/layout/imaging_settings.xml" value="0.11574074074074074" />
+        <entry key="app/src/main/res/layout/metadata_boolean_item.xml" value="0.476312255859375" />
         <entry key="app/src/main/res/layout/metadata_editable_item.xml" value="0.2030181884765625" />
         <entry key="app/src/main/res/layout/metadata_readonly_item.xml" value="0.2922422954303932" />
         <entry key="app/src/main/res/layout/metadata_string_list_item.xml" value="0.48441772460937504" />

@@ -20,7 +20,7 @@ class MetadataAdapter(private val metadata: List<Metadata>) : RecyclerView.Adapt
             MetadataViewType.STRING -> StringMetadataRow(ctx)
             MetadataViewType.INT -> IntMetadataRow(ctx)
             MetadataViewType.DOUBLE -> DoubleMetadataRow(ctx)
-            MetadataViewType.BOOLEAN -> ReadonlyMetadataRow(ctx) // will make a switch
+            MetadataViewType.BOOLEAN -> BooleanMetadataRow(ctx)
             MetadataViewType.DATE -> ReadonlyMetadataRow(ctx) // will make a date picker
             else -> { ReadonlyMetadataRow(ctx) }
         }
