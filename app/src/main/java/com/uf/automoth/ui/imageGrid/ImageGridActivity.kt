@@ -26,7 +26,6 @@ import com.uf.automoth.ui.common.EditTextDialog
 import com.uf.automoth.ui.common.simpleAlertDialogWithOk
 import com.uf.automoth.ui.metadata.MetadataActivity
 import kotlinx.coroutines.launch
-import kotlin.properties.Delegates
 
 class ImageGridActivity : AppCompatActivity() {
     private lateinit var viewModel: ImageGridViewModel
@@ -52,6 +51,13 @@ class ImageGridActivity : AppCompatActivity() {
         val session = AutoMothRepository.getSession(sessionID) ?: run {
             runOnUiThread { displayError() }
             return@initialize
+        }
+
+        // If the session was stopped by the device running out of battery or crashing (and
+        // therefore not shutdown fully in ImagingManager::stop), ensure that the completed date is
+        // still set when the user goes to view/export this session
+        if (session.completed == null) {
+            session.completed = AutoMothRepository.updateSessionCompletion(sessionID)
         }
 
         viewModel = ViewModelProvider(

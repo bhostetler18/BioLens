@@ -338,8 +338,10 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
             intent.action = ImagingService.ACTION_STOP_SESSION
             requireContext().applicationContext.startService(intent)
         } else {
-            viewModel.imagingManager?.stop("Manual stop")
-            viewModel.imagingManager = null
+            lifecycleScope.launch {
+                viewModel.imagingManager?.stop("Manual stop")
+                viewModel.imagingManager = null
+            }
         }
         setButtonsEnabled(true)
     }

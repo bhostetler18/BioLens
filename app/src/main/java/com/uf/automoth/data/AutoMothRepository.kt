@@ -1,7 +1,6 @@
 package com.uf.automoth.data
 
 import android.content.Context
-import android.location.Location
 import android.util.Log
 import androidx.preference.PreferenceManager
 import androidx.room.Room
@@ -24,7 +23,10 @@ import java.time.OffsetDateTime
 object AutoMothRepository {
 
     private lateinit var database: AutoMothDatabase
+
+    // Used for database updates that should finish regardless of whether the caller is still around
     private lateinit var coroutineScope: CoroutineScope
+
     lateinit var storageLocation: File
     lateinit var userID: String
 
@@ -154,8 +156,10 @@ object AutoMothRepository {
         database.sessionDAO().updateSessionLocation(id, latitude, longitude)
     }
 
-    fun updateSessionCompletion(id: Long, time: OffsetDateTime) = coroutineScope.launch {
-        database.sessionDAO().updateSessionCompletion(id, time)
+    suspend fun updateSessionCompletion(id: Long): OffsetDateTime {
+        val completed = database.sessionDAO().getLastImageTimestampInSession(id)
+        database.sessionDAO().updateSessionCompletion(id, completed)
+        return completed
     }
 
     fun renameSession(id: Long, name: String) = coroutineScope.launch {

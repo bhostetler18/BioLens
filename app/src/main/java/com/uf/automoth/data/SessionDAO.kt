@@ -24,7 +24,7 @@ interface SessionDAO {
 
     @Transaction
     @Query("SELECT * FROM sessions ORDER BY datetime(started)")
-    fun getSessionsWithImages(): List<SessionWithImages>
+    suspend fun getSessionsWithImages(): List<SessionWithImages>
 
     @Transaction
     @Query("SELECT * FROM images WHERE parentSessionID = :id")
@@ -38,15 +38,23 @@ interface SessionDAO {
     @Query("SELECT COUNT(imageID) FROM images WHERE parentSessionID = :id")
     fun getNumImagesInSession(id: Long): Flow<Int>
 
+    // It would be nice to just use "SELECT MAX(datetime(timestamp)) FROM images WHERE parentSessionID = :id"
+    // but the resulting sqlite datetime is not converted into an OffsetDateTime...
+    @Query(
+        "SELECT timestamp FROM images WHERE parentSessionID = :id and datetime(timestamp) = " +
+            "(SELECT MAX(datetime(timestamp)) FROM images WHERE parentSessionID = :id) LIMIT 1;"
+    )
+    suspend fun getLastImageTimestampInSession(id: Long): OffsetDateTime
+
     @Query("SELECT * FROM sessions WHERE sessionID = :id")
     suspend fun getSession(id: Long): Session?
 
     @Query("UPDATE sessions SET latitude = :latitude, longitude = :longitude WHERE sessionID = :id")
-    fun updateSessionLocation(id: Long, latitude: Double?, longitude: Double?)
+    suspend fun updateSessionLocation(id: Long, latitude: Double?, longitude: Double?)
 
     @Query("UPDATE sessions SET completed = :time WHERE sessionID = :id")
-    fun updateSessionCompletion(id: Long, time: OffsetDateTime)
+    suspend fun updateSessionCompletion(id: Long, time: OffsetDateTime)
 
     @Query("UPDATE sessions SET name = :name WHERE sessionID = :id")
-    fun renameSession(id: Long, name: String)
+    suspend fun renameSession(id: Long, name: String)
 }
