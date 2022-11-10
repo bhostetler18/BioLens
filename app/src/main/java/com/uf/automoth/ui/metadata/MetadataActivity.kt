@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 
 class MetadataActivity : AppCompatActivity() {
 
-    private var metadata: List<Metadata>? = null
+    private var metadata: List<DisplayableMetadata>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,7 +32,10 @@ class MetadataActivity : AppCompatActivity() {
             return@initialize
         }
 
-        val metadata = getDefaultMetadata(session, this) + getUserMetadata(session, this)
+        val metadata = getDefaultMetadata(session, this) + getUserMetadata(
+            session,
+            AutoMothRepository.metadataStore
+        )
         val binding = ActivityMetadataEditorBinding.inflate(layoutInflater)
         binding.recyclerView.adapter = MetadataAdapter(metadata)
         binding.recyclerView.layoutManager = LinearLayoutManager(this)

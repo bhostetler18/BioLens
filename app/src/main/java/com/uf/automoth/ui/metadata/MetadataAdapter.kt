@@ -12,7 +12,7 @@ object MetadataViewType {
     const val DATE = 5
 }
 
-class MetadataAdapter(private val metadata: List<Metadata>) :
+class MetadataAdapter(private val metadata: List<DisplayableMetadata>) :
     RecyclerView.Adapter<MetadataViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MetadataViewHolder {
         val ctx = parent.context
@@ -38,11 +38,11 @@ class MetadataAdapter(private val metadata: List<Metadata>) :
             return MetadataViewType.READONLY
         }
         return when (item) {
-            is Metadata.StringMetadata -> MetadataViewType.STRING
-            is Metadata.IntMetadata -> MetadataViewType.INT
-            is Metadata.DoubleMetadata -> MetadataViewType.DOUBLE
-            is Metadata.BooleanMetadata -> MetadataViewType.BOOLEAN
-            is Metadata.DateMetadata -> MetadataViewType.DATE
+            is DisplayableMetadata.StringMetadata -> MetadataViewType.STRING
+            is DisplayableMetadata.IntMetadata -> MetadataViewType.INT
+            is DisplayableMetadata.DoubleMetadata -> MetadataViewType.DOUBLE
+            is DisplayableMetadata.BooleanMetadata -> MetadataViewType.BOOLEAN
+            is DisplayableMetadata.DateMetadata -> MetadataViewType.DATE
         }
     }
 
@@ -56,7 +56,7 @@ class MetadataAdapter(private val metadata: List<Metadata>) :
 }
 
 class MetadataViewHolder(private val view: MetadataRow) : RecyclerView.ViewHolder(view) {
-    fun bind(metadata: Metadata) {
+    fun bind(metadata: DisplayableMetadata) {
         view.bind(metadata)
     }
 }

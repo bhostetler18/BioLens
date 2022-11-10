@@ -5,7 +5,7 @@ import com.uf.automoth.R
 import com.uf.automoth.utility.SHORT_DATE_TIME_FORMATTER
 import java.time.OffsetDateTime
 
-interface MetadataInterface {
+interface DisplayableMetadataInterface {
     val name: String
     val readonly: Boolean
     suspend fun writeValue()
@@ -24,7 +24,7 @@ interface MetadataValueInterface<T> {
 // This looks unnecessary, but it also allows polymorphism as opposed to template types that would
 // be erased at runtime. Since there are relatively few types used, it seems like an okay compromise
 // especially since it allows limiting the Metadata types to those that can actually be displayed
-sealed class Metadata : MetadataInterface {
+sealed class DisplayableMetadata : DisplayableMetadataInterface {
 
     class StringMetadata(
         override val name: String,
@@ -32,7 +32,7 @@ sealed class Metadata : MetadataInterface {
         override var value: String?,
         override val setValue: suspend (String?) -> Unit = {},
         override val validate: (String?) -> Boolean = { true }
-    ) : Metadata(), MetadataInterface, MetadataValueInterface<String> {
+    ) : DisplayableMetadata(), DisplayableMetadataInterface, MetadataValueInterface<String> {
         override suspend fun writeValue() {
             setValue(value)
         }
@@ -46,7 +46,7 @@ sealed class Metadata : MetadataInterface {
         override var value: Int?,
         override val setValue: suspend (Int?) -> Unit = {},
         override val validate: (Int?) -> Boolean = { true }
-    ) : Metadata(), MetadataInterface, MetadataValueInterface<Int> {
+    ) : DisplayableMetadata(), DisplayableMetadataInterface, MetadataValueInterface<Int> {
         override suspend fun writeValue() {
             setValue(value)
         }
@@ -60,7 +60,7 @@ sealed class Metadata : MetadataInterface {
         override var value: Double?,
         override val setValue: suspend (Double?) -> Unit = {},
         override val validate: (Double?) -> Boolean = { true }
-    ) : Metadata(), MetadataInterface, MetadataValueInterface<Double> {
+    ) : DisplayableMetadata(), DisplayableMetadataInterface, MetadataValueInterface<Double> {
         override suspend fun writeValue() {
             setValue(value)
         }
@@ -73,7 +73,7 @@ sealed class Metadata : MetadataInterface {
         override val readonly: Boolean,
         var value: Boolean?,
         val setValue: suspend (Boolean?) -> Unit = {}
-    ) : Metadata(), MetadataInterface {
+    ) : DisplayableMetadata(), DisplayableMetadataInterface {
         override suspend fun writeValue() {
             setValue(value)
         }
@@ -89,7 +89,9 @@ sealed class Metadata : MetadataInterface {
         override var value: OffsetDateTime?,
         override val setValue: suspend (OffsetDateTime?) -> Unit = {},
         override val validate: (OffsetDateTime?) -> Boolean = { true }
-    ) : Metadata(), MetadataInterface, MetadataValueInterface<OffsetDateTime> {
+    ) : DisplayableMetadata(),
+        DisplayableMetadataInterface,
+        MetadataValueInterface<OffsetDateTime> {
         override suspend fun writeValue() {
             setValue(value)
         }

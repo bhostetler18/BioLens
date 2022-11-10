@@ -16,11 +16,11 @@ import com.uf.automoth.databinding.MetadataEditableItemBinding
 import com.uf.automoth.databinding.MetadataReadonlyItemBinding
 
 abstract class MetadataRow(context: Context, attrs: AttributeSet?) : LinearLayout(context, attrs) {
-    abstract fun bind(metadata: Metadata)
+    abstract fun bind(metadata: DisplayableMetadata)
     abstract fun resetHandlers()
 
-    inline fun <reified T : Metadata> requireType(
-        metadata: Metadata,
+    protected inline fun <reified T : DisplayableMetadata> requireType(
+        metadata: DisplayableMetadata,
         block: (metadata: T) -> Unit
     ) {
         (metadata as? T)?.let {
@@ -28,10 +28,14 @@ abstract class MetadataRow(context: Context, attrs: AttributeSet?) : LinearLayou
         } ?: run {
             resetHandlers() // Don't retain old value handlers and potentially edit the previous metadata object after failing to set a new one
             Log.e(
-                "[METADATA]",
+                TAG,
                 "Metadata row '${metadata.name}' requires type ${T::class.simpleName} but received ${metadata.javaClass.simpleName}"
             )
         }
+    }
+
+    companion object {
+        protected const val TAG = "[METADATA ROW]"
     }
 }
 
@@ -51,7 +55,7 @@ class ReadonlyMetadataRow(context: Context, attrs: AttributeSet?) : MetadataRow(
             )
     }
 
-    override fun bind(metadata: Metadata) {
+    override fun bind(metadata: DisplayableMetadata) {
         binding.label.text = metadata.name
         // TODO: gray/italicize value if null
         binding.value.text = metadata.stringRepresentation(context)
@@ -75,8 +79,8 @@ class BooleanMetadataRow(context: Context, attrs: AttributeSet?) : MetadataRow(c
 
     private var onChangeValue: ((Boolean?) -> Unit) = {}
 
-    override fun bind(metadata: Metadata) {
-        requireType<Metadata.BooleanMetadata>(metadata) {
+    override fun bind(metadata: DisplayableMetadata) {
+        requireType<DisplayableMetadata.BooleanMetadata>(metadata) {
             binding.label.text = it.name
             binding.toggle.isChecked = it.value ?: false
             onChangeValue = { newValue -> it.value = newValue }
@@ -159,7 +163,7 @@ abstract class EditableMetadataRow<T> constructor(context: Context, attrs: Attri
         editText.setText(defaultValue?.toString() ?: "")
     }
 
-    override fun bind(metadata: Metadata) {
+    override fun bind(metadata: DisplayableMetadata) {
         binding.label.text = metadata.name
     }
 
@@ -177,9 +181,9 @@ class StringMetadataRow(context: Context) : EditableMetadataRow<String>(context)
     override var validateValue: (String?) -> Boolean = { true }
     override var defaultValue: String? = null
 
-    override fun bind(metadata: Metadata) {
+    override fun bind(metadata: DisplayableMetadata) {
         super.bind(metadata)
-        requireType<Metadata.StringMetadata>(metadata) {
+        requireType<DisplayableMetadata.StringMetadata>(metadata) {
             setHandlers({ newValue -> it.value = newValue }, it.validate, it.value)
         }
     }
@@ -195,9 +199,9 @@ class IntMetadataRow(context: Context) : EditableMetadataRow<Int>(context) {
     override var validateValue: (Int?) -> Boolean = { true }
     override var defaultValue: Int? = null
 
-    override fun bind(metadata: Metadata) {
+    override fun bind(metadata: DisplayableMetadata) {
         super.bind(metadata)
-        requireType<Metadata.IntMetadata>(metadata) {
+        requireType<DisplayableMetadata.IntMetadata>(metadata) {
             setHandlers({ newValue -> it.value = newValue }, it.validate, it.value)
         }
     }
@@ -221,9 +225,9 @@ class DoubleMetadataRow(context: Context) : EditableMetadataRow<Double>(context)
     override var validateValue: (Double?) -> Boolean = { true }
     override var defaultValue: Double? = null
 
-    override fun bind(metadata: Metadata) {
+    override fun bind(metadata: DisplayableMetadata) {
         super.bind(metadata)
-        requireType<Metadata.DoubleMetadata>(metadata) {
+        requireType<DisplayableMetadata.DoubleMetadata>(metadata) {
             setHandlers({ newValue -> it.value = newValue }, it.validate, it.value)
         }
     }
