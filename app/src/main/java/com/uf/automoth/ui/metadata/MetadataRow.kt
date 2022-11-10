@@ -144,6 +144,9 @@ abstract class EditableMetadataRow<T> constructor(context: Context, attrs: Attri
         val new = convert(s?.toString() ?: "")
         if (validateValue(new)) {
             onChangeValue(new)
+            editText.error = null
+        } else {
+            editText.error = context.getString(R.string.invalid_value)
         }
     }
 

@@ -13,7 +13,7 @@
         android:layout_weight="1"
         android:gravity="center_vertical"
         android:paddingHorizontal="10dp"
-        tools:text="This is a long metadata title"></TextView>
+        tools:text="This is a long metadata title" />
 
     <EditText
         android:id="@+id/edit_text"
@@ -25,5 +25,6 @@
         android:paddingHorizontal="10dp"
         android:singleLine="true"
         android:textAlignment="viewEnd"
+        android:drawablePadding="10dp"
         tools:hint="Some value here" />
 </LinearLayout>

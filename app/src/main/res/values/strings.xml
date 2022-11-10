@@ -126,4 +126,5 @@
     <string name="edit_metadata">Edit Metadata</string>
     <string name="unknown">unknown</string>
     <string name="device_type">Device</string>
+    <string name="invalid_value">Invalid value</string>
 </resources>
