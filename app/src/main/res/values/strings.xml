@@ -127,4 +127,8 @@
     <string name="unknown">unknown</string>
     <string name="device_type">Device</string>
     <string name="invalid_value">Invalid value</string>
+    <string name="add_custom_metadata_field">Add Custom Metadata Field</string>
+    <string name="add">Add</string>
+    <string name="field_name">Field name</string>
+    <string name="metadata_value_type">Value Type</string>
 </resources>

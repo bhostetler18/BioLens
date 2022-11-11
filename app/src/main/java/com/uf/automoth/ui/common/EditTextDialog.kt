@@ -42,17 +42,13 @@ class EditTextDialog(
         dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
         dialog.setOnShowListener {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
+            textEntry.addTextChangedListener(
+                EditTextValidatorWithButton(
+                    textValidator,
+                    dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+                )
+            )
         }
-        textEntry.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled =
-                    textValidator(s?.toString() ?: "")
-            }
-
-            override fun afterTextChanged(s: Editable?) {}
-        })
     }
 
     fun show() = dialog.show()
