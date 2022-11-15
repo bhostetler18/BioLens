@@ -4,6 +4,8 @@ import com.uf.automoth.BuildConfig
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Image
 import com.uf.automoth.data.Session
+import com.uf.automoth.data.metadata.UserMetadataStore
+import com.uf.automoth.data.metadata.getValue
 import com.uf.automoth.utility.getDeviceType
 
 class AutoMothSessionCSVFormatter(
@@ -28,32 +30,26 @@ class AutoMothSessionCSVFormatter(
         this.addColumn("frame_local_datetime") { image ->
             image.timestamp.toString()
         }
-        this.addColumn("session_unique_id") {
-            uniqueSessionId
-        }
-        this.addColumn("session_name") {
-            session.name
-        }
-        this.addColumn("session_latitude") {
-            if (session.hasLocation()) session.latitude!!.toString() else ""
-        }
-        this.addColumn("session_longitude") {
-            if (session.hasLocation()) session.longitude!!.toString() else ""
-        }
-        this.addColumn("session_local_start_datetime") {
-            session.started.toString()
-        }
-        this.addColumn("session_local_end datetime") {
-            session.completed?.toString() ?: ""
-        }
-        this.addColumn("session_frame_interval_seconds") {
-            session.interval.toString()
-        }
-        this.addColumn("device_type") {
-            getDeviceType()
-        }
-        this.addColumn("automoth_app_version") {
-            BuildConfig.VERSION_NAME
+        this.addConstantColumn("session_unique_id", uniqueSessionId)
+        this.addConstantColumn("session_name", session.name)
+        this.addConstantColumn("session_latitude", session.latitude.toStringOrEmpty())
+        this.addConstantColumn("session_longitude", session.longitude.toStringOrEmpty())
+        this.addConstantColumn("session_local_start_datetime", session.started.toString())
+        this.addConstantColumn("session_local_end_datetime", session.completed.toStringOrEmpty())
+        this.addConstantColumn("session_frame_interval_seconds", session.interval.toString())
+        this.addConstantColumn("device_type", getDeviceType())
+        this.addConstantColumn("automoth_app_version", BuildConfig.VERSION_NAME)
+    }
+
+    suspend fun addUserMetadata(metadataStore: UserMetadataStore) {
+        metadataStore.getAllFields().forEach {
+            val value = metadataStore.getValue(it, session.sessionID)
+            addConstantColumn(it.field, value.toStringOrEmpty())
         }
     }
+
+    suspend fun addAutoMothMetadata() {
+    }
 }
+
+fun Any?.toStringOrEmpty(): String = this?.toString() ?: ""

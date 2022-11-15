@@ -12,7 +12,32 @@ import com.uf.automoth.data.metadata.setValue
 import com.uf.automoth.ui.imaging.intervalDescription
 import com.uf.automoth.utility.getDeviceType
 
-// Metadata inherent to the app and/or stored in the database
+// data class PrepopulatedMetadata(
+//    val key: UserMetadataKey,
+//    @StringRes val translation: Int? // allow localization even with hardcoded keys
+// )
+//
+// val AUTOMOTH_METADATA = listOf(
+//    PrepopulatedMetadata(
+//        UserMetadataKey("Sheet width (cm)", UserMetadataType.DOUBLE),
+//        null
+//    ),
+//    PrepopulatedMetadata(
+//        UserMetadataKey("Sheet height (cm)", UserMetadataType.DOUBLE),
+//        null
+//    )
+// )
+// val RESERVED_KEYS = AUTOMOTH_METADATA.map { it.key.field }.toHashSet()
+
+// suspend fun prepopulate(store: UserMetadataStore) {
+//    AUTOMOTH_METADATA.forEach {
+//        if (store.getField(it.key.field) == null) {
+//            store.addMetadataField(it.key.field, it.key.type)
+//        }
+//    }
+// }
+
+// Basic metadata inherent to the app
 fun getDefaultMetadata(session: Session, context: Context): List<DisplayableMetadata> {
     return listOf(
         DisplayableMetadata.StringMetadata(
@@ -75,14 +100,20 @@ fun csvValidator(value: String?): Boolean {
     return value == null || !value.contains(",")
 }
 
+fun fieldNameValidator(name: String): Boolean {
+    return name.trim().isNotEmpty() // && !RESERVED_KEYS.contains(name)
+}
+
 suspend fun UserMetadataField.toDisplayableMetadata(
     db: UserMetadataStore,
-    sessionID: Long
+    sessionID: Long,
+    deletable: Boolean = false,
+    nameOverride: String? = null
 ): DisplayableMetadata {
     return when (type) {
         UserMetadataType.STRING -> {
             DisplayableMetadata.StringMetadata(
-                field,
+                nameOverride ?: field,
                 false,
                 db.getValue(field, sessionID),
                 { newValue -> db.setValue(field, sessionID, newValue) },
@@ -91,7 +122,7 @@ suspend fun UserMetadataField.toDisplayableMetadata(
         }
         UserMetadataType.INT -> {
             DisplayableMetadata.IntMetadata(
-                field,
+                nameOverride ?: field,
                 false,
                 db.getValue(field, sessionID),
                 { newValue -> db.setValue(field, sessionID, newValue) }
@@ -99,7 +130,7 @@ suspend fun UserMetadataField.toDisplayableMetadata(
         }
         UserMetadataType.DOUBLE -> {
             DisplayableMetadata.DoubleMetadata(
-                field,
+                nameOverride ?: field,
                 false,
                 db.getValue(field, sessionID),
                 { newValue -> db.setValue(field, sessionID, newValue) }
@@ -107,18 +138,22 @@ suspend fun UserMetadataField.toDisplayableMetadata(
         }
         UserMetadataType.BOOLEAN -> {
             DisplayableMetadata.BooleanMetadata(
-                field,
+                nameOverride ?: field,
                 false,
                 db.getValue(field, sessionID)
             ) { newValue -> db.setValue(field, sessionID, newValue) }
         }
+    }.also {
+        it.deletable = deletable
     }
 }
 
-// Custom or auxiliary metadata
-suspend fun getUserMetadata(session: Session, store: UserMetadataStore): List<DisplayableMetadata> {
-//    AutoMothRepository.metadataStore.addMetadataField("test1", UserMetadataType.BOOLEAN)
-//    AutoMothRepository.metadataStore.addMetadataField("test2", UserMetadataType.STRING)
-    val fields = store.getAllFields().sortedBy { it.field }
-    return fields.map { it.toDisplayableMetadata(store, session.sessionID) }
-}
+// Prepopulated metadata specific to AutoMoth
+// suspend fun getAutoMothMetadata(session: Session, store: UserMetadataStore, context: Context): List<DisplayableMetadata> {
+//    return AUTOMOTH_METADATA.map {
+//        val translatedName = it.translation?.let { resourceId ->
+//            context.getString(resourceId)
+//        }
+//        it.key.toDisplayableMetadata(store, session.sessionID, translatedName)
+//    }
+// }

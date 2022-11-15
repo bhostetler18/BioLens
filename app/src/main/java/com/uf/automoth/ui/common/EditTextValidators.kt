@@ -5,7 +5,7 @@ import android.text.TextWatcher
 import android.widget.Button
 import android.widget.EditText
 
-typealias TextValidator =  (String) -> Boolean
+typealias TextValidator = (String) -> Boolean
 
 abstract class EditTextValidator(
     private val validate: TextValidator

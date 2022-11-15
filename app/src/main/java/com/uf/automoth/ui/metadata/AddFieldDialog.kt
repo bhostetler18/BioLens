@@ -16,12 +16,12 @@ import com.uf.automoth.utility.SingletonDialog
 
 class AddFieldDialog(
     context: Context,
-    inflater: LayoutInflater,
     onCreateField: (String, UserMetadataType) -> Unit
 ) : SingletonDialog, AdapterView.OnItemSelectedListener {
     private val binding: DialogAddMetadataFieldBinding
 
     init {
+        val inflater = LayoutInflater.from(context)
         binding = DialogAddMetadataFieldBinding.inflate(inflater)
     }
 
@@ -51,7 +51,7 @@ class AddFieldDialog(
             addButton.isEnabled = false
             editText.addTextChangedListener(
                 EditTextValidatorWithButton(
-                    combineValidators(::csvValidator, { string -> string.trim().isNotEmpty() }),
+                    combineValidators(::csvValidator, ::fieldNameValidator),
                     addButton
                 )
             )
@@ -69,11 +69,10 @@ class AddFieldDialog(
     }
 
     override fun onNothingSelected(parent: AdapterView<*>?) {
-
     }
 
     private fun toType(spinnerOption: String): UserMetadataType {
-        return when(spinnerOption) {
+        return when (spinnerOption) {
             "Text" -> UserMetadataType.STRING
             "Integer" -> UserMetadataType.INT
             "Decimal" -> UserMetadataType.DOUBLE

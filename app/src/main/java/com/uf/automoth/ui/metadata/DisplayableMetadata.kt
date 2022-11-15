@@ -8,6 +8,7 @@ import java.time.OffsetDateTime
 interface DisplayableMetadataInterface {
     val name: String
     val readonly: Boolean
+    var deletable: Boolean
     suspend fun writeValue()
 
     // Should return null when the absence of a value is significant and should be displayed as "unknown"
@@ -25,6 +26,7 @@ interface MetadataValueInterface<T> {
 // be erased at runtime. Since there are relatively few types used, it seems like an okay compromise
 // especially since it allows limiting the Metadata types to those that can actually be displayed
 sealed class DisplayableMetadata : DisplayableMetadataInterface {
+    override var deletable = false
 
     class StringMetadata(
         override val name: String,
@@ -98,5 +100,14 @@ sealed class DisplayableMetadata : DisplayableMetadataInterface {
 
         override fun stringRepresentation(context: Context) =
             value?.format(SHORT_DATE_TIME_FORMATTER)
+    }
+
+    class Header(
+        override val name: String,
+        val showEditButton: Boolean = false
+    ) : DisplayableMetadata() {
+        override val readonly = true
+        override suspend fun writeValue() {}
+        override fun stringRepresentation(context: Context): String = ""
     }
 }

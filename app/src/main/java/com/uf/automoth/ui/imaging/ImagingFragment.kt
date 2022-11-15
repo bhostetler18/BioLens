@@ -260,7 +260,6 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
         } else {
             val editDialog = EditTextDialog(
                 requireContext(),
-                layoutInflater,
                 hint = getString(R.string.session_name_hint),
                 positiveText = getString(R.string.start_session),
                 negativeText = getString(R.string.cancel),
@@ -277,7 +276,6 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
     private fun changeIntervalPressed() {
         val dialog = IntervalDialog(
             requireContext(),
-            layoutInflater,
             viewModel.imagingSettings.interval,
             estimatedImageSizeInBytes()
         ) { interval ->
@@ -291,7 +289,6 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
     private fun changeAutoStopPressed() {
         val dialog = AutoStopDialog(
             requireContext(),
-            layoutInflater,
             viewModel.imagingSettings,
             estimatedImageSizeInBytes()
         ) { mode, value ->

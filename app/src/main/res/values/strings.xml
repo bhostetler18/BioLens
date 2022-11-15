@@ -131,4 +131,13 @@
     <string name="add">Add</string>
     <string name="field_name">Field name</string>
     <string name="metadata_value_type">Value Type</string>
+    <string name="default_metadata_header">Session Info</string>
+    <string name="automoth_metadata_header">AutoMoth Metadata</string>
+    <string name="user_metadata_header">User Metadata</string>
+    <string name="edit">Edit</string>
+    <string name="include_automoth_metadata">Include AutoMoth metadata</string>
+    <string name="include_user_metadata">Include user metadata</string>
+    <string name="upload_metadata_only">Upload metadata only</string>
+    <string name="export_options">Export Options</string>
+    <string name="export">Export</string>
 </resources>

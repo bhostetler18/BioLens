@@ -2,6 +2,7 @@ package com.uf.automoth.ui.metadata
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -13,8 +14,7 @@ import kotlinx.coroutines.launch
 
 class MetadataActivity : AppCompatActivity() {
 
-    // TODO: viewmodel
-    private var metadata: List<DisplayableMetadata>? = null
+    private lateinit var viewModel: MetadataViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,12 +35,13 @@ class MetadataActivity : AppCompatActivity() {
             return@initialize
         }
 
-        val metadata = getDefaultMetadata(session, this) + getUserMetadata(
-            session,
-            AutoMothRepository.metadataStore
-        )
+        viewModel = ViewModelProvider(
+            this@MetadataActivity,
+            MetadataViewModel.Factory(session, applicationContext)
+        )[MetadataViewModel::class.java]
+
         val binding = ActivityMetadataEditorBinding.inflate(layoutInflater)
-        val adapter = MetadataAdapter(metadata)
+        val adapter = MetadataAdapter()
         binding.recyclerView.adapter = adapter
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.addItemDecoration(
@@ -50,12 +51,15 @@ class MetadataActivity : AppCompatActivity() {
             )
         )
 
+        viewModel.allMetadata.observe(this) {
+            adapter.submitList(it)
+        }
+
         binding.fab.setOnClickListener {
-            val dialog = AddFieldDialog(this, layoutInflater, this::createField)
+            val dialog = AddFieldDialog(this, this::createField)
             launchDialog(dialog, binding.fab)
         }
         setContentView(binding.root)
-        this.metadata = metadata
     }
 
     private fun createField(name: String, type: UserMetadataType) {
@@ -67,8 +71,17 @@ class MetadataActivity : AppCompatActivity() {
         }
     }
 
+    fun deleteField(metadata: DisplayableMetadata) {
+        if (!metadata.deletable) {
+            return
+        }
+        lifecycleScope.launch {
+            AutoMothRepository.metadataStore.deleteMetadataField(metadata.name)
+        }
+    }
+
     suspend fun saveChanges() {
-        metadata?.forEach {
+        viewModel.allMetadata.value?.forEach {
             if (!it.readonly) {
                 it.writeValue()
             }

@@ -23,8 +23,12 @@ import com.uf.automoth.databinding.ActivityImageGridBinding
 import com.uf.automoth.network.GoogleDriveUploadWorker
 import com.uf.automoth.network.GoogleSignInHelper
 import com.uf.automoth.ui.common.EditTextDialog
+import com.uf.automoth.ui.common.ExportOptions
+import com.uf.automoth.ui.common.ExportOptionsDialog
+import com.uf.automoth.ui.common.ExportOptionsHandler
 import com.uf.automoth.ui.common.simpleAlertDialogWithOk
 import com.uf.automoth.ui.metadata.MetadataActivity
+import com.uf.automoth.utility.launchDialog
 import kotlinx.coroutines.launch
 
 class ImageGridActivity : AppCompatActivity() {
@@ -128,7 +132,20 @@ class ImageGridActivity : AppCompatActivity() {
                 true
             }
             R.id.upload -> {
-                uploadSession()
+                val optionsDialog =
+                    ExportOptionsDialog(
+                        this,
+                        object : ExportOptionsHandler {
+                            override fun onSelectOptions(options: ExportOptions) {
+                                viewModel.exportOptions = options
+                                uploadSession()
+                            }
+                        },
+                        R.string.upload,
+                        true,
+                        viewModel.exportOptions
+                    )
+                launchDialog(optionsDialog, item.actionView)
                 true
             }
             R.id.delete -> {
@@ -162,7 +179,6 @@ class ImageGridActivity : AppCompatActivity() {
     private fun renameCurrentSession() {
         val editDialog = EditTextDialog(
             this,
-            layoutInflater,
             title = getString(R.string.rename_session),
             hint = viewModel.session.name,
             positiveText = getString(R.string.rename),
@@ -180,12 +196,16 @@ class ImageGridActivity : AppCompatActivity() {
     private fun uploadSession() {
         val account = GoogleSignInHelper.getGoogleAccountIfValid(this)?.account
         if (account != null) {
+            val options = viewModel.exportOptions
             val workRequest = OneTimeWorkRequestBuilder<GoogleDriveUploadWorker>()
                 .setInputData(
                     workDataOf(
                         GoogleDriveUploadWorker.KEY_SESSION_ID to viewModel.session.sessionID,
                         GoogleDriveUploadWorker.KEY_ACCOUNT_EMAIL to account.name,
-                        GoogleDriveUploadWorker.KEY_ACCOUNT_TYPE to account.type
+                        GoogleDriveUploadWorker.KEY_ACCOUNT_TYPE to account.type,
+                        GoogleDriveUploadWorker.KEY_INCLUDE_AUTOMOTH_METADATA to options.includeAutoMothMetadata,
+                        GoogleDriveUploadWorker.KEY_INCLUDE_USER_METADATA to options.includeUserMetadata,
+                        GoogleDriveUploadWorker.KEY_METADATA_ONLY to options.metadataOnly
                     )
                 ).setConstraints(
                     Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()

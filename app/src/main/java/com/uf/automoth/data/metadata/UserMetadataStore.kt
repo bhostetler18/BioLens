@@ -67,14 +67,20 @@ inline fun <reified T> reifyUserMetadataType(): UserMetadataType? {
 }
 
 suspend inline fun <reified T> UserMetadataStore.getValue(field: String, session: Long): T? {
-    return when (reifyUserMetadataType<T>()) {
-        UserMetadataType.STRING -> getString(field, session) as? T
-        UserMetadataType.INT -> getInt(field, session) as? T
-        UserMetadataType.DOUBLE -> getDouble(field, session) as? T
-        UserMetadataType.BOOLEAN -> getBoolean(field, session) as? T
-        else -> {
-            Log.e("", "Tried to get invalid metadata type ${T::class.simpleName}")
-            null
-        }
+    val type = reifyUserMetadataType<T>()
+    return if (type != null) {
+        getValue(UserMetadataKey(field, type), session) as? T?
+    } else {
+        Log.e("", "Tried to get invalid metadata type ${T::class.simpleName}")
+        null
+    }
+}
+
+suspend fun UserMetadataStore.getValue(key: UserMetadataField, session: Long): Any? {
+    return when (key.type) {
+        UserMetadataType.STRING -> getString(key.field, session)
+        UserMetadataType.INT -> getInt(key.field, session)
+        UserMetadataType.DOUBLE -> getDouble(key.field, session)
+        UserMetadataType.BOOLEAN -> getBoolean(key.field, session)
     }
 }

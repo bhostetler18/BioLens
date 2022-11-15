@@ -25,7 +25,6 @@ class AutoMothMetadataStore(private val db: AutoMothDatabase) : UserMetadataStor
 
     private suspend inline fun <reified T> safeGet(
         field: String,
-        session: Long,
         get: () -> T?
     ): T? {
         val entry = db.userMetadataKeyDAO().get(field)
@@ -62,17 +61,16 @@ class AutoMothMetadataStore(private val db: AutoMothDatabase) : UserMetadataStor
         return db.userMetadataKeyDAO().getType(field)
     }
 
-    override suspend fun getString(field: String, session: Long): String? =
-        safeGet(field, session) {
-            db.userMetadataValueDAO().getString(field, session)
-        }
+    override suspend fun getString(field: String, session: Long): String? = safeGet(field) {
+        db.userMetadataValueDAO().getString(field, session)
+    }
 
     override suspend fun setString(field: String, session: Long, value: String?) =
         safeSet<String>(field, session) {
             db.userMetadataValueDAO().insert(UserMetadataValue(field, session, stringValue = value))
         }
 
-    override suspend fun getInt(field: String, session: Long): Int? = safeGet(field, session) {
+    override suspend fun getInt(field: String, session: Long): Int? = safeGet(field) {
         return db.userMetadataValueDAO().getInt(field, session)
     }
 
@@ -81,20 +79,18 @@ class AutoMothMetadataStore(private val db: AutoMothDatabase) : UserMetadataStor
             db.userMetadataValueDAO().insert(UserMetadataValue(field, session, intValue = value))
         }
 
-    override suspend fun getDouble(field: String, session: Long): Double? =
-        safeGet(field, session) {
-            return db.userMetadataValueDAO().getDouble(field, session)
-        }
+    override suspend fun getDouble(field: String, session: Long): Double? = safeGet(field) {
+        return db.userMetadataValueDAO().getDouble(field, session)
+    }
 
     override suspend fun setDouble(field: String, session: Long, value: Double?) =
         safeSet<Double>(field, session) {
             db.userMetadataValueDAO().insert(UserMetadataValue(field, session, doubleValue = value))
         }
 
-    override suspend fun getBoolean(field: String, session: Long): Boolean? =
-        safeGet(field, session) {
-            return db.userMetadataValueDAO().getBoolean(field, session)
-        }
+    override suspend fun getBoolean(field: String, session: Long): Boolean? = safeGet(field) {
+        return db.userMetadataValueDAO().getBoolean(field, session)
+    }
 
     override suspend fun setBoolean(field: String, session: Long, value: Boolean?) =
         safeSet<Boolean>(field, session) {
@@ -104,6 +100,8 @@ class AutoMothMetadataStore(private val db: AutoMothDatabase) : UserMetadataStor
     override suspend fun getAllFields(): List<UserMetadataField> {
         return db.userMetadataKeyDAO().getAllKeys()
     }
+
+    val allFieldsFlow get() = db.userMetadataKeyDAO().getAllKeysFlow()
 
     companion object {
         private const val TAG = "[METADATA_STORE]"

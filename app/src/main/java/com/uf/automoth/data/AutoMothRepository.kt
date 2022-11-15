@@ -6,7 +6,6 @@ import androidx.preference.PreferenceManager
 import androidx.room.Room
 import com.uf.automoth.R
 import com.uf.automoth.data.metadata.AutoMothMetadataStore
-import com.uf.automoth.data.metadata.UserMetadataStore
 import com.uf.automoth.imaging.ImagingSettings
 import com.uf.automoth.utility.getRandomString
 import kotlinx.coroutines.CoroutineScope
@@ -25,7 +24,7 @@ import java.time.OffsetDateTime
 object AutoMothRepository {
 
     private lateinit var database: AutoMothDatabase
-    lateinit var metadataStore: UserMetadataStore
+    lateinit var metadataStore: AutoMothMetadataStore
 
     // Used for database updates that should finish regardless of whether the caller is still around
     private lateinit var coroutineScope: CoroutineScope
@@ -44,14 +43,17 @@ object AutoMothRepository {
         if (this.isInitialized) {
             return
         }
-        database = Room.databaseBuilder(
+        this.storageLocation = storageLocation
+        this.coroutineScope = coroutineScope
+        this.database = Room.databaseBuilder(
             context,
             AutoMothDatabase::class.java,
             "automoth-db"
         ).build()
         this.metadataStore = AutoMothMetadataStore(database)
-        this.storageLocation = storageLocation
-        this.coroutineScope = coroutineScope
+//        coroutineScope.launch {
+//            prepopulate(metadataStore)
+//        }
         Log.d(TAG, "External file path is ${storageLocation.path}")
         userID = createOrGetUserId(context)
         Log.d(TAG, "User ID is $userID")

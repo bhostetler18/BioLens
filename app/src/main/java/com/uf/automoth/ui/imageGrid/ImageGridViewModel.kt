@@ -6,6 +6,7 @@ import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Session
+import com.uf.automoth.ui.common.ExportOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.flowOn
 
 class ImageGridViewModel(val session: Session) : ViewModel() {
 
+    var exportOptions = ExportOptions.default
     val skipCount = MutableStateFlow(0)
     val images =
         skipCount.combine(AutoMothRepository.getImagesInSessionFlow(session.sessionID)) { skip, images ->

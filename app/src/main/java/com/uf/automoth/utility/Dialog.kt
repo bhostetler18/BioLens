@@ -9,10 +9,10 @@ interface SingletonDialog {
 }
 
 // Prevents rapid clicks from opening a dialog multiple times
-fun launchDialog(dialog: SingletonDialog, source: View) {
-    source.isEnabled = false
+fun launchDialog(dialog: SingletonDialog, source: View?) {
+    source?.isEnabled = false
     dialog.setOnDismissListener {
-        source.isEnabled = true
+        source?.isEnabled = true
     }
     dialog.show()
 }

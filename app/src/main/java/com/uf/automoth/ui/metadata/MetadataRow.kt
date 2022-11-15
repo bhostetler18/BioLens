@@ -10,9 +10,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
 import android.widget.LinearLayout
+import androidx.core.view.isVisible
 import com.uf.automoth.R
 import com.uf.automoth.databinding.MetadataBooleanItemBinding
 import com.uf.automoth.databinding.MetadataEditableItemBinding
+import com.uf.automoth.databinding.MetadataHeaderRowBinding
 import com.uf.automoth.databinding.MetadataReadonlyItemBinding
 
 abstract class MetadataRow(context: Context, attrs: AttributeSet?) : LinearLayout(context, attrs) {
@@ -37,6 +39,31 @@ abstract class MetadataRow(context: Context, attrs: AttributeSet?) : LinearLayou
     companion object {
         protected const val TAG = "[METADATA ROW]"
     }
+}
+
+class MetadataHeaderRow(context: Context, attrs: AttributeSet?) : MetadataRow(context, attrs) {
+    constructor(context: Context) : this(context, null)
+
+    private val binding: MetadataHeaderRowBinding
+
+    init {
+        binding =
+            MetadataHeaderRowBinding.bind(
+                inflate(
+                    context,
+                    R.layout.metadata_header_row,
+                    this
+                )
+            )
+    }
+
+    override fun bind(metadata: DisplayableMetadata) {
+        requireType<DisplayableMetadata.Header>(metadata) {
+            binding.headerTitle.text = it.name
+        }
+    }
+
+    override fun resetHandlers() {}
 }
 
 class ReadonlyMetadataRow(context: Context, attrs: AttributeSet?) : MetadataRow(context, attrs) {
@@ -80,6 +107,7 @@ class BooleanMetadataRow(context: Context, attrs: AttributeSet?) : MetadataRow(c
     private var onChangeValue: ((Boolean?) -> Unit) = {}
 
     override fun bind(metadata: DisplayableMetadata) {
+        resetHandlers() // otherwise the old onChangeValue gets called when modifying binding.toggle.isChecked
         requireType<DisplayableMetadata.BooleanMetadata>(metadata) {
             binding.label.text = it.name
             binding.toggle.isChecked = it.value ?: false

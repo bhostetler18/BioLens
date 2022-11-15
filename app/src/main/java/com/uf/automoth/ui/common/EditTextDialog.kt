@@ -12,7 +12,6 @@ import com.uf.automoth.databinding.DialogEditTextBinding
 
 class EditTextDialog(
     context: Context,
-    inflater: LayoutInflater,
     title: String? = null,
     hint: String? = null,
     positiveText: String,
@@ -24,6 +23,7 @@ class EditTextDialog(
     private val dialog: AlertDialog
 
     init {
+        val inflater = LayoutInflater.from(context)
         val binding = DialogEditTextBinding.inflate(inflater)
         val textEntry = binding.editText
         textEntry.hint = hint

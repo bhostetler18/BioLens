@@ -38,6 +38,9 @@ class GoogleDriveUploadWorker(
         val sessionId = inputData.getLong(KEY_SESSION_ID, -1)
         val accountName = inputData.getString(KEY_ACCOUNT_EMAIL)
         val accountType = inputData.getString(KEY_ACCOUNT_TYPE)
+        val metadataOnly = inputData.getBoolean(KEY_METADATA_ONLY, false)
+        val includeUserMetadata = inputData.getBoolean(KEY_INCLUDE_AUTOMOTH_METADATA, false)
+        val includeAutoMothMetadata = inputData.getBoolean(KEY_INCLUDE_USER_METADATA, false)
 
         if (sessionId <= 0 || accountName == null || accountType == null) {
             return Result.failure()
@@ -49,10 +52,22 @@ class GoogleDriveUploadWorker(
 
         val account = Account(accountName, accountType)
 
+        val formatter = AutoMothSessionCSVFormatter(session)
+        if (includeAutoMothMetadata) {
+            formatter.addAutoMothMetadata()
+        }
+        if (includeUserMetadata) {
+            formatter.addUserMetadata(AutoMothRepository.metadataStore)
+        }
+
         return withContext(Dispatchers.IO) {
             try {
                 val driveHelper = initializeDrive(account)
-                uploadSession(session, driveHelper)
+                val folder = getFolderFor(session, driveHelper, formatter)
+                uploadMetadata(session, formatter, driveHelper, folder)
+                if (!metadataOnly) {
+                    uploadImages(session, driveHelper, formatter, folder)
+                }
                 return@withContext Result.success()
             } catch (e: IOException) {
                 Log.e(TAG, e.toString())
@@ -76,15 +91,14 @@ class GoogleDriveUploadWorker(
         return GoogleDriveHelper(drive, appName)
     }
 
-    private suspend fun uploadSession(session: Session, driveHelper: GoogleDriveHelper) {
-        val formatter = AutoMothSessionCSVFormatter(session)
-
+    private fun getFolderFor(
+        session: Session,
+        driveHelper: GoogleDriveHelper,
+        formatter: AutoMothSessionCSVFormatter
+    ): String {
         val autoMothFolder = driveHelper.createOrGetFolder(driveHelper.appFolderName)
         val sessionDirectory = "${session.name}-${formatter.uniqueSessionId}"
-        val folder = driveHelper.createOrGetFolder(sessionDirectory, autoMothFolder)
-
-        uploadMetadata(session, formatter, driveHelper, folder)
-        uploadImages(session, formatter, driveHelper, folder)
+        return driveHelper.createOrGetFolder(sessionDirectory, autoMothFolder)
     }
 
     private suspend fun uploadMetadata(
@@ -95,20 +109,30 @@ class GoogleDriveUploadWorker(
     ) {
         setProgress(
             workDataOf(
-                KEY_METADATA to true
+                KEY_METADATA to true,
+                KEY_PROGRESS to 0,
+                KEY_MAX_PROGRESS to 1
             )
         )
         val exporter = SessionCSVExporter(formatter)
         val tmp = File(applicationContext.cacheDir, "metadata.csv")
         exporter.export(session, tmp)
-        driveHelper.uploadOrGetFile(tmp, MimeTypes.CSV, folder)
+        // TODO: overwrite
+        driveHelper.upload(tmp, MimeTypes.CSV, folderID = folder)
         tmp.delete()
+        setProgress(
+            workDataOf(
+                KEY_METADATA to true,
+                KEY_PROGRESS to 1,
+                KEY_MAX_PROGRESS to 1
+            )
+        )
     }
 
     private suspend fun uploadImages(
         session: Session,
-        formatter: AutoMothSessionCSVFormatter,
         driveHelper: GoogleDriveHelper,
+        formatter: AutoMothSessionCSVFormatter,
         folder: String
     ) {
         val images = AutoMothRepository.getImagesInSession(session.sessionID)
@@ -166,6 +190,9 @@ class GoogleDriveUploadWorker(
         const val KEY_SESSION_ID = "com.uf.automoth.extra.SESSION_ID"
         const val KEY_ACCOUNT_EMAIL = "com.uf.automoth.extra.ACCOUNT_EMAIL"
         const val KEY_ACCOUNT_TYPE = "com.uf.automoth.extra.ACCOUNT_TYPE"
+        const val KEY_INCLUDE_AUTOMOTH_METADATA = "com.uf.automoth.extra.INCLUDE_AUTOMOTH_METADATA"
+        const val KEY_INCLUDE_USER_METADATA = "com.uf.automoth.extra.INCLUDE_USER_METADATA"
+        const val KEY_METADATA_ONLY = "com.uf.automoth.extra.METADATA_ONLY"
         const val KEY_PROGRESS = "com.uf.automoth.extra.PROGRESS"
         const val KEY_MAX_PROGRESS = "com.uf.automoth.extra.MAX_PROGRESS"
         const val KEY_METADATA = "com.uf.automoth.extra.METADATA"

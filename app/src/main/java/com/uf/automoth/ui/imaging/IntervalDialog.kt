@@ -15,7 +15,6 @@ import java.util.function.Consumer
 
 class IntervalDialog(
     context: Context,
-    inflater: LayoutInflater,
     currentInterval: Int,
     private val estimatedImageSize: Double,
     consumer: Consumer<Int>
@@ -23,6 +22,7 @@ class IntervalDialog(
     private val binding: DialogIntervalPickerBinding
 
     init {
+        val inflater = LayoutInflater.from(context)
         binding = DialogIntervalPickerBinding.inflate(inflater)
     }
 
