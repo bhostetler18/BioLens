@@ -38,16 +38,20 @@ import com.uf.automoth.utility.getDeviceType
 // }
 
 // Basic metadata inherent to the app
-fun getDefaultMetadata(session: Session, context: Context): List<DisplayableMetadata> {
+fun getDefaultMetadata(
+    session: Session,
+    context: Context,
+    observer: MetadataChangeObserver = null
+): List<MetadataTableDataModel> {
     return listOf(
-        DisplayableMetadata.StringMetadata(
+        MetadataTableDataModel.StringMetadata(
             context.getString(R.string.name),
             false,
             session.name,
             { name -> name?.let { AutoMothRepository.renameSession(session.sessionID, it) } },
             { name -> name != null && Session.isValid(name) }
         ),
-        DisplayableMetadata.DoubleMetadata(
+        MetadataTableDataModel.DoubleMetadata(
             context.getString(R.string.latitude),
             false,
             session.latitude,
@@ -60,7 +64,7 @@ fun getDefaultMetadata(session: Session, context: Context): List<DisplayableMeta
             },
             { value -> value == null || (value >= -90 && value <= 90) }
         ),
-        DisplayableMetadata.DoubleMetadata(
+        MetadataTableDataModel.DoubleMetadata(
             context.getString(R.string.longitude),
             false,
             session.longitude,
@@ -73,27 +77,27 @@ fun getDefaultMetadata(session: Session, context: Context): List<DisplayableMeta
             },
             { value -> value == null || (value >= -180 && value <= 180) }
         ),
-        DisplayableMetadata.StringMetadata(
+        MetadataTableDataModel.StringMetadata(
             context.getString(R.string.interval),
             true,
             intervalDescription(session.interval, context, true)
         ),
-        DisplayableMetadata.DateMetadata(
+        MetadataTableDataModel.DateMetadata(
             context.getString(R.string.date_started),
             true,
             session.started
         ),
-        DisplayableMetadata.DateMetadata(
+        MetadataTableDataModel.DateMetadata(
             context.getString(R.string.date_completed),
             true,
             session.completed
         ),
-        DisplayableMetadata.StringMetadata(
+        MetadataTableDataModel.StringMetadata(
             context.getString(R.string.device_type),
             true,
             getDeviceType()
         )
-    )
+    ).onEach { it.observer = observer }
 }
 
 fun csvValidator(value: String?): Boolean {
@@ -108,11 +112,12 @@ suspend fun UserMetadataField.toDisplayableMetadata(
     db: UserMetadataStore,
     sessionID: Long,
     deletable: Boolean = false,
-    nameOverride: String? = null
-): DisplayableMetadata {
+    nameOverride: String? = null,
+    observer: MetadataChangeObserver = null
+): MetadataTableDataModel {
     return when (type) {
         UserMetadataType.STRING -> {
-            DisplayableMetadata.StringMetadata(
+            MetadataTableDataModel.StringMetadata(
                 nameOverride ?: field,
                 false,
                 db.getValue(field, sessionID),
@@ -121,7 +126,7 @@ suspend fun UserMetadataField.toDisplayableMetadata(
             )
         }
         UserMetadataType.INT -> {
-            DisplayableMetadata.IntMetadata(
+            MetadataTableDataModel.IntMetadata(
                 nameOverride ?: field,
                 false,
                 db.getValue(field, sessionID),
@@ -129,7 +134,7 @@ suspend fun UserMetadataField.toDisplayableMetadata(
             )
         }
         UserMetadataType.DOUBLE -> {
-            DisplayableMetadata.DoubleMetadata(
+            MetadataTableDataModel.DoubleMetadata(
                 nameOverride ?: field,
                 false,
                 db.getValue(field, sessionID),
@@ -137,7 +142,7 @@ suspend fun UserMetadataField.toDisplayableMetadata(
             )
         }
         UserMetadataType.BOOLEAN -> {
-            DisplayableMetadata.BooleanMetadata(
+            MetadataTableDataModel.BooleanMetadata(
                 nameOverride ?: field,
                 false,
                 db.getValue(field, sessionID)
@@ -145,6 +150,7 @@ suspend fun UserMetadataField.toDisplayableMetadata(
         }
     }.also {
         it.deletable = deletable
+        it.observer = observer
     }
 }
 

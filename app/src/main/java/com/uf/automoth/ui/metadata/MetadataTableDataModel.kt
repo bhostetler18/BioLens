@@ -5,11 +5,13 @@ import com.uf.automoth.R
 import com.uf.automoth.utility.SHORT_DATE_TIME_FORMATTER
 import java.time.OffsetDateTime
 
-interface DisplayableMetadataInterface {
+typealias MetadataChangeObserver = (() -> Unit)?
+
+interface EditableMetadataInterface {
     val name: String
     val readonly: Boolean
-    val dirty: Boolean
     var deletable: Boolean
+    val dirty: Boolean
     suspend fun writeValue()
 
     // Should return null when the absence of a value is significant and should be displayed as "unknown"
@@ -21,34 +23,44 @@ interface MetadataValueInterface<T> {
     var currentValue: T?
     val saveValue: suspend (T?) -> Unit
     val validate: (T?) -> Boolean
+    var observer: MetadataChangeObserver
+}
+
+fun <T> MetadataValueInterface<T>.isDirty(): Boolean {
+    return currentValue != originalValue
+}
+
+fun <T> MetadataValueInterface<T>.setValue(newValue: T?) {
+    if (newValue != currentValue) {
+        this.currentValue = newValue
+        observer?.invoke()
+    }
+}
+
+suspend fun <T> MetadataValueInterface<T>.saveValue() {
+    saveValue(currentValue)
+    originalValue = currentValue // so no longer dirty
+    observer?.invoke()
 }
 
 // Allows creating a List<Metadata> with heterogeneous contents in a type-safe manner
 // This looks unnecessary, but it also allows polymorphism as opposed to template types that would
 // be erased at runtime. Since there are relatively few types used, it seems like an okay compromise
 // especially since it allows limiting the Metadata types to those that can actually be displayed
-sealed class DisplayableMetadata : DisplayableMetadataInterface {
-    override var deletable = false
-    override val dirty = false
-
+sealed class MetadataTableDataModel {
     class StringMetadata(
         override val name: String,
         override val readonly: Boolean,
         override var originalValue: String?,
         override val saveValue: suspend (String?) -> Unit = {},
         override val validate: (String?) -> Boolean = { true }
-    ) : DisplayableMetadata(), DisplayableMetadataInterface, MetadataValueInterface<String> {
+    ) : MetadataTableDataModel(), EditableMetadataInterface, MetadataValueInterface<String> {
         override var currentValue = originalValue
-        override suspend fun writeValue() {
-            saveValue(currentValue)
-            originalValue = currentValue
-        }
-
+        override var deletable: Boolean = false
+        override val dirty get() = isDirty()
         override fun stringRepresentation(context: Context) = currentValue
-        override val dirty: Boolean
-            get() {
-                return currentValue != originalValue
-            }
+        override suspend fun writeValue() = saveValue()
+        override var observer: MetadataChangeObserver = null
     }
 
     class IntMetadata(
@@ -57,18 +69,13 @@ sealed class DisplayableMetadata : DisplayableMetadataInterface {
         override var originalValue: Int?,
         override val saveValue: suspend (Int?) -> Unit = {},
         override val validate: (Int?) -> Boolean = { true }
-    ) : DisplayableMetadata(), DisplayableMetadataInterface, MetadataValueInterface<Int> {
+    ) : MetadataTableDataModel(), EditableMetadataInterface, MetadataValueInterface<Int> {
         override var currentValue = originalValue
-        override suspend fun writeValue() {
-            saveValue(currentValue)
-            originalValue = currentValue
-        }
-
+        override var deletable: Boolean = false
+        override val dirty get() = isDirty()
         override fun stringRepresentation(context: Context): String? = currentValue?.toString()
-        override val dirty: Boolean
-            get() {
-                return currentValue != originalValue
-            }
+        override suspend fun writeValue() = saveValue()
+        override var observer: MetadataChangeObserver = null
     }
 
     class DoubleMetadata(
@@ -77,18 +84,13 @@ sealed class DisplayableMetadata : DisplayableMetadataInterface {
         override var originalValue: Double?,
         override val saveValue: suspend (Double?) -> Unit = {},
         override val validate: (Double?) -> Boolean = { true }
-    ) : DisplayableMetadata(), DisplayableMetadataInterface, MetadataValueInterface<Double> {
+    ) : MetadataTableDataModel(), EditableMetadataInterface, MetadataValueInterface<Double> {
         override var currentValue = originalValue
-        override suspend fun writeValue() {
-            saveValue(currentValue)
-            originalValue = currentValue
-        }
-
+        override var deletable: Boolean = false
+        override val dirty get() = isDirty()
         override fun stringRepresentation(context: Context): String? = currentValue?.toString()
-        override val dirty: Boolean
-            get() {
-                return currentValue != originalValue
-            }
+        override suspend fun writeValue() = saveValue()
+        override var observer: MetadataChangeObserver = null
     }
 
     class BooleanMetadata(
@@ -96,13 +98,10 @@ sealed class DisplayableMetadata : DisplayableMetadataInterface {
         override val readonly: Boolean,
         override var originalValue: Boolean?,
         override val saveValue: suspend (Boolean?) -> Unit = {}
-    ) : DisplayableMetadata(), DisplayableMetadataInterface, MetadataValueInterface<Boolean> {
+    ) : MetadataTableDataModel(), EditableMetadataInterface, MetadataValueInterface<Boolean> {
         override var currentValue = originalValue
-        override suspend fun writeValue() {
-            saveValue(currentValue)
-            originalValue = currentValue
-        }
-
+        override var deletable: Boolean = false
+        override val dirty get() = isDirty()
         override fun stringRepresentation(context: Context): String? {
             return when (currentValue) {
                 true -> context.getString(R.string.yes)
@@ -110,12 +109,9 @@ sealed class DisplayableMetadata : DisplayableMetadataInterface {
                 null -> null
             }
         }
-
+        override suspend fun writeValue() = saveValue()
         override val validate: (Boolean?) -> Boolean = { true }
-        override val dirty: Boolean
-            get() {
-                return currentValue != originalValue
-            }
+        override var observer: MetadataChangeObserver = null
     }
 
     class DateMetadata(
@@ -124,27 +120,17 @@ sealed class DisplayableMetadata : DisplayableMetadataInterface {
         override var originalValue: OffsetDateTime?,
         override val saveValue: suspend (OffsetDateTime?) -> Unit = {},
         override val validate: (OffsetDateTime?) -> Boolean = { true }
-    ) : DisplayableMetadata(),
-        DisplayableMetadataInterface,
+    ) : MetadataTableDataModel(),
+        EditableMetadataInterface,
         MetadataValueInterface<OffsetDateTime> {
         override var currentValue = originalValue
-        override suspend fun writeValue() {
-            saveValue(currentValue)
-            originalValue = currentValue
-        }
-
+        override var deletable: Boolean = false
+        override val dirty get() = isDirty()
         override fun stringRepresentation(context: Context) =
             currentValue?.format(SHORT_DATE_TIME_FORMATTER)
-
-        override val dirty: Boolean
-            get() {
-                return currentValue != originalValue
-            }
+        override suspend fun writeValue() = saveValue()
+        override var observer: MetadataChangeObserver = null
     }
 
-    class Header(override val name: String) : DisplayableMetadata() {
-        override val readonly = true
-        override suspend fun writeValue() {}
-        override fun stringRepresentation(context: Context): String = ""
-    }
+    class Header(val name: String) : MetadataTableDataModel()
 }

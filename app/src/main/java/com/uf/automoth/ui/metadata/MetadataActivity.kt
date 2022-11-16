@@ -65,9 +65,12 @@ class MetadataActivity : AppCompatActivity() {
             MetadataViewModel.Factory(session, applicationContext)
         )[MetadataViewModel::class.java]
 
-
         viewModel.allMetadata.observe(this) {
             adapter.submitList(it)
+        }
+
+        viewModel.isDirty.observe(this) {
+            binding.saveButton.isEnabled = it
         }
 
         binding.fab.setOnClickListener {
@@ -76,9 +79,13 @@ class MetadataActivity : AppCompatActivity() {
         }
 
         binding.saveButton.setOnClickListener {
-            binding.saveButton.isEnabled = false
             lifecycleScope.launch {
                 viewModel.saveChanges()
+                // Force EditTexts to rebind and get the new default value for use when resetting
+                // after an invalid value is entered. Otherwise, they would reset to the value that
+                // was set when the metadata editor was first opened, which would be confusing
+                ';'
+                adapter.rebindAll()
             }
         }
     }
@@ -89,14 +96,14 @@ class MetadataActivity : AppCompatActivity() {
             AutoMothRepository.metadataStore.addMetadataField(name, type)
             delay(200) // kind of hacky, but not worth the synchronization currently
             viewModel.allMetadata.value?.indexOfFirstOrNull {
-                it.name == name
+                (it as? EditableMetadataInterface)?.name == name
             }?.let {
                 binding.recyclerView.smoothScrollToPosition(it)
             }
         }
     }
 
-    fun deleteField(metadata: DisplayableMetadata) {
+    fun deleteField(metadata: EditableMetadataInterface) {
         if (!metadata.deletable) {
             return
         }
@@ -116,7 +123,7 @@ class MetadataActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if (viewModel.isDirty()) {
+        if (viewModel.isDirty.value == true) {
             simpleAlertDialogWithOkAndCancel(
                 this,
                 R.string.warn_exit_metadata,

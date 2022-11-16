@@ -1,5 +1,6 @@
 package com.uf.automoth.ui.metadata
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.isVisible
@@ -19,13 +20,13 @@ object MetadataViewType {
 }
 
 class MetadataAdapter :
-    ListAdapter<DisplayableMetadata, MetadataViewHolder>(METADATA_COMPARATOR) {
+    ListAdapter<MetadataTableDataModel, MetadataViewHolder>(METADATA_COMPARATOR) {
 
     private var _isInDeleteMode = false
     var allowDeletion: Boolean
         set(value) {
             _isInDeleteMode = value
-            notifyDataSetChanged()
+            rebindAll()
         }
         get() {
             return _isInDeleteMode
@@ -52,41 +53,50 @@ class MetadataAdapter :
 
     override fun getItemViewType(position: Int): Int {
         val item = getItem(position)
-        if (item.readonly && item !is DisplayableMetadata.Header) {
+        if (item is EditableMetadataInterface && item.readonly) {
             return MetadataViewType.READONLY
         }
         return when (item) {
-            is DisplayableMetadata.Header -> MetadataViewType.HEADER
-            is DisplayableMetadata.StringMetadata -> MetadataViewType.STRING
-            is DisplayableMetadata.IntMetadata -> MetadataViewType.INT
-            is DisplayableMetadata.DoubleMetadata -> MetadataViewType.DOUBLE
-            is DisplayableMetadata.BooleanMetadata -> MetadataViewType.BOOLEAN
-            is DisplayableMetadata.DateMetadata -> MetadataViewType.DATE
+            is MetadataTableDataModel.Header -> MetadataViewType.HEADER
+            is MetadataTableDataModel.StringMetadata -> MetadataViewType.STRING
+            is MetadataTableDataModel.IntMetadata -> MetadataViewType.INT
+            is MetadataTableDataModel.DoubleMetadata -> MetadataViewType.DOUBLE
+            is MetadataTableDataModel.BooleanMetadata -> MetadataViewType.BOOLEAN
+            is MetadataTableDataModel.DateMetadata -> MetadataViewType.DATE
         }
     }
 
     override fun onBindViewHolder(holder: MetadataViewHolder, position: Int) {
         val item = getItem(position)
         holder.bind(item)
-        holder.showRemoveButton(_isInDeleteMode && item.deletable)
-        holder.onRemovePressed = {
+        if (item is EditableMetadataInterface) {
+            holder.showRemoveButton(_isInDeleteMode && item.deletable)
+            holder.onRemovePressed = {
+
+            }
+        } else {
+            holder.showRemoveButton(false)
+            holder.onRemovePressed = null
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
+    fun rebindAll() {
+        notifyDataSetChanged()
+    }
+
     companion object {
-        private val METADATA_COMPARATOR = object : DiffUtil.ItemCallback<DisplayableMetadata>() {
+        private val METADATA_COMPARATOR = object : DiffUtil.ItemCallback<MetadataTableDataModel>() {
             override fun areItemsTheSame(
-                oldItem: DisplayableMetadata,
-                newItem: DisplayableMetadata
+                oldItem: MetadataTableDataModel,
+                newItem: MetadataTableDataModel
             ): Boolean {
-                return oldItem.name == newItem.name &&
-                    oldItem.readonly == newItem.readonly &&
-                    oldItem.javaClass == newItem.javaClass
+                return oldItem === newItem
             }
 
             override fun areContentsTheSame(
-                oldItem: DisplayableMetadata,
-                newItem: DisplayableMetadata
+                oldItem: MetadataTableDataModel,
+                newItem: MetadataTableDataModel
             ): Boolean {
                 return false
             }
@@ -106,7 +116,7 @@ class MetadataViewHolder private constructor(
         }
     }
 
-    fun bind(metadata: DisplayableMetadata) {
+    fun bind(metadata: MetadataTableDataModel) {
         row.bind(metadata)
     }
 

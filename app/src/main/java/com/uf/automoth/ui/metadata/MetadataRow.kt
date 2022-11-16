@@ -20,11 +20,11 @@ import com.uf.automoth.databinding.MetadataReadonlyItemBinding
 
 
 abstract class MetadataRow(context: Context, attrs: AttributeSet?) : LinearLayout(context, attrs) {
-    abstract fun bind(metadata: DisplayableMetadata)
+    abstract fun bind(metadata: MetadataTableDataModel)
     abstract fun resetHandlers()
 
-    protected inline fun <reified T : DisplayableMetadata> requireType(
-        metadata: DisplayableMetadata,
+    protected inline fun <reified T : MetadataTableDataModel> requireType(
+        metadata: MetadataTableDataModel,
         block: (metadata: T) -> Unit
     ) {
         (metadata as? T)?.let {
@@ -33,7 +33,7 @@ abstract class MetadataRow(context: Context, attrs: AttributeSet?) : LinearLayou
             resetHandlers() // Don't retain old value handlers and potentially edit the previous metadata object after failing to set a new one
             Log.e(
                 TAG,
-                "Metadata row '${metadata.name}' requires type ${T::class.simpleName} but received ${metadata.javaClass.simpleName}"
+                "Metadata row '${metadata}' requires type ${T::class.simpleName} but received ${metadata.javaClass.simpleName}"
             )
         }
     }
@@ -59,8 +59,8 @@ class MetadataHeaderRow(context: Context, attrs: AttributeSet?) : MetadataRow(co
             )
     }
 
-    override fun bind(metadata: DisplayableMetadata) {
-        requireType<DisplayableMetadata.Header>(metadata) {
+    override fun bind(metadata: MetadataTableDataModel) {
+        requireType<MetadataTableDataModel.Header>(metadata) {
             binding.headerTitle.text = it.name
         }
     }
@@ -84,10 +84,13 @@ class ReadonlyMetadataRow(context: Context, attrs: AttributeSet?) : MetadataRow(
             )
     }
 
-    override fun bind(metadata: DisplayableMetadata) {
-        binding.label.text = metadata.name
-        // TODO: gray/italicize value if null
-        binding.value.text = metadata.stringRepresentation(context)
+    override fun bind(metadata: MetadataTableDataModel) {
+        (metadata as? EditableMetadataInterface)?.let {
+            binding.label.text = it.name
+            // TODO: gray/italicize value if null
+            binding.value.text = it.stringRepresentation(context)
+        }
+
     }
 
     override fun resetHandlers() {}
@@ -106,12 +109,12 @@ class BooleanMetadataRow(context: Context, attrs: AttributeSet?) : MetadataRow(c
 
     private var onChangeValue: ((Boolean?) -> Unit) = {}
 
-    override fun bind(metadata: DisplayableMetadata) {
+    override fun bind(metadata: MetadataTableDataModel) {
         resetHandlers() // otherwise the old onChangeValue gets called when modifying the toggle state
-        requireType<DisplayableMetadata.BooleanMetadata>(metadata) {
+        requireType<MetadataTableDataModel.BooleanMetadata>(metadata) {
             binding.label.text = it.name
             setToggle(it.currentValue)
-            onChangeValue = { newValue -> it.currentValue = newValue }
+            onChangeValue = { newValue -> it.setValue(newValue) }
         }
     }
 
@@ -188,7 +191,7 @@ abstract class EditableMetadataRow<T> constructor(context: Context, attrs: Attri
 
     fun bindMetadataHandlers(metadata: MetadataValueInterface<T>) {
         setHandlers(
-            { newValue -> metadata.currentValue = newValue },
+            metadata::setValue,
             metadata.validate,
             metadata.currentValue
         )
@@ -241,8 +244,8 @@ abstract class EditableMetadataRow<T> constructor(context: Context, attrs: Attri
         editText.setText(defaultValue?.toString() ?: "")
     }
 
-    override fun bind(metadata: DisplayableMetadata) {
-        binding.label.text = metadata.name
+    override fun bind(metadata: MetadataTableDataModel) {
+        binding.label.text = (metadata as? EditableMetadataInterface)?.name
     }
 
     override fun resetHandlers() {
@@ -259,9 +262,9 @@ class StringMetadataRow(context: Context) : EditableMetadataRow<String>(context)
     override var validateValue: (String?) -> Boolean = { true }
     override var defaultValue: String? = null
 
-    override fun bind(metadata: DisplayableMetadata) {
+    override fun bind(metadata: MetadataTableDataModel) {
         super.bind(metadata)
-        requireType<DisplayableMetadata.StringMetadata>(metadata) {
+        requireType<MetadataTableDataModel.StringMetadata>(metadata) {
             bindMetadataHandlers(it)
         }
     }
@@ -277,9 +280,9 @@ class IntMetadataRow(context: Context) : EditableMetadataRow<Int>(context) {
     override var validateValue: (Int?) -> Boolean = { true }
     override var defaultValue: Int? = null
 
-    override fun bind(metadata: DisplayableMetadata) {
+    override fun bind(metadata: MetadataTableDataModel) {
         super.bind(metadata)
-        requireType<DisplayableMetadata.IntMetadata>(metadata) {
+        requireType<MetadataTableDataModel.IntMetadata>(metadata) {
             bindMetadataHandlers(it)
         }
     }
@@ -296,16 +299,16 @@ class IntMetadataRow(context: Context) : EditableMetadataRow<Int>(context) {
 class DoubleMetadataRow(context: Context) : EditableMetadataRow<Double>(context) {
     override fun convert(value: String?) = value?.toDoubleOrNull()
     override fun setup(editText: EditText) {
-        editText.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
+        editText.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL or InputType.TYPE_NUMBER_FLAG_SIGNED
     }
 
     override var onChangeValue: (Double?) -> Unit = { }
     override var validateValue: (Double?) -> Boolean = { true }
     override var defaultValue: Double? = null
 
-    override fun bind(metadata: DisplayableMetadata) {
+    override fun bind(metadata: MetadataTableDataModel) {
         super.bind(metadata)
-        requireType<DisplayableMetadata.DoubleMetadata>(metadata) {
+        requireType<MetadataTableDataModel.DoubleMetadata>(metadata) {
             bindMetadataHandlers(it)
         }
     }
