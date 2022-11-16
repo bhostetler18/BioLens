@@ -7,6 +7,7 @@ import com.google.api.client.http.FileContent
 import com.google.api.services.drive.Drive
 import java.io.File
 import java.util.*
+import com.google.api.services.drive.model.File as DriveFile
 
 class GoogleDriveHelper(private val drive: Drive, val appFolderName: String) {
 
@@ -22,27 +23,70 @@ class GoogleDriveHelper(private val drive: Drive, val appFolderName: String) {
             ?: upload(file, mimeType, folderID, overrideFilename, progressListener)
     }
 
+    fun uploadOrOverwriteFile(
+        file: File,
+        mimeType: String,
+        folderID: String = "root",
+        overrideFilename: String? = null,
+        progressListener: MediaHttpUploaderProgressListener = DUMMY_LISTENER
+    ) {
+        if (!update(file, mimeType, folderID, overrideFilename, progressListener)) {
+            upload(file, mimeType, folderID, overrideFilename, progressListener)
+        }
+    }
+
     fun upload(
         file: File,
         mimeType: String,
-        folderID: String? = null,
+        folderID: String = "root",
         overrideFilename: String? = null,
         progressListener: MediaHttpUploaderProgressListener = DUMMY_LISTENER
     ): String {
-        val filename = overrideFilename ?: file.name
-        val fileContent = FileContent(mimeType, file)
-        val fileMetadata = com.google.api.services.drive.model.File()
-        folderID?.let {
-            fileMetadata.parents = Collections.singletonList(folderID)
-        }
-        fileMetadata.name = filename
-        fileMetadata.mimeType = mimeType
-
+        val (fileMetadata, fileContent) = makeFileRepresentation(file, mimeType, folderID, overrideFilename)
         val request = drive.files().create(fileMetadata, fileContent).setFields("id")
         request.mediaHttpUploader.progressListener = progressListener
         val result = request.execute()
-        Log.d(TAG, "Uploaded file with id: $result.id")
+        Log.d(TAG, "Uploaded file with id: ${result.id}")
         return result.id
+    }
+
+    fun update(
+        file: File,
+        mimeType: String,
+        folderID: String = "root",
+        overrideFilename: String? = null,
+        progressListener: MediaHttpUploaderProgressListener = DUMMY_LISTENER
+    ): Boolean {
+        val filename = overrideFilename ?: file.name
+        getFileIdIfExists(filename, mimeType, folderID)?.let { id ->
+            // folderID is null because 'The parents field is not directly writable in update requests'
+            // and we don't want to change it anyway
+            val (fileMetadata, fileContent) = makeFileRepresentation(file, mimeType, null, overrideFilename)
+            val request = drive.files().update(id, fileMetadata, fileContent)
+            request.mediaHttpUploader.progressListener = progressListener
+            request.execute()
+            Log.d(TAG, "Updated file with id: $id")
+            return true
+        }
+        Log.d(TAG, "Could not update file: $filename does not exist")
+        return false
+    }
+
+    private fun makeFileRepresentation(
+        file: File,
+        mimeType: String,
+        folderID: String?,
+        overrideFilename: String? = null
+    ): Pair<DriveFile, FileContent> {
+        val filename = overrideFilename ?: file.name
+        val fileContent = FileContent(mimeType, file)
+        val fileMetadata = DriveFile()
+        folderID?.let {
+            fileMetadata.parents = Collections.singletonList(it)
+        }
+        fileMetadata.name = filename
+        fileMetadata.mimeType = mimeType
+        return Pair(fileMetadata, fileContent)
     }
 
     fun createOrGetFolder(name: String, parent: String = "root"): String {

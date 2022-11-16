@@ -109,24 +109,14 @@ class GoogleDriveUploadWorker(
     ) {
         setProgress(
             workDataOf(
-                KEY_METADATA to true,
-                KEY_PROGRESS to 0,
-                KEY_MAX_PROGRESS to 1
+                KEY_METADATA to true
             )
         )
         val exporter = SessionCSVExporter(formatter)
         val tmp = File(applicationContext.cacheDir, "metadata.csv")
         exporter.export(session, tmp)
-        // TODO: overwrite
-        driveHelper.upload(tmp, MimeTypes.CSV, folderID = folder)
+        driveHelper.uploadOrOverwriteFile(tmp, MimeTypes.CSV, folderID = folder)
         tmp.delete()
-        setProgress(
-            workDataOf(
-                KEY_METADATA to true,
-                KEY_PROGRESS to 1,
-                KEY_MAX_PROGRESS to 1
-            )
-        )
     }
 
     private suspend fun uploadImages(

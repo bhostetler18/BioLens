@@ -26,9 +26,11 @@ class UploadProgressBar(context: Context, attrs: AttributeSet?) :
     val progressBar = binding.progressBar
     val progressNumeric = binding.progressNumeric
 
+    var hasSetMaxProgress = false
     var maxProgress: Int
         get() = progressBar.max
         set(max) {
+            hasSetMaxProgress = true
             if (max != progressBar.max) {
                 progressBar.max = max
                 setProgress(0)
@@ -49,7 +51,7 @@ class UploadProgressBar(context: Context, attrs: AttributeSet?) :
     }
 
     fun showNumericProgress(enabled: Boolean) {
-        progressNumeric.isVisible = enabled
+        progressNumeric.visibility = if (enabled) View.VISIBLE else View.INVISIBLE
     }
 
     fun showActionButton(enabled: Boolean) {

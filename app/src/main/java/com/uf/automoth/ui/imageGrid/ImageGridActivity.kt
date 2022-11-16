@@ -288,7 +288,15 @@ class ImageGridActivity : AppCompatActivity() {
                 binding.progressBar.setLabel(getString(R.string.upload_complete))
                 // The Result.Success() WorkInfo update may occur before the final update to KEY_PROGRESS,
                 // so just force the progress bar to show fully complete
-                binding.progressBar.setProgress(binding.progressBar.maxProgress)
+                binding.progressBar.showComplete()
+                if (!binding.progressBar.hasSetMaxProgress) {
+                    // The Result.Success() WorkInfo contains no progress information, and when
+                    // navigating back to a completed upload the progress bar may not have been
+                    // configured with the proper max value and would just show 100/100. In this
+                    // case, just hide the numbers
+                    binding.progressBar.showNumericProgress(false)
+                }
+
                 binding.progressBar.configureActionButton(getString(R.string.dismiss)) {
                     dismissAndResetUploadBar()
                 }
