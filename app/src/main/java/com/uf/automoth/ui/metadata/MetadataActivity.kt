@@ -1,7 +1,10 @@
 package com.uf.automoth.ui.metadata
 
+import android.graphics.Rect
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.MotionEvent
+import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -12,6 +15,7 @@ import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.metadata.UserMetadataType
 import com.uf.automoth.databinding.ActivityMetadataEditorBinding
 import com.uf.automoth.ui.common.simpleAlertDialogWithOkAndCancel
+import com.uf.automoth.utility.hideSoftKeyboard
 import com.uf.automoth.utility.indexOfFirstOrNull
 import com.uf.automoth.utility.launchDialog
 import kotlinx.coroutines.delay
@@ -30,6 +34,15 @@ class MetadataActivity : AppCompatActivity() {
 //            displayError()
             return
         }
+
+        binding.recyclerView.adapter = adapter
+        binding.recyclerView.layoutManager = LinearLayoutManager(this)
+        binding.recyclerView.addItemDecoration(
+            DividerItemDecoration(
+                this,
+                DividerItemDecoration.VERTICAL
+            )
+        )
 
         setSupportActionBar(binding.appBar.toolbar)
         setContentView(binding.root)
@@ -52,14 +65,6 @@ class MetadataActivity : AppCompatActivity() {
             MetadataViewModel.Factory(session, applicationContext)
         )[MetadataViewModel::class.java]
 
-        binding.recyclerView.adapter = adapter
-        binding.recyclerView.layoutManager = LinearLayoutManager(this)
-        binding.recyclerView.addItemDecoration(
-            DividerItemDecoration(
-                this,
-                DividerItemDecoration.VERTICAL
-            )
-        )
 
         viewModel.allMetadata.observe(this) {
             adapter.submitList(it)
@@ -121,5 +126,19 @@ class MetadataActivity : AppCompatActivity() {
         } else {
             super.onBackPressed()
         }
+    }
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        if (event.action == MotionEvent.ACTION_DOWN) {
+            (currentFocus as? EditText)?.let {
+                val rect = Rect()
+                it.getGlobalVisibleRect(rect)
+                if (!rect.contains(event.rawX.toInt(), event.rawY.toInt())) {
+                    hideSoftKeyboard()
+                    it.clearFocus()
+                }
+            }
+        }
+        return super.dispatchTouchEvent(event)
     }
 }

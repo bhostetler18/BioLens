@@ -8,6 +8,7 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.LinearLayout
 import com.google.android.material.button.MaterialButtonToggleGroup
@@ -16,6 +17,7 @@ import com.uf.automoth.databinding.MetadataBooleanItemBinding
 import com.uf.automoth.databinding.MetadataEditableItemBinding
 import com.uf.automoth.databinding.MetadataHeaderRowBinding
 import com.uf.automoth.databinding.MetadataReadonlyItemBinding
+
 
 abstract class MetadataRow(context: Context, attrs: AttributeSet?) : LinearLayout(context, attrs) {
     abstract fun bind(metadata: DisplayableMetadata)
@@ -154,6 +156,9 @@ abstract class EditableMetadataRow<T> constructor(context: Context, attrs: Attri
         binding =
             MetadataEditableItemBinding.inflate(LayoutInflater.from(context), this, true)
         editText = binding.editText
+        // It would be nice to use the "next" option, but this causes crashes when rows are displayed
+        // in a recyclerview. See https://stackoverflow.com/questions/13614101/fatal-crash-focus-search-returned-a-view-that-wasnt-able-to-take-focus
+        editText.imeOptions = EditorInfo.IME_ACTION_DONE
     }
 
     protected abstract var onChangeValue: ((T?) -> Unit)
@@ -192,6 +197,14 @@ abstract class EditableMetadataRow<T> constructor(context: Context, attrs: Attri
     private fun setupEditText() {
         editText.addTextChangedListener(this)
         editText.onFocusChangeListener = this
+
+        editText.setOnEditorActionListener { v, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                v.clearFocus()
+            }
+            false
+        }
+
         editText.hint = context.getString(R.string.unknown)
         setup(editText)
     }

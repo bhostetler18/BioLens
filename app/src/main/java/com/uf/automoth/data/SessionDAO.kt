@@ -49,6 +49,9 @@ interface SessionDAO {
     @Query("SELECT * FROM sessions WHERE sessionID = :id")
     suspend fun getSession(id: Long): Session?
 
+    @Query("SELECT * FROM sessions WHERE sessionID = :id")
+    fun getSessionFlow(id: Long): Flow<Session?>
+
     @Query("UPDATE sessions SET latitude = :latitude, longitude = :longitude WHERE sessionID = :id")
     suspend fun updateSessionLocation(id: Long, latitude: Double?, longitude: Double?)
 

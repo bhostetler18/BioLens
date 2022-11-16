@@ -101,6 +101,12 @@ object AutoMothRepository {
         return null
     }
 
+    fun deleteSession(id: Long) = coroutineScope.launch {
+        getSession(id)?.let {
+            delete(it)
+        }
+    }
+
     fun delete(session: Session) = coroutineScope.launch {
         val sessionDir = File(storageLocation, session.directory)
         val deleted = withContext(Dispatchers.IO) {
@@ -139,6 +145,8 @@ object AutoMothRepository {
     }
 
     suspend fun getSession(id: Long): Session? = database.sessionDAO().getSession(id)
+    fun getSessionFlow(id: Long): Flow<Session?> = database.sessionDAO().getSessionFlow(id)
+
     suspend fun getPendingSession(requestCode: Long) =
         database.pendingSessionDAO().getPendingSession(requestCode)
 

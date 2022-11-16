@@ -189,8 +189,8 @@ class GoogleDriveUploadWorker(
 
         private const val UPLOAD_CHANNEL_ID: String = "com.uf.automoth.notification.uploadChannel"
 
-        fun uniqueWorkerTag(session: Session): String {
-            return "UPLOAD_${session.sessionID}"
+        fun uniqueWorkerTag(sessionID: Long): String {
+            return "UPLOAD_${sessionID}"
         }
     }
 }
