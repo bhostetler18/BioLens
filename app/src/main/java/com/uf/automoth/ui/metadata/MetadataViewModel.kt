@@ -23,8 +23,22 @@ class MetadataViewModel(private val session: Session, context: Context) : ViewMo
         updateUserMetadata(fields)
         return@map listOf(DisplayableMetadata.Header(defaultMetadataHeader)) + defaultMetadata +
             listOf(DisplayableMetadata.Header(autoMothMetadataHeader)) + autoMothMetadata +
-            listOf(DisplayableMetadata.Header(userMetadataHeader, true)) + userMetadata
+            listOf(DisplayableMetadata.Header(userMetadataHeader)) + userMetadata
     }.asLiveData()
+
+    fun isDirty(): Boolean {
+        return (defaultMetadata + autoMothMetadata + userMetadata).any {
+            it.dirty
+        }
+    }
+
+    suspend fun saveChanges() {
+        allMetadata.value?.forEach {
+            if (!it.readonly && it.dirty) {
+                it.writeValue()
+            }
+        }
+    }
 
     private suspend fun updateUserMetadata(fields: List<UserMetadataKey>) {
         // Each displayable metadata holds a temporary edited value for its field, so we can't just

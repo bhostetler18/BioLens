@@ -10,7 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
 import android.widget.LinearLayout
-import androidx.core.view.isVisible
+import com.google.android.material.button.MaterialButtonToggleGroup
 import com.uf.automoth.R
 import com.uf.automoth.databinding.MetadataBooleanItemBinding
 import com.uf.automoth.databinding.MetadataEditableItemBinding
@@ -99,19 +99,41 @@ class BooleanMetadataRow(context: Context, attrs: AttributeSet?) : MetadataRow(c
     init {
         binding =
             MetadataBooleanItemBinding.bind(inflate(context, R.layout.metadata_boolean_item, this))
-        binding.toggle.setOnCheckedChangeListener { _, isChecked ->
-            onChangeValue(isChecked)
-        }
+        binding.toggleGroup.addOnButtonCheckedListener(::onSelected)
     }
 
     private var onChangeValue: ((Boolean?) -> Unit) = {}
 
     override fun bind(metadata: DisplayableMetadata) {
-        resetHandlers() // otherwise the old onChangeValue gets called when modifying binding.toggle.isChecked
+        resetHandlers() // otherwise the old onChangeValue gets called when modifying the toggle state
         requireType<DisplayableMetadata.BooleanMetadata>(metadata) {
             binding.label.text = it.name
-            binding.toggle.isChecked = it.value ?: false
-            onChangeValue = { newValue -> it.value = newValue }
+            setToggle(it.currentValue)
+            onChangeValue = { newValue -> it.currentValue = newValue }
+        }
+    }
+
+    private fun onSelected(
+        @Suppress("UNUSED_PARAMETER")
+        group: MaterialButtonToggleGroup,
+        toggleId: Int,
+        checked: Boolean
+    ) {
+        if (!checked) {
+            return
+        }
+        when (toggleId) {
+            R.id.undefined_toggle -> onChangeValue(null)
+            R.id.no_toggle -> onChangeValue(false)
+            R.id.yes_toggle -> onChangeValue(true)
+        }
+    }
+
+    private fun setToggle(value: Boolean?) {
+        when (value) {
+            true -> binding.toggleGroup.check(R.id.yes_toggle)
+            false -> binding.toggleGroup.check(R.id.no_toggle)
+            null -> binding.toggleGroup.check(R.id.undefined_toggle)
         }
     }
 
@@ -138,9 +160,9 @@ abstract class EditableMetadataRow<T> constructor(context: Context, attrs: Attri
     protected abstract var validateValue: (T?) -> Boolean
     protected abstract var defaultValue: T?
     protected abstract fun setup(editText: EditText)
-    protected abstract fun convert(value: String): T?
+    protected abstract fun convert(value: String?): T?
 
-    fun setHandlers(
+    private fun setHandlers(
         onChangeValue: ((T?) -> Unit),
         validateValue: (T?) -> Boolean,
         defaultValue: T?
@@ -159,6 +181,14 @@ abstract class EditableMetadataRow<T> constructor(context: Context, attrs: Attri
         // need to be called anyway until they have something to do...
     }
 
+    fun bindMetadataHandlers(metadata: MetadataValueInterface<T>) {
+        setHandlers(
+            { newValue -> metadata.currentValue = newValue },
+            metadata.validate,
+            metadata.currentValue
+        )
+    }
+
     private fun setupEditText() {
         editText.addTextChangedListener(this)
         editText.onFocusChangeListener = this
@@ -169,7 +199,11 @@ abstract class EditableMetadataRow<T> constructor(context: Context, attrs: Attri
     override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
     override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-        val new = convert(s?.toString() ?: "")
+        var text = s?.toString()
+        if (text == "") {
+            text = null
+        }
+        val new = convert(text)
         if (validateValue(new)) {
             onChangeValue(new)
             editText.error = null
@@ -206,7 +240,7 @@ abstract class EditableMetadataRow<T> constructor(context: Context, attrs: Attri
 }
 
 class StringMetadataRow(context: Context) : EditableMetadataRow<String>(context) {
-    override fun convert(value: String) = value
+    override fun convert(value: String?) = value
     override fun setup(editText: EditText) {}
     override var onChangeValue: (String?) -> Unit = { }
     override var validateValue: (String?) -> Boolean = { true }
@@ -215,13 +249,13 @@ class StringMetadataRow(context: Context) : EditableMetadataRow<String>(context)
     override fun bind(metadata: DisplayableMetadata) {
         super.bind(metadata)
         requireType<DisplayableMetadata.StringMetadata>(metadata) {
-            setHandlers({ newValue -> it.value = newValue }, it.validate, it.value)
+            bindMetadataHandlers(it)
         }
     }
 }
 
 class IntMetadataRow(context: Context) : EditableMetadataRow<Int>(context) {
-    override fun convert(value: String) = value.toIntOrNull()
+    override fun convert(value: String?) = value?.toIntOrNull()
     override fun setup(editText: EditText) {
         editText.inputType = InputType.TYPE_CLASS_NUMBER
     }
@@ -233,7 +267,7 @@ class IntMetadataRow(context: Context) : EditableMetadataRow<Int>(context) {
     override fun bind(metadata: DisplayableMetadata) {
         super.bind(metadata)
         requireType<DisplayableMetadata.IntMetadata>(metadata) {
-            setHandlers({ newValue -> it.value = newValue }, it.validate, it.value)
+            bindMetadataHandlers(it)
         }
     }
 
@@ -247,7 +281,7 @@ class IntMetadataRow(context: Context) : EditableMetadataRow<Int>(context) {
 }
 
 class DoubleMetadataRow(context: Context) : EditableMetadataRow<Double>(context) {
-    override fun convert(value: String) = value.toDoubleOrNull()
+    override fun convert(value: String?) = value?.toDoubleOrNull()
     override fun setup(editText: EditText) {
         editText.inputType = InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_DECIMAL
     }
@@ -259,7 +293,7 @@ class DoubleMetadataRow(context: Context) : EditableMetadataRow<Double>(context)
     override fun bind(metadata: DisplayableMetadata) {
         super.bind(metadata)
         requireType<DisplayableMetadata.DoubleMetadata>(metadata) {
-            setHandlers({ newValue -> it.value = newValue }, it.validate, it.value)
+            bindMetadataHandlers(it)
         }
     }
 }

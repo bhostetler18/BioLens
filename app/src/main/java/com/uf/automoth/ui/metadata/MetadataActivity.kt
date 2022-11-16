@@ -1,20 +1,27 @@
 package com.uf.automoth.ui.metadata
 
 import android.os.Bundle
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.uf.automoth.R
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.metadata.UserMetadataType
 import com.uf.automoth.databinding.ActivityMetadataEditorBinding
+import com.uf.automoth.ui.common.simpleAlertDialogWithOkAndCancel
+import com.uf.automoth.utility.indexOfFirstOrNull
 import com.uf.automoth.utility.launchDialog
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MetadataActivity : AppCompatActivity() {
 
     private lateinit var viewModel: MetadataViewModel
+    private val binding by lazy { ActivityMetadataEditorBinding.inflate(layoutInflater) }
+    private val adapter = MetadataAdapter()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,6 +30,11 @@ class MetadataActivity : AppCompatActivity() {
 //            displayError()
             return
         }
+
+        setSupportActionBar(binding.appBar.toolbar)
+        setContentView(binding.root)
+        supportActionBar?.title = getString(R.string.metadata)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         lifecycleScope.launch {
             initialize(sessionID)
@@ -40,8 +52,6 @@ class MetadataActivity : AppCompatActivity() {
             MetadataViewModel.Factory(session, applicationContext)
         )[MetadataViewModel::class.java]
 
-        val binding = ActivityMetadataEditorBinding.inflate(layoutInflater)
-        val adapter = MetadataAdapter()
         binding.recyclerView.adapter = adapter
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.addItemDecoration(
@@ -59,15 +69,25 @@ class MetadataActivity : AppCompatActivity() {
             val dialog = AddFieldDialog(this, this::createField)
             launchDialog(dialog, binding.fab)
         }
-        setContentView(binding.root)
+
+        binding.saveButton.setOnClickListener {
+            binding.saveButton.isEnabled = false
+            lifecycleScope.launch {
+                viewModel.saveChanges()
+            }
+        }
     }
 
     private fun createField(name: String, type: UserMetadataType) {
         lifecycleScope.launch {
             // TODO: show warning if already exists
             AutoMothRepository.metadataStore.addMetadataField(name, type)
-            // Reload UI and metadata list (maybe have livedata or flow that fetches metadata list
-            // automatically and feeds it to recyclerview?
+            delay(200) // kind of hacky, but not worth the synchronization currently
+            viewModel.allMetadata.value?.indexOfFirstOrNull {
+                it.name == name
+            }?.let {
+                binding.recyclerView.smoothScrollToPosition(it)
+            }
         }
     }
 
@@ -80,12 +100,26 @@ class MetadataActivity : AppCompatActivity() {
         }
     }
 
-    suspend fun saveChanges() {
-        viewModel.allMetadata.value?.forEach {
-            if (!it.readonly) {
-                it.writeValue()
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            android.R.id.home -> {
+                onBackPressed()
+                true
             }
+            else -> false
         }
-        // TODO: rewrite metadata file
+    }
+
+    override fun onBackPressed() {
+        if (viewModel.isDirty()) {
+            simpleAlertDialogWithOkAndCancel(
+                this,
+                R.string.warn_exit_metadata,
+                R.string.warn_unsaved_changes,
+                onOk = { super.onBackPressed() }
+            ).show()
+        } else {
+            super.onBackPressed()
+        }
     }
 }

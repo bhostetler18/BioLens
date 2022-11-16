@@ -140,4 +140,9 @@
     <string name="upload_metadata_only">Upload metadata only</string>
     <string name="export_options">Export Options</string>
     <string name="export">Export</string>
+    <string name="metadata">Metadata</string>
+    <string name="undefined_toggle">N/A</string>
+    <string name="warn_unsaved_changes">Exiting will discard your changes</string>
+    <string name="warn_exit_metadata">Are you sure you want to leave this screen?</string>
+    <string name="save_changes">Save Changes</string>
 </resources>
