@@ -11,10 +11,7 @@ class CSVWriter(
     private val writer: PrintWriter = PrintWriter(file)
 
     fun writeLine(values: List<String>) {
-        for (value in values) {
-            writer.write(value)
-            writer.write(separator)
-        }
+        writer.write(values.joinToString(separator))
         writer.println()
     }
 
