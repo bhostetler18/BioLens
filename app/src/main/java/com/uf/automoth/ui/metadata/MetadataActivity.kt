@@ -2,6 +2,7 @@ package com.uf.automoth.ui.metadata
 
 import android.graphics.Rect
 import android.os.Bundle
+import android.util.Log
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.widget.EditText
@@ -11,12 +12,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.uf.automoth.R
-import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.metadata.UserMetadataType
 import com.uf.automoth.databinding.ActivityMetadataEditorBinding
+import com.uf.automoth.ui.common.simpleAlertDialogWithOk
 import com.uf.automoth.ui.common.simpleAlertDialogWithOkAndCancel
 import com.uf.automoth.utility.hideSoftKeyboard
-import com.uf.automoth.utility.indexOfFirstOrNull
 import com.uf.automoth.utility.launchDialog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -35,6 +35,11 @@ class MetadataActivity : AppCompatActivity() {
             return
         }
 
+        viewModel = ViewModelProvider(
+            this@MetadataActivity,
+            MetadataViewModel.Factory(sessionID, applicationContext)
+        )[MetadataViewModel::class.java]
+
         binding.recyclerView.adapter = adapter
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.addItemDecoration(
@@ -48,22 +53,6 @@ class MetadataActivity : AppCompatActivity() {
         setContentView(binding.root)
         supportActionBar?.title = getString(R.string.metadata)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
-        lifecycleScope.launch {
-            initialize(sessionID)
-        }
-    }
-
-    private suspend fun initialize(sessionID: Long) {
-        val session = AutoMothRepository.getSession(sessionID) ?: run {
-//            runOnUiThread { displayError() }
-            return@initialize
-        }
-
-        viewModel = ViewModelProvider(
-            this@MetadataActivity,
-            MetadataViewModel.Factory(session, applicationContext)
-        )[MetadataViewModel::class.java]
 
         viewModel.allMetadata.observe(this) {
             adapter.submitList(it)
@@ -81,34 +70,34 @@ class MetadataActivity : AppCompatActivity() {
         binding.saveButton.setOnClickListener {
             lifecycleScope.launch {
                 viewModel.saveChanges()
-                // Force EditTexts to rebind and get the new default value for use when resetting
-                // after an invalid value is entered. Otherwise, they would reset to the value that
-                // was set when the metadata editor was first opened, which would be confusing
-                ';'
-                adapter.rebindAll()
             }
         }
     }
 
     private fun createField(name: String, type: UserMetadataType) {
         lifecycleScope.launch {
-            // TODO: show warning if already exists
-            AutoMothRepository.metadataStore.addMetadataField(name, type)
-            delay(200) // kind of hacky, but not worth the synchronization currently
-            viewModel.allMetadata.value?.indexOfFirstOrNull {
-                (it as? EditableMetadataInterface)?.name == name
-            }?.let {
-                binding.recyclerView.smoothScrollToPosition(it)
+            val index = viewModel.addUserField(name, type)
+            delay(100)
+            runOnUiThread {
+                if (index != null) {
+                    binding.recyclerView.smoothScrollToPosition(index)
+                } else {
+                    simpleAlertDialogWithOk(
+                        this@MetadataActivity,
+                        R.string.warn_fail_to_add_metadata
+                    ).show()
+                }
             }
         }
     }
 
-    fun deleteField(metadata: EditableMetadataInterface) {
-        if (!metadata.deletable) {
+    fun deleteField(item: MetadataTableDataModel) {
+        if (item.editable?.deletable != true) {
+            Log.w(TAG, "Tried to delete metadata $item which is not deletable")
             return
         }
         lifecycleScope.launch {
-            AutoMothRepository.metadataStore.deleteMetadataField(metadata.name)
+            viewModel.removeUserField(item)
         }
     }
 
@@ -147,5 +136,9 @@ class MetadataActivity : AppCompatActivity() {
             }
         }
         return super.dispatchTouchEvent(event)
+    }
+
+    companion object {
+        private const val TAG = "[METADATA_ACTIVITY]"
     }
 }

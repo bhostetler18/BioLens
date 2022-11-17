@@ -151,6 +151,17 @@ suspend fun UserMetadataField.toDisplayableMetadata(
     }.also {
         it.deletable = deletable
         it.observer = observer
+        it.userField = this
+    }
+}
+
+suspend fun getUserMetadata(
+    sessionID: Long,
+    store: UserMetadataStore,
+    observer: MetadataChangeObserver
+): List<MetadataTableDataModel> {
+    return store.getAllFields().map {
+        it.toDisplayableMetadata(store, sessionID, true, observer = observer)
     }
 }
 

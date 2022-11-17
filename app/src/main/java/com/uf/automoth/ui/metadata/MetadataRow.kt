@@ -18,7 +18,6 @@ import com.uf.automoth.databinding.MetadataEditableItemBinding
 import com.uf.automoth.databinding.MetadataHeaderRowBinding
 import com.uf.automoth.databinding.MetadataReadonlyItemBinding
 
-
 abstract class MetadataRow(context: Context, attrs: AttributeSet?) : LinearLayout(context, attrs) {
     abstract fun bind(metadata: MetadataTableDataModel)
     abstract fun resetHandlers()
@@ -33,7 +32,7 @@ abstract class MetadataRow(context: Context, attrs: AttributeSet?) : LinearLayou
             resetHandlers() // Don't retain old value handlers and potentially edit the previous metadata object after failing to set a new one
             Log.e(
                 TAG,
-                "Metadata row '${metadata}' requires type ${T::class.simpleName} but received ${metadata.javaClass.simpleName}"
+                "Metadata row '$metadata' requires type ${T::class.simpleName} but received ${metadata.javaClass.simpleName}"
             )
         }
     }
@@ -85,12 +84,11 @@ class ReadonlyMetadataRow(context: Context, attrs: AttributeSet?) : MetadataRow(
     }
 
     override fun bind(metadata: MetadataTableDataModel) {
-        (metadata as? EditableMetadataInterface)?.let {
+        metadata.editable?.let {
             binding.label.text = it.name
             // TODO: gray/italicize value if null
             binding.value.text = it.stringRepresentation(context)
         }
-
     }
 
     override fun resetHandlers() {}
@@ -245,7 +243,7 @@ abstract class EditableMetadataRow<T> constructor(context: Context, attrs: Attri
     }
 
     override fun bind(metadata: MetadataTableDataModel) {
-        binding.label.text = (metadata as? EditableMetadataInterface)?.name
+        binding.label.text = metadata.editable?.name
     }
 
     override fun resetHandlers() {

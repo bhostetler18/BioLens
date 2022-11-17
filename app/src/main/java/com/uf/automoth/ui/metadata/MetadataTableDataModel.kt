@@ -2,6 +2,7 @@ package com.uf.automoth.ui.metadata
 
 import android.content.Context
 import com.uf.automoth.R
+import com.uf.automoth.data.metadata.UserMetadataField
 import com.uf.automoth.utility.SHORT_DATE_TIME_FORMATTER
 import java.time.OffsetDateTime
 
@@ -12,6 +13,7 @@ interface EditableMetadataInterface {
     val readonly: Boolean
     var deletable: Boolean
     val dirty: Boolean
+    var userField: UserMetadataField?
     suspend fun writeValue()
 
     // Should return null when the absence of a value is significant and should be displayed as "unknown"
@@ -48,6 +50,7 @@ suspend fun <T> MetadataValueInterface<T>.saveValue() {
 // be erased at runtime. Since there are relatively few types used, it seems like an okay compromise
 // especially since it allows limiting the Metadata types to those that can actually be displayed
 sealed class MetadataTableDataModel {
+
     class StringMetadata(
         override val name: String,
         override val readonly: Boolean,
@@ -61,6 +64,7 @@ sealed class MetadataTableDataModel {
         override fun stringRepresentation(context: Context) = currentValue
         override suspend fun writeValue() = saveValue()
         override var observer: MetadataChangeObserver = null
+        override var userField: UserMetadataField? = null
     }
 
     class IntMetadata(
@@ -76,6 +80,7 @@ sealed class MetadataTableDataModel {
         override fun stringRepresentation(context: Context): String? = currentValue?.toString()
         override suspend fun writeValue() = saveValue()
         override var observer: MetadataChangeObserver = null
+        override var userField: UserMetadataField? = null
     }
 
     class DoubleMetadata(
@@ -91,6 +96,7 @@ sealed class MetadataTableDataModel {
         override fun stringRepresentation(context: Context): String? = currentValue?.toString()
         override suspend fun writeValue() = saveValue()
         override var observer: MetadataChangeObserver = null
+        override var userField: UserMetadataField? = null
     }
 
     class BooleanMetadata(
@@ -112,6 +118,7 @@ sealed class MetadataTableDataModel {
         override suspend fun writeValue() = saveValue()
         override val validate: (Boolean?) -> Boolean = { true }
         override var observer: MetadataChangeObserver = null
+        override var userField: UserMetadataField? = null
     }
 
     class DateMetadata(
@@ -128,9 +135,14 @@ sealed class MetadataTableDataModel {
         override val dirty get() = isDirty()
         override fun stringRepresentation(context: Context) =
             currentValue?.format(SHORT_DATE_TIME_FORMATTER)
+
         override suspend fun writeValue() = saveValue()
         override var observer: MetadataChangeObserver = null
+        override var userField: UserMetadataField? = null
     }
 
     class Header(val name: String) : MetadataTableDataModel()
 }
+
+val MetadataTableDataModel.editable: EditableMetadataInterface?
+    get() = this as? EditableMetadataInterface

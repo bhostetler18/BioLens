@@ -22,10 +22,10 @@ interface UserMetadataKeyDAO {
     @Query("SELECT * FROM metadata_keys WHERE `key` = :key")
     suspend fun get(key: String): UserMetadataKey?
 
-    @Query("SELECT * FROM metadata_keys")
+    @Query("SELECT * FROM metadata_keys ORDER BY `key`")
     suspend fun getAllKeys(): List<UserMetadataKey>
 
-    @Query("SELECT * FROM metadata_keys")
+    @Query("SELECT * FROM metadata_keys ORDER BY `key`")
     fun getAllKeysFlow(): Flow<List<UserMetadataKey>>
 
     @Query("SELECT type FROM metadata_keys where `key` = :key")

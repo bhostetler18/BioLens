@@ -54,6 +54,7 @@
             android:exported="false" />
         <activity
             android:name="com.uf.automoth.ui.metadata.MetadataActivity"
+            android:windowSoftInputMode="adjustPan"
             android:exported="false" />
 
         <provider
