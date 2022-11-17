@@ -1,5 +1,6 @@
 package com.uf.automoth.data.metadata
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Ignore
@@ -18,6 +19,7 @@ data class UserMetadataKey(
 @Entity(
     tableName = "metadata_values",
     primaryKeys = ["key", "sessionID"],
+    indices = [],
     foreignKeys = [
         ForeignKey(
             entity = UserMetadataKey::class,
@@ -35,7 +37,7 @@ data class UserMetadataKey(
 )
 data class UserMetadataValue(
     val key: String,
-    val sessionID: Long,
+    @ColumnInfo(index = true) val sessionID: Long,
     val stringValue: String? = null,
     val intValue: Int? = null,
     val boolValue: Boolean? = null,

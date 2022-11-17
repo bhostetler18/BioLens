@@ -10,12 +10,13 @@ import com.uf.automoth.data.metadata.UserMetadataValue
 import com.uf.automoth.data.metadata.UserMetadataValueDAO
 
 @Database(
-    version = 2,
+    version = 3,
     entities = [
         Image::class, Session::class, PendingSession::class, UserMetadataKey::class, UserMetadataValue::class
     ],
     autoMigrations = [
-        AutoMigration(from = 1, to = 2)
+        AutoMigration(from = 1, to = 2),
+        AutoMigration(from = 2, to = 3)
     ]
 )
 @TypeConverters(AutoMothTypeConverters::class)
