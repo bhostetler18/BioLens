@@ -14,7 +14,7 @@ import com.uf.automoth.utility.SingletonDialog
 data class ExportOptions(
     val includeAutoMothMetadata: Boolean,
     val includeUserMetadata: Boolean,
-    val metadataOnly: Boolean
+    val metadataOnly: Boolean = false
 ) {
     companion object {
         val default = ExportOptions(

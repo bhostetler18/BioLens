@@ -14,7 +14,7 @@ class MetadataViewModel(
     context: Context
 ) : ViewModel(), MetadataListObserver {
 
-    private val metadataList = MetadataList(context, this)
+    private val metadataList = MetadataList(context, viewModelScope, this)
 
     private val _allMetadata: MutableLiveData<List<MetadataTableDataModel>> =
         MutableLiveData(emptyList())
@@ -33,10 +33,8 @@ class MetadataViewModel(
         _allMetadata.postValue(newList)
     }
 
-    override fun onMetadataValueChanged() {
-        viewModelScope.launch {
-            _isDirty.postValue(metadataList.isDirty())
-        }
+    override fun onDirtyChanged(isDirty: Boolean) {
+        _isDirty.postValue(isDirty)
     }
 
     suspend fun saveChanges() = metadataList.saveChanges()

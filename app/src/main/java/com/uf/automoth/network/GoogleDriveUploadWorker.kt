@@ -23,6 +23,7 @@ import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Session
 import com.uf.automoth.data.export.AutoMothSessionCSVFormatter
 import com.uf.automoth.data.export.SessionCSVExporter
+import com.uf.automoth.ui.common.ExportOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -53,12 +54,13 @@ class GoogleDriveUploadWorker(
         val account = Account(accountName, accountType)
 
         val formatter = AutoMothSessionCSVFormatter(session)
-        if (includeAutoMothMetadata) {
-            formatter.addAutoMothMetadata()
-        }
-        if (includeUserMetadata) {
-            formatter.addUserMetadata(AutoMothRepository.metadataStore)
-        }
+        formatter.configure(
+            ExportOptions(
+                includeAutoMothMetadata,
+                includeUserMetadata
+            ),
+            AutoMothRepository.metadataStore
+        )
 
         return withContext(Dispatchers.IO) {
             try {
@@ -190,7 +192,7 @@ class GoogleDriveUploadWorker(
         private const val UPLOAD_CHANNEL_ID: String = "com.uf.automoth.notification.uploadChannel"
 
         fun uniqueWorkerTag(sessionID: Long): String {
-            return "UPLOAD_${sessionID}"
+            return "UPLOAD_$sessionID"
         }
     }
 }

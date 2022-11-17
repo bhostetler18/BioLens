@@ -66,6 +66,7 @@
         <entry key="app/src/main/res/menu/image_grid_menu.xml" value="0.2156341552734375" />
         <entry key="app/src/main/res/menu/image_share_menu.xml" value="0.1" />
         <entry key="app/src/main/res/menu/imaging_menu.xml" value="0.1453125" />
+        <entry key="app/src/main/res/menu/metadata_menu.xml" value="0.1" />
         <entry key="app/src/main/res/menu/session_list_menu.xml" value="0.1" />
         <entry key="app/src/main/res/menu/session_menu.xml" value="0.1203125" />
         <entry key="app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.195" />

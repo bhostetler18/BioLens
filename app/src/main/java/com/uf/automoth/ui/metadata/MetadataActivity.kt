@@ -2,34 +2,50 @@ package com.uf.automoth.ui.metadata
 
 import android.graphics.Rect
 import android.os.Bundle
+import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.widget.EditText
+import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.uf.automoth.R
+import com.uf.automoth.data.AutoMothRepository
+import com.uf.automoth.data.export.AutoMothSessionCSVFormatter
+import com.uf.automoth.data.export.SessionCSVExporter
 import com.uf.automoth.data.metadata.UserMetadataType
 import com.uf.automoth.databinding.ActivityMetadataEditorBinding
+import com.uf.automoth.network.MimeTypes
+import com.uf.automoth.ui.common.ExportOptions
+import com.uf.automoth.ui.common.ExportOptionsDialog
+import com.uf.automoth.ui.common.ExportOptionsHandler
 import com.uf.automoth.ui.common.simpleAlertDialogWithOk
 import com.uf.automoth.ui.common.simpleAlertDialogWithOkAndCancel
 import com.uf.automoth.utility.hideSoftKeyboard
 import com.uf.automoth.utility.launchDialog
+import com.uf.automoth.utility.shareSheet
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.File
 
 class MetadataActivity : AppCompatActivity() {
 
     private lateinit var viewModel: MetadataViewModel
     private val binding by lazy { ActivityMetadataEditorBinding.inflate(layoutInflater) }
     private val adapter = MetadataAdapter(onDelete = ::deleteField)
+    private var menu: Menu? = null
+    private var sessionID: Long = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val sessionID = intent.extras?.get("SESSION") as? Long ?: run {
+        sessionID = intent.extras?.get("SESSION") as? Long ?: run {
 //            displayError()
             return
         }
@@ -103,27 +119,128 @@ class MetadataActivity : AppCompatActivity() {
         ).show()
     }
 
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.metadata_menu, menu)
+        this.menu = menu
+        return true
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
                 onBackPressed()
                 true
             }
+            R.id.save -> {
+                val dialog = ExportOptionsDialog(
+                    this,
+                    object : ExportOptionsHandler {
+                        override fun onSelectOptions(options: ExportOptions) {
+                            lifecycleScope.launch {
+                                saveMetadata(options)
+                            }
+                        }
+                    },
+                    R.string.save,
+                    false,
+                    ExportOptions.default
+                )
+                launchDialog(dialog, item.actionView)
+                true
+            }
+            R.id.share -> {
+                val dialog = ExportOptionsDialog(
+                    this,
+                    object : ExportOptionsHandler {
+                        override fun onSelectOptions(options: ExportOptions) {
+                            lifecycleScope.launch {
+                                shareMetadata(options)
+                            }
+                        }
+                    },
+                    R.string.share,
+                    false,
+                    ExportOptions.default
+                )
+                launchDialog(dialog, item.actionView)
+                true
+            }
             else -> false
         }
     }
 
+    private suspend fun shareMetadata(options: ExportOptions) {
+        viewModel.saveChanges()
+        val tmp = File(applicationContext.cacheDir, "metadata.csv")
+        writeMetadata(tmp, sessionID, options)
+        val uri = FileProvider.getUriForFile(this, "com.uf.automoth.fileprovider", tmp)
+        shareSheet(uri, MimeTypes.CSV, getString(R.string.share))
+    }
+
+    private suspend fun saveMetadata(options: ExportOptions) {
+        viewModel.saveChanges()
+        val session = AutoMothRepository.getSession(sessionID) ?: return
+        val folder = AutoMothRepository.resolve(session)
+        val exportLocation = File(folder, "metadata.csv")
+        if (writeMetadata(exportLocation, sessionID, options)) {
+            val dialog = MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.metadata_saved)
+                .setMessage(getString(R.string.metadata_filesystem_explanation, session.directory))
+                .setPositiveButton(R.string.OK) { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .create()
+            runOnUiThread {
+                dialog.show()
+            }
+        } else {
+            runOnUiThread {
+                Toast.makeText(this, R.string.failed_to_save_metadata, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     override fun onBackPressed() {
+        warnIfDirty(R.string.warn_exit_metadata, R.string.warn_unsaved_changes) {
+            super.onBackPressed()
+        }
+    }
+
+    private fun warnIfDirty(
+        @StringRes title: Int,
+        @StringRes message: Int,
+        onContinue: () -> Unit
+    ) = runOnUiThread {
         if (viewModel.isDirty.value == true) {
             simpleAlertDialogWithOkAndCancel(
                 this,
-                R.string.warn_exit_metadata,
-                R.string.warn_unsaved_changes,
-                onOk = { super.onBackPressed() }
+                title,
+                message,
+                onOk = { onContinue() }
             ).show()
         } else {
-            super.onBackPressed()
+            onContinue()
         }
+    }
+
+    private suspend fun writeMetadata(
+        file: File,
+        sessionID: Long,
+        options: ExportOptions
+    ): Boolean {
+        val session = AutoMothRepository.getSession(sessionID) ?: return false
+        val formatter = AutoMothSessionCSVFormatter(session).apply {
+            configure(options, AutoMothRepository.metadataStore)
+        }
+        val exporter = SessionCSVExporter(formatter)
+        runCatching {
+            exporter.export(session, file)
+        }.onSuccess {
+            return true
+        }.onFailure {
+            return false
+        }
+        return false
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {

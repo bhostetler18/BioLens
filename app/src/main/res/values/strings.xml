@@ -148,4 +148,8 @@
     <string name="warn_fail_to_add_metadata">Could not add metadata field</string>
     <string name="delete_metadata_dialog_title">Are you sure you want to delete this field?</string>
     <string name="warn_delete_metadata">It will be removed from all existing sessions. This action cannot be undone.</string>
+    <string name="failed_to_save_metadata">Failed to save metadata</string>
+    <string name="metadata_saved">Metadata saved successfully!</string>
+    <string name="metadata_filesystem_explanation">The session metadata and images can be accessed using the Android File Transfer app. This session is stored at Android/data/com.uf.automoth/files/%s"</string>
+    <string name="export_to_filesystem">Export to filesystem</string>
 </resources>
