@@ -34,6 +34,7 @@ class AddFieldDialog(
     init {
         val dialogBuilder = MaterialAlertDialogBuilder(context)
         dialogBuilder.setTitle(R.string.add_custom_metadata_field)
+        dialogBuilder.setMessage(R.string.custom_metadata_field_description)
         dialogBuilder.setView(binding.root)
 
         spinner.onItemSelectedListener = this

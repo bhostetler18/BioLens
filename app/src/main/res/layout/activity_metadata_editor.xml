@@ -35,7 +35,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginRight="20dp"
-            android:text="@string/save_changes"
+            android:text="@string/save_values"
             tools:ignore="RtlHardcoded" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton

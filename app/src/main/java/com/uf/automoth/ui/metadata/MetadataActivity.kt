@@ -169,8 +169,14 @@ class MetadataActivity : AppCompatActivity() {
         }
     }
 
+    private suspend fun saveIfNecessary() {
+        if (viewModel.isDirty.value == true) {
+            viewModel.saveChanges()
+        }
+    }
+
     private suspend fun shareMetadata(options: ExportOptions) {
-        viewModel.saveChanges()
+        saveIfNecessary() // should we ask user if they want to save changed values before exporting?
         val tmp = File(applicationContext.cacheDir, "metadata.csv")
         writeMetadata(tmp, sessionID, options)
         val uri = FileProvider.getUriForFile(this, "com.uf.automoth.fileprovider", tmp)
@@ -178,7 +184,7 @@ class MetadataActivity : AppCompatActivity() {
     }
 
     private suspend fun saveMetadata(options: ExportOptions) {
-        viewModel.saveChanges()
+        saveIfNecessary() // should we ask user if they want to save changed values before exporting?
         val session = AutoMothRepository.getSession(sessionID) ?: return
         val folder = AutoMothRepository.resolve(session)
         val exportLocation = File(folder, "metadata.csv")

@@ -128,6 +128,8 @@
     <string name="device_type">Device</string>
     <string name="invalid_value">Invalid value</string>
     <string name="add_custom_metadata_field">Add Custom Metadata Field</string>
+    <string name="custom_metadata_field_description">This field will be available on all sessions</string>
+
     <string name="add">Add</string>
     <string name="field_name">Field name</string>
     <string name="metadata_value_type">Value Type</string>
@@ -144,7 +146,7 @@
     <string name="undefined_toggle">N/A</string>
     <string name="warn_unsaved_changes">Exiting will discard your changes</string>
     <string name="warn_exit_metadata">Are you sure you want to leave this screen?</string>
-    <string name="save_changes">Save Changes</string>
+    <string name="save_values">Save values</string>
     <string name="warn_fail_to_add_metadata">Could not add metadata field</string>
     <string name="delete_metadata_dialog_title">Are you sure you want to delete this field?</string>
     <string name="warn_delete_metadata">It will be removed from all existing sessions. This action cannot be undone.</string>
