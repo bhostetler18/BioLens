@@ -213,6 +213,7 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
         imagingManager = ImagingManager(settings, WeakReference(this)) {
             killService()
         }
+        currentImagingSettings.postValue(settings)
 
         startCamera()
         imagingManager?.start(
@@ -226,6 +227,7 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
     private suspend fun stopCurrentSession(reason: String) {
         imagingManager?.stop(reason)
         imagingManager = null
+        currentImagingSettings.postValue(null)
     }
 
     private fun killServiceIfInactive() {
@@ -255,6 +257,7 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
         private const val KEY_REQUEST_CODE = "com.uf.automoth.extra.REQUEST_CODE"
 
         val IS_RUNNING = MutableLiveData(false)
+        val currentImagingSettings = MutableLiveData<ImagingSettings?>(null)
 
         fun getStartSessionIntent(
             context: Context,

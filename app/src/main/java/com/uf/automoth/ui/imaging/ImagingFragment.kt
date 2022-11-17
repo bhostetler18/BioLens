@@ -38,10 +38,12 @@ import com.uf.automoth.databinding.FragmentImagingBinding
 import com.uf.automoth.imaging.ImageCaptureInterface
 import com.uf.automoth.imaging.ImagingManager
 import com.uf.automoth.imaging.ImagingService
+import com.uf.automoth.imaging.ImagingSettings
 import com.uf.automoth.network.SingleLocationProvider
 import com.uf.automoth.ui.common.EditTextDialog
 import com.uf.automoth.ui.common.simpleAlertDialogWithOk
 import com.uf.automoth.ui.imaging.scheduler.ImagingSchedulerActivity
+import com.uf.automoth.utility.combineWith
 import com.uf.automoth.utility.launchDialog
 import com.uf.automoth.utility.mutate
 import kotlinx.coroutines.Dispatchers
@@ -117,17 +119,13 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
             }
         }
 
-        viewModel.imagingSettingsLiveData.observe(viewLifecycleOwner) { imagingSettings ->
-            val ctx = requireContext()
-            binding.intervalDescription.text =
-                "${getString(R.string.interval)}: ${imagingSettings.intervalDescription(ctx, true)}"
-            binding.autoStopDescription.text = "${getString(R.string.auto_stop)}: ${
-            imagingSettings.autoStopDescription(
-                ctx,
-                true
-            )
-            }"
-        }
+        viewModel.imagingSettingsLiveData
+            .combineWith(ImagingService.currentImagingSettings) { currentSettings, activeSettings ->
+                // show active settings rather than selected settings while a session is running
+                return@combineWith activeSettings ?: currentSettings
+            }.observe(viewLifecycleOwner) { imagingSettings ->
+                showImagingSettings(imagingSettings)
+            }
 
         // Though unlikely, this ensures that the UI will display correctly if the user has it open
         // and is watching while a background service session auto-stops or starts.
@@ -162,6 +160,19 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
             }
             else -> false
         }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun showImagingSettings(imagingSettings: ImagingSettings) {
+        val ctx = requireContext()
+        binding.intervalDescription.text =
+            "${getString(R.string.interval)}: ${imagingSettings.intervalDescription(ctx, true)}"
+        binding.autoStopDescription.text = "${getString(R.string.auto_stop)}: ${
+        imagingSettings.autoStopDescription(
+            ctx,
+            true
+        )
+        }"
     }
 
     private fun launchStartCamera() = lifecycleScope.launch {
