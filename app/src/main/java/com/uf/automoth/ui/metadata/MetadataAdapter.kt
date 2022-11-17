@@ -19,10 +19,10 @@ object MetadataViewType {
     const val DATE = 5
 }
 
-class MetadataAdapter :
+class MetadataAdapter(private val onDelete: (MetadataTableDataModel) -> Unit) :
     ListAdapter<MetadataTableDataModel, MetadataViewHolder>(METADATA_COMPARATOR) {
 
-    private var _isInDeleteMode = false
+    private var _isInDeleteMode = true
     var allowDeletion: Boolean
         set(value) {
             _isInDeleteMode = value
@@ -70,9 +70,9 @@ class MetadataAdapter :
         val item = getItem(position)
         holder.bind(item)
         if (item is EditableMetadataInterface) {
-            holder.showRemoveButton(_isInDeleteMode && item.deletable)
+            holder.showRemoveButton(_isInDeleteMode && item.userField != null)
             holder.onRemovePressed = {
-
+                onDelete(item)
             }
         } else {
             holder.showRemoveButton(false)
@@ -98,6 +98,7 @@ class MetadataAdapter :
                 oldItem: MetadataTableDataModel,
                 newItem: MetadataTableDataModel
             ): Boolean {
+                // It would be nice to compare actual values, but type-erasure makes that difficult
                 return false
             }
         }

@@ -13,6 +13,9 @@ interface MetadataListObserver {
     fun onMetadataValueChanged()
 }
 
+// This class provides an observable list of MetadataTableDataModel objects and concurrency-safe
+// mutating operations. It does NOT synchronize access to any of the individual
+// MetadataTableDataModel objects contained in the list
 class MetadataList(
     context: Context,
     private val observer: MetadataListObserver
@@ -68,7 +71,6 @@ class MetadataList(
             val displayable = field.toDisplayableMetadata(
                 AutoMothRepository.metadataStore,
                 sessionID,
-                true,
                 observer = ::onMetadataChange
             )
             return@addUserField mutate {
@@ -89,7 +91,7 @@ class MetadataList(
     }
 
     // This is a mutating function because writeValue() modifies EditableMetadataInterface::originalValue,
-    // and we want any observers (i.e. a RecyclerView) to update accordingly
+    // and we want any observers (e.g. a RecyclerView) to update accordingly
     suspend fun saveChanges() = mutate {
         (defaultMetadata + userMetadata + autoMothMetadata).forEach {
             it.editable?.let { metadata ->
@@ -107,6 +109,7 @@ class MetadataList(
     private suspend fun <T> mutate(block: suspend MetadataList.() -> T): T {
         val ret = safeAccess(block)
         observer.onListChanged(contents)
+        onMetadataChange()
         return ret
     }
 }

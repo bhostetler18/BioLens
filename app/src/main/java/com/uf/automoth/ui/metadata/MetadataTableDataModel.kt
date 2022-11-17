@@ -11,7 +11,6 @@ typealias MetadataChangeObserver = (() -> Unit)?
 interface EditableMetadataInterface {
     val name: String
     val readonly: Boolean
-    var deletable: Boolean
     val dirty: Boolean
     var userField: UserMetadataField?
     suspend fun writeValue()
@@ -59,7 +58,6 @@ sealed class MetadataTableDataModel {
         override val validate: (String?) -> Boolean = { true }
     ) : MetadataTableDataModel(), EditableMetadataInterface, MetadataValueInterface<String> {
         override var currentValue = originalValue
-        override var deletable: Boolean = false
         override val dirty get() = isDirty()
         override fun stringRepresentation(context: Context) = currentValue
         override suspend fun writeValue() = saveValue()
@@ -75,7 +73,6 @@ sealed class MetadataTableDataModel {
         override val validate: (Int?) -> Boolean = { true }
     ) : MetadataTableDataModel(), EditableMetadataInterface, MetadataValueInterface<Int> {
         override var currentValue = originalValue
-        override var deletable: Boolean = false
         override val dirty get() = isDirty()
         override fun stringRepresentation(context: Context): String? = currentValue?.toString()
         override suspend fun writeValue() = saveValue()
@@ -91,7 +88,6 @@ sealed class MetadataTableDataModel {
         override val validate: (Double?) -> Boolean = { true }
     ) : MetadataTableDataModel(), EditableMetadataInterface, MetadataValueInterface<Double> {
         override var currentValue = originalValue
-        override var deletable: Boolean = false
         override val dirty get() = isDirty()
         override fun stringRepresentation(context: Context): String? = currentValue?.toString()
         override suspend fun writeValue() = saveValue()
@@ -106,7 +102,6 @@ sealed class MetadataTableDataModel {
         override val saveValue: suspend (Boolean?) -> Unit = {}
     ) : MetadataTableDataModel(), EditableMetadataInterface, MetadataValueInterface<Boolean> {
         override var currentValue = originalValue
-        override var deletable: Boolean = false
         override val dirty get() = isDirty()
         override fun stringRepresentation(context: Context): String? {
             return when (currentValue) {
@@ -131,7 +126,6 @@ sealed class MetadataTableDataModel {
         EditableMetadataInterface,
         MetadataValueInterface<OffsetDateTime> {
         override var currentValue = originalValue
-        override var deletable: Boolean = false
         override val dirty get() = isDirty()
         override fun stringRepresentation(context: Context) =
             currentValue?.format(SHORT_DATE_TIME_FORMATTER)

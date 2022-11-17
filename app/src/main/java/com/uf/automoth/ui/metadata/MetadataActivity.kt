@@ -2,7 +2,6 @@ package com.uf.automoth.ui.metadata
 
 import android.graphics.Rect
 import android.os.Bundle
-import android.util.Log
 import android.view.MenuItem
 import android.view.MotionEvent
 import android.widget.EditText
@@ -25,7 +24,7 @@ class MetadataActivity : AppCompatActivity() {
 
     private lateinit var viewModel: MetadataViewModel
     private val binding by lazy { ActivityMetadataEditorBinding.inflate(layoutInflater) }
-    private val adapter = MetadataAdapter()
+    private val adapter = MetadataAdapter(onDelete = ::deleteField)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -91,14 +90,17 @@ class MetadataActivity : AppCompatActivity() {
         }
     }
 
-    fun deleteField(item: MetadataTableDataModel) {
-        if (item.editable?.deletable != true) {
-            Log.w(TAG, "Tried to delete metadata $item which is not deletable")
-            return
-        }
-        lifecycleScope.launch {
-            viewModel.removeUserField(item)
-        }
+    private fun deleteField(item: MetadataTableDataModel) {
+        simpleAlertDialogWithOkAndCancel(
+            this,
+            R.string.delete_metadata_dialog_title,
+            R.string.warn_delete_metadata,
+            onOk = {
+                lifecycleScope.launch {
+                    viewModel.removeUserField(item)
+                }
+            }
+        ).show()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

@@ -111,7 +111,6 @@ fun fieldNameValidator(name: String): Boolean {
 suspend fun UserMetadataField.toDisplayableMetadata(
     db: UserMetadataStore,
     sessionID: Long,
-    deletable: Boolean = false,
     nameOverride: String? = null,
     observer: MetadataChangeObserver = null
 ): MetadataTableDataModel {
@@ -149,7 +148,6 @@ suspend fun UserMetadataField.toDisplayableMetadata(
             ) { newValue -> db.setValue(field, sessionID, newValue) }
         }
     }.also {
-        it.deletable = deletable
         it.observer = observer
         it.userField = this
     }
@@ -161,7 +159,7 @@ suspend fun getUserMetadata(
     observer: MetadataChangeObserver
 ): List<MetadataTableDataModel> {
     return store.getAllFields().map {
-        it.toDisplayableMetadata(store, sessionID, true, observer = observer)
+        it.toDisplayableMetadata(store, sessionID, observer = observer)
     }
 }
 

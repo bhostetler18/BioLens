@@ -146,4 +146,6 @@
     <string name="warn_exit_metadata">Are you sure you want to leave this screen?</string>
     <string name="save_changes">Save Changes</string>
     <string name="warn_fail_to_add_metadata">Could not add metadata field</string>
+    <string name="delete_metadata_dialog_title">Are you sure you want to delete this field?</string>
+    <string name="warn_delete_metadata">It will be removed from all existing sessions. This action cannot be undone.</string>
 </resources>
