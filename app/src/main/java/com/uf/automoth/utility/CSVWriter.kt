@@ -11,8 +11,14 @@ class CSVWriter(
     private val writer: PrintWriter = PrintWriter(file)
 
     fun writeLine(values: List<String>) {
-        writer.write(values.joinToString(separator))
+        val row = values.joinToString(separator) { sanitize(it) }
+        writer.write(row)
         writer.println()
+    }
+
+    private fun sanitize(string: String): String {
+        // If desired, we can escape these instead in the future
+        return string.replace("\n", "").replace(separator, "")
     }
 
     override fun close() {
