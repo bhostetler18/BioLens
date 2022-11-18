@@ -4,7 +4,7 @@ import com.uf.automoth.BuildConfig
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Image
 import com.uf.automoth.data.Session
-import com.uf.automoth.data.metadata.UserMetadataStore
+import com.uf.automoth.data.metadata.MetadataStore
 import com.uf.automoth.data.metadata.getValue
 import com.uf.automoth.ui.common.ExportOptions
 import com.uf.automoth.utility.getDeviceType
@@ -45,19 +45,23 @@ class AutoMothSessionCSVFormatter(
         this.addConstantColumn("automoth_app_version", BuildConfig.VERSION_NAME)
     }
 
-    private suspend fun addUserMetadata(metadataStore: UserMetadataStore) {
-        metadataStore.getAllFields().forEach {
+    private suspend fun addUserMetadata(metadataStore: MetadataStore) {
+        metadataStore.getFields(false).forEach {
             val value = metadataStore.getValue(it, session.sessionID)
             addConstantColumn(it.field, value.toStringOrEmpty())
         }
     }
 
-    private suspend fun addAutoMothMetadata() {
+    private suspend fun addAutoMothMetadata(metadataStore: MetadataStore) {
+        metadataStore.getFields(true).forEach {
+            val value = metadataStore.getValue(it, session.sessionID)
+            addConstantColumn(it.field, value.toStringOrEmpty())
+        }
     }
 
-    suspend fun configure(options: ExportOptions, metadataStore: UserMetadataStore) {
+    suspend fun configure(options: ExportOptions, metadataStore: MetadataStore) {
         if (options.includeAutoMothMetadata) {
-            addAutoMothMetadata()
+            addAutoMothMetadata(metadataStore)
         }
         if (options.includeUserMetadata) {
             addUserMetadata(metadataStore)

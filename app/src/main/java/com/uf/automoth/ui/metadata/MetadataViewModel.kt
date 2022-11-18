@@ -6,7 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.uf.automoth.data.metadata.UserMetadataType
+import com.uf.automoth.data.metadata.MetadataType
 import kotlinx.coroutines.launch
 
 class MetadataViewModel(
@@ -38,7 +38,7 @@ class MetadataViewModel(
     }
 
     suspend fun saveChanges() = metadataList.saveChanges()
-    suspend fun addUserField(name: String, type: UserMetadataType) =
+    suspend fun addUserField(name: String, type: MetadataType) =
         metadataList.addUserField(name, type)
 
     suspend fun removeUserField(item: MetadataTableDataModel) = metadataList.removeUserField(item)

@@ -8,7 +8,7 @@ import android.widget.AdapterView
 import androidx.appcompat.app.AlertDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.uf.automoth.R
-import com.uf.automoth.data.metadata.UserMetadataType
+import com.uf.automoth.data.metadata.MetadataType
 import com.uf.automoth.databinding.DialogAddMetadataFieldBinding
 import com.uf.automoth.ui.common.EditTextValidatorWithButton
 import com.uf.automoth.ui.common.combineValidators
@@ -16,7 +16,7 @@ import com.uf.automoth.utility.SingletonDialog
 
 class AddFieldDialog(
     context: Context,
-    onCreateField: (String, UserMetadataType) -> Unit
+    onCreateField: (String, MetadataType) -> Unit
 ) : SingletonDialog, AdapterView.OnItemSelectedListener {
     private val binding: DialogAddMetadataFieldBinding
 
@@ -29,7 +29,7 @@ class AddFieldDialog(
     private val spinner = binding.spinner
     private val dialog: AlertDialog
 
-    private var type = UserMetadataType.STRING
+    private var type = MetadataType.STRING
 
     init {
         val dialogBuilder = MaterialAlertDialogBuilder(context)
@@ -72,13 +72,13 @@ class AddFieldDialog(
     override fun onNothingSelected(parent: AdapterView<*>?) {
     }
 
-    private fun toType(spinnerOption: String): UserMetadataType {
+    private fun toType(spinnerOption: String): MetadataType {
         return when (spinnerOption) {
-            "Text" -> UserMetadataType.STRING
-            "Integer" -> UserMetadataType.INT
-            "Decimal" -> UserMetadataType.DOUBLE
-            "Boolean" -> UserMetadataType.BOOLEAN
-            else -> UserMetadataType.STRING
+            "Text" -> MetadataType.STRING
+            "Integer" -> MetadataType.INT
+            "Decimal" -> MetadataType.DOUBLE
+            "Boolean" -> MetadataType.BOOLEAN
+            else -> MetadataType.STRING
         }
     }
 }

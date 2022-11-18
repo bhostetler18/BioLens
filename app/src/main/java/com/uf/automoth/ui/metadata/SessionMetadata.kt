@@ -4,38 +4,14 @@ import android.content.Context
 import com.uf.automoth.R
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Session
-import com.uf.automoth.data.metadata.UserMetadataField
-import com.uf.automoth.data.metadata.UserMetadataStore
-import com.uf.automoth.data.metadata.UserMetadataType
+import com.uf.automoth.data.metadata.MetadataField
+import com.uf.automoth.data.metadata.MetadataKey
+import com.uf.automoth.data.metadata.MetadataStore
+import com.uf.automoth.data.metadata.MetadataType
 import com.uf.automoth.data.metadata.getValue
 import com.uf.automoth.data.metadata.setValue
 import com.uf.automoth.ui.imaging.intervalDescription
 import com.uf.automoth.utility.getDeviceType
-
-// data class PrepopulatedMetadata(
-//    val key: UserMetadataKey,
-//    @StringRes val translation: Int? // allow localization even with hardcoded keys
-// )
-//
-// val AUTOMOTH_METADATA = listOf(
-//    PrepopulatedMetadata(
-//        UserMetadataKey("Sheet width (cm)", UserMetadataType.DOUBLE),
-//        null
-//    ),
-//    PrepopulatedMetadata(
-//        UserMetadataKey("Sheet height (cm)", UserMetadataType.DOUBLE),
-//        null
-//    )
-// )
-// val RESERVED_KEYS = AUTOMOTH_METADATA.map { it.key.field }.toHashSet()
-
-// suspend fun prepopulate(store: UserMetadataStore) {
-//    AUTOMOTH_METADATA.forEach {
-//        if (store.getField(it.key.field) == null) {
-//            store.addMetadataField(it.key.field, it.key.type)
-//        }
-//    }
-// }
 
 // Basic metadata inherent to the app
 fun getDefaultMetadata(
@@ -108,39 +84,45 @@ fun fieldNameValidator(name: String): Boolean {
     return name.trim().isNotEmpty() // && !RESERVED_KEYS.contains(name)
 }
 
-suspend fun UserMetadataField.toDisplayableMetadata(
-    db: UserMetadataStore,
+suspend fun MetadataField.toDisplayableMetadata(
     sessionID: Long,
+    db: MetadataStore,
     nameOverride: String? = null,
-    observer: MetadataChangeObserver = null
+    observer: MetadataChangeObserver = null,
+    validator: ((Any?) -> Boolean) = { true }
 ): MetadataTableDataModel {
     return when (type) {
-        UserMetadataType.STRING -> {
+        MetadataType.STRING -> {
+            val combined = { value: String? ->
+                csvValidator(value) && validator(value)
+            }
             MetadataTableDataModel.StringMetadata(
                 nameOverride ?: field,
                 false,
                 db.getValue(field, sessionID),
                 { newValue -> db.setValue(field, sessionID, newValue) },
-                ::csvValidator
+                combined
             )
         }
-        UserMetadataType.INT -> {
+        MetadataType.INT -> {
             MetadataTableDataModel.IntMetadata(
                 nameOverride ?: field,
                 false,
                 db.getValue(field, sessionID),
-                { newValue -> db.setValue(field, sessionID, newValue) }
+                { newValue -> db.setValue(field, sessionID, newValue) },
+                validator
             )
         }
-        UserMetadataType.DOUBLE -> {
+        MetadataType.DOUBLE -> {
             MetadataTableDataModel.DoubleMetadata(
                 nameOverride ?: field,
                 false,
                 db.getValue(field, sessionID),
-                { newValue -> db.setValue(field, sessionID, newValue) }
+                { newValue -> db.setValue(field, sessionID, newValue) },
+                validator
             )
         }
-        UserMetadataType.BOOLEAN -> {
+        MetadataType.BOOLEAN -> {
             MetadataTableDataModel.BooleanMetadata(
                 nameOverride ?: field,
                 false,
@@ -149,26 +131,63 @@ suspend fun UserMetadataField.toDisplayableMetadata(
         }
     }.also {
         it.observer = observer
-        it.userField = this
+        if (!this.builtin) {
+            it.userField = this
+        }
     }
 }
 
 suspend fun getUserMetadata(
     sessionID: Long,
-    store: UserMetadataStore,
+    store: MetadataStore,
     observer: MetadataChangeObserver
 ): List<MetadataTableDataModel> {
-    return store.getAllFields().map {
-        it.toDisplayableMetadata(store, sessionID, observer = observer)
+    return store.getFields(false).map {
+        it.toDisplayableMetadata(sessionID, store, observer = observer)
     }
 }
 
-// Prepopulated metadata specific to AutoMoth
-// suspend fun getAutoMothMetadata(session: Session, store: UserMetadataStore, context: Context): List<DisplayableMetadata> {
-//    return AUTOMOTH_METADATA.map {
-//        val translatedName = it.translation?.let { resourceId ->
-//            context.getString(resourceId)
-//        }
-//        it.key.toDisplayableMetadata(store, session.sessionID, translatedName)
-//    }
-// }
+val AUTOMOTH_METADATA = listOf(
+    MetadataKey("sheet_width", MetadataType.DOUBLE, true),
+    MetadataKey("sheet_height", MetadataType.DOUBLE, true)
+)
+
+private val TRANSLATIONS: Map<String, Int> = mapOf(
+    "sheet_width" to R.string.metadata_sheet_width_cm,
+    "sheet_height" to R.string.metadata_sheet_height_cm
+)
+
+private fun greaterThanZero(value: Any?): Boolean {
+    return value == null || ((value as? Double) ?: 0.0) > 0.0
+}
+
+private val VALIDATORS: Map<String, (Any?) -> Boolean> = mapOf(
+    "sheet_width" to ::greaterThanZero,
+    "sheet_height" to ::greaterThanZero
+)
+
+suspend fun prepopulate(store: MetadataStore) {
+    AUTOMOTH_METADATA.forEach {
+        if (store.getField(it.key) == null) {
+            store.addMetadataField(it.key, it.type, true)
+        }
+    }
+}
+
+// Pre-populated metadata specific to AutoMoth
+suspend fun getAutoMothMetadata(
+    sessionID: Long,
+    store: MetadataStore,
+    observer: MetadataChangeObserver,
+    context: Context
+): List<MetadataTableDataModel> {
+    return AUTOMOTH_METADATA.map {
+        val displayName = TRANSLATIONS[it.key]?.let { res ->
+            context.getString(res)
+        }
+        VALIDATORS[it.key]?.let { validator ->
+            return@map it.toDisplayableMetadata(sessionID, store, displayName, observer, validator)
+        }
+        return@map it.toDisplayableMetadata(sessionID, store, displayName, observer)
+    }
+}

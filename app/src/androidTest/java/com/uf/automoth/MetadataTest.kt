@@ -8,10 +8,12 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.uf.automoth.data.AutoMothDatabase
 import com.uf.automoth.data.Session
 import com.uf.automoth.data.metadata.AutoMothMetadataStore
-import com.uf.automoth.data.metadata.UserMetadataType
-import com.uf.automoth.data.metadata.UserMetadataValue
+import com.uf.automoth.data.metadata.MetadataType
+import com.uf.automoth.data.metadata.MetadataValue
 import com.uf.automoth.data.metadata.getValue
 import com.uf.automoth.data.metadata.setValue
+import com.uf.automoth.ui.metadata.AUTOMOTH_METADATA
+import com.uf.automoth.ui.metadata.prepopulate
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.notNullValue
@@ -55,16 +57,16 @@ class MetadataTest {
         db.clearAllTables()
         var session = createTestSession()
         var sessionID = session.sessionID
-        md.addMetadataField("test", UserMetadataType.STRING)
+        md.addMetadataField("test", MetadataType.STRING)
 
         // nonexistent session, correct key
         assertFailsWith<SQLiteConstraintException> {
-            db.userMetadataValueDAO().insert(UserMetadataValue("test", 100, "don't set this"))
+            db.userMetadataValueDAO().insert(MetadataValue("test", 100, "don't set this"))
         }
 
         // nonexistent key, correct session
         assertFailsWith<SQLiteConstraintException> {
-            db.userMetadataValueDAO().insert(UserMetadataValue("blah", sessionID, "don't set this"))
+            db.userMetadataValueDAO().insert(MetadataValue("blah", sessionID, "don't set this"))
         }
 
         // Deleting session should delete all metadata for that session
@@ -89,34 +91,34 @@ class MetadataTest {
     fun testFields(): Unit = runBlocking {
         db.clearAllTables()
         assertThat(md.getMetadataType("test"), equalTo(null))
-        md.addMetadataField("test", UserMetadataType.STRING)
+        md.addMetadataField("test", MetadataType.STRING)
         assertThat(md.getField("test"), notNullValue())
-        assertThat(md.getMetadataType("test"), equalTo(UserMetadataType.STRING))
-        md.addMetadataField("test", UserMetadataType.BOOLEAN)
+        assertThat(md.getMetadataType("test"), equalTo(MetadataType.STRING))
+        md.addMetadataField("test", MetadataType.BOOLEAN)
         // Existing key should not be overwritten
-        assertThat(md.getMetadataType("test"), equalTo(UserMetadataType.STRING))
+        assertThat(md.getMetadataType("test"), equalTo(MetadataType.STRING))
 
-        md.addMetadataField("int", UserMetadataType.INT)
+        md.addMetadataField("int", MetadataType.INT)
 
         val fields = md.getAllFields()
         assertThat(fields.size, equalTo(2))
     }
 
-    private fun correctGetterFor(type: UserMetadataType): KSuspendFunction2<String, Long, Any?> {
+    private fun correctGetterFor(type: MetadataType): KSuspendFunction2<String, Long, Any?> {
         return when (type) {
-            UserMetadataType.STRING -> db.userMetadataValueDAO()::getString
-            UserMetadataType.INT -> db.userMetadataValueDAO()::getInt
-            UserMetadataType.DOUBLE -> db.userMetadataValueDAO()::getDouble
-            UserMetadataType.BOOLEAN -> db.userMetadataValueDAO()::getBoolean
+            MetadataType.STRING -> db.userMetadataValueDAO()::getString
+            MetadataType.INT -> db.userMetadataValueDAO()::getInt
+            MetadataType.DOUBLE -> db.userMetadataValueDAO()::getDouble
+            MetadataType.BOOLEAN -> db.userMetadataValueDAO()::getBoolean
         }
     }
 
-    private fun getSampleValue(type: UserMetadataType): Any {
+    private fun getSampleValue(type: MetadataType): Any {
         return when (type) {
-            UserMetadataType.STRING -> "something"
-            UserMetadataType.INT -> 2
-            UserMetadataType.DOUBLE -> 5.8
-            UserMetadataType.BOOLEAN -> true
+            MetadataType.STRING -> "something"
+            MetadataType.INT -> 2
+            MetadataType.DOUBLE -> 5.8
+            MetadataType.BOOLEAN -> true
         }
     }
 
@@ -127,20 +129,20 @@ class MetadataTest {
         val sessionID = session.sessionID
 
         // Test basic set use case
-        md.addMetadataField("test", UserMetadataType.STRING)
+        md.addMetadataField("test", MetadataType.STRING)
         val value = "blah"
         md.setValue("test", sessionID, value)
         assertThat(md.getValue("test", sessionID), equalTo(value))
 
         // Ensure that writing values has no effect unless of the correct type
-        for (type in UserMetadataType.values()) {
+        for (type in MetadataType.values()) {
             val fieldName = "field_${type.name}"
             md.addMetadataField(fieldName, type)
 
-            md.setString(fieldName, sessionID, getSampleValue(UserMetadataType.STRING) as String)
-            md.setInt(fieldName, sessionID, getSampleValue(UserMetadataType.INT) as Int)
-            md.setDouble(fieldName, sessionID, getSampleValue(UserMetadataType.DOUBLE) as Double)
-            md.setBoolean(fieldName, sessionID, getSampleValue(UserMetadataType.BOOLEAN) as Boolean)
+            md.setString(fieldName, sessionID, getSampleValue(MetadataType.STRING) as String)
+            md.setInt(fieldName, sessionID, getSampleValue(MetadataType.INT) as Int)
+            md.setDouble(fieldName, sessionID, getSampleValue(MetadataType.DOUBLE) as Double)
+            md.setBoolean(fieldName, sessionID, getSampleValue(MetadataType.BOOLEAN) as Boolean)
 
             // Use DAO methods directly since getters on MetadataStore already check for attempts to
             // get the incorrect type from a given metadata field and thus wouldn't reflect if a
@@ -158,5 +160,26 @@ class MetadataTest {
             }
             assertThat(workingGetter(fieldName, sessionID), equalTo(getSampleValue(type)))
         }
+    }
+
+    @Test
+    fun testBuiltIn() = runBlocking {
+        db.clearAllTables()
+        prepopulate(md)
+        assertThat(md.getFields(true).size, equalTo(AUTOMOTH_METADATA.size))
+        md.addMetadataField("test", MetadataType.BOOLEAN, false)
+        assertThat(md.getFields(true).size, equalTo(AUTOMOTH_METADATA.size))
+        assertThat(md.getFields(false).size, equalTo(1))
+
+        val session = createTestSession()
+        val sessionID = session.sessionID
+
+        md.addMetadataField("builtin", MetadataType.STRING, true)
+        md.setString("builtin", sessionID, "something")
+
+        // Attempted overwrite should not succeed, nor should it affect existing values
+        md.addMetadataField("builtin", MetadataType.BOOLEAN, false)
+        assertThat(md.getField("builtin")?.builtin, equalTo(true))
+        assertThat(md.getString("builtin", sessionID), equalTo("something"))
     }
 }

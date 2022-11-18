@@ -2,11 +2,11 @@ package com.uf.automoth.data.metadata
 
 import android.util.Log
 
-enum class UserMetadataType(val raw: String) {
+enum class MetadataType(val raw: String) {
     STRING("string"), INT("int"), DOUBLE("double"), BOOLEAN("boolean");
 
     companion object {
-        fun from(raw: String): UserMetadataType? {
+        fun from(raw: String): MetadataType? {
             return when (raw) {
                 "string" -> STRING
                 "int" -> INT
@@ -18,18 +18,20 @@ enum class UserMetadataType(val raw: String) {
     }
 }
 
-interface UserMetadataField {
+interface MetadataField {
     val field: String
-    val type: UserMetadataType
+    val type: MetadataType
+    val builtin: Boolean
 }
 
 // Makes it easier to mock/test or potentially change backing storage in the future
-interface UserMetadataStore {
-    suspend fun addMetadataField(field: String, type: UserMetadataType)
+interface MetadataStore {
+    suspend fun addMetadataField(field: String, type: MetadataType, builtin: Boolean = false)
     suspend fun deleteMetadataField(field: String)
-    suspend fun getField(field: String): UserMetadataField?
-    suspend fun getMetadataType(field: String): UserMetadataType?
-    suspend fun getAllFields(): List<UserMetadataField>
+    suspend fun getField(field: String): MetadataField?
+    suspend fun getMetadataType(field: String): MetadataType?
+    suspend fun getFields(builtin: Boolean): List<MetadataField>
+    suspend fun getAllFields(): List<MetadataField>
 
     // It would be nice to do this with generics, but type erasure and issues with virtual inline/reified
     // functions make that more trouble than it's worth. At least this parallels the "put/get"
@@ -46,7 +48,7 @@ interface UserMetadataStore {
 }
 
 // Convenience generic functions
-suspend inline fun <reified T> UserMetadataStore.setValue(field: String, session: Long, value: T) {
+suspend inline fun <reified T> MetadataStore.setValue(field: String, session: Long, value: T) {
     when (value) {
         is String -> setString(field, session, value)
         is Int -> setInt(field, session, value)
@@ -56,31 +58,35 @@ suspend inline fun <reified T> UserMetadataStore.setValue(field: String, session
     }
 }
 
-inline fun <reified T> reifyUserMetadataType(): UserMetadataType? {
+inline fun <reified T> reifyMetadataType(): MetadataType? {
     return when (T::class) {
-        String::class -> UserMetadataType.STRING
-        Int::class -> UserMetadataType.INT
-        Double::class -> UserMetadataType.DOUBLE
-        Boolean::class -> UserMetadataType.BOOLEAN
+        String::class -> MetadataType.STRING
+        Int::class -> MetadataType.INT
+        Double::class -> MetadataType.DOUBLE
+        Boolean::class -> MetadataType.BOOLEAN
         else -> null
     }
 }
 
-suspend inline fun <reified T> UserMetadataStore.getValue(field: String, session: Long): T? {
-    val type = reifyUserMetadataType<T>()
+suspend inline fun <reified T> MetadataStore.getValue(field: String, session: Long): T? {
+    val type = reifyMetadataType<T>()
     return if (type != null) {
-        getValue(UserMetadataKey(field, type), session) as? T?
+        getValue(field, type, session) as? T?
     } else {
         Log.e("", "Tried to get invalid metadata type ${T::class.simpleName}")
         null
     }
 }
 
-suspend fun UserMetadataStore.getValue(key: UserMetadataField, session: Long): Any? {
-    return when (key.type) {
-        UserMetadataType.STRING -> getString(key.field, session)
-        UserMetadataType.INT -> getInt(key.field, session)
-        UserMetadataType.DOUBLE -> getDouble(key.field, session)
-        UserMetadataType.BOOLEAN -> getBoolean(key.field, session)
+suspend fun MetadataStore.getValue(field: String, type: MetadataType, session: Long): Any? {
+    return when (type) {
+        MetadataType.STRING -> getString(field, session)
+        MetadataType.INT -> getInt(field, session)
+        MetadataType.DOUBLE -> getDouble(field, session)
+        MetadataType.BOOLEAN -> getBoolean(field, session)
     }
+}
+
+suspend fun MetadataStore.getValue(key: MetadataField, session: Long): Any? {
+    return getValue(key.field, key.type, session)
 }

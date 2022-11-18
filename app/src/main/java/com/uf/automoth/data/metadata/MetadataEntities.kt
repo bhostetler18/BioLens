@@ -8,10 +8,12 @@ import androidx.room.PrimaryKey
 import com.uf.automoth.data.Session
 
 @Entity(tableName = "metadata_keys")
-data class UserMetadataKey(
+data class MetadataKey(
     @PrimaryKey val key: String,
-    override val type: UserMetadataType
-) : UserMetadataField {
+    override val type: MetadataType,
+    // see https://stackoverflow.com/questions/70574648/how-to-set-a-default-value-to-existing-rows-for-a-new-column-created-using-room
+    @ColumnInfo(defaultValue = "0") override val builtin: Boolean
+) : MetadataField {
     @Ignore
     override val field: String = key // match naming convention of UserMetadataField interface
 }
@@ -19,10 +21,9 @@ data class UserMetadataKey(
 @Entity(
     tableName = "metadata_values",
     primaryKeys = ["key", "sessionID"],
-    indices = [],
     foreignKeys = [
         ForeignKey(
-            entity = UserMetadataKey::class,
+            entity = MetadataKey::class,
             parentColumns = ["key"],
             childColumns = ["key"],
             onDelete = ForeignKey.CASCADE
@@ -35,7 +36,7 @@ data class UserMetadataKey(
         )
     ]
 )
-data class UserMetadataValue(
+data class MetadataValue(
     val key: String,
     @ColumnInfo(index = true) val sessionID: Long,
     val stringValue: String? = null,

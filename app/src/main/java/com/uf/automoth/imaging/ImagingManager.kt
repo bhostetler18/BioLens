@@ -21,7 +21,6 @@ import java.time.temporal.ChronoUnit
 import java.util.*
 import kotlin.concurrent.fixedRateTimer
 
-// TODO: save metadata locally on session completion
 class ImagingManager(
     private val settings: ImagingSettings,
     private val imageCapture: WeakReference<ImageCaptureInterface>,

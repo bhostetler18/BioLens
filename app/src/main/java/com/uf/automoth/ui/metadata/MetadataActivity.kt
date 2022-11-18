@@ -19,7 +19,7 @@ import com.uf.automoth.R
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.export.AutoMothSessionCSVFormatter
 import com.uf.automoth.data.export.SessionCSVExporter
-import com.uf.automoth.data.metadata.UserMetadataType
+import com.uf.automoth.data.metadata.MetadataType
 import com.uf.automoth.databinding.ActivityMetadataEditorBinding
 import com.uf.automoth.network.MimeTypes
 import com.uf.automoth.ui.common.ExportOptions
@@ -89,7 +89,7 @@ class MetadataActivity : AppCompatActivity() {
         }
     }
 
-    private fun createField(name: String, type: UserMetadataType) {
+    private fun createField(name: String, type: MetadataType) {
         lifecycleScope.launch {
             val index = viewModel.addUserField(name, type)
             delay(100)

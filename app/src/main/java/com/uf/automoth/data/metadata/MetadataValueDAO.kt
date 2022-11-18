@@ -6,10 +6,10 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 
 @Dao
-interface UserMetadataValueDAO {
+interface MetadataValueDAO {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(value: UserMetadataValue)
+    suspend fun insert(value: MetadataValue)
 
     @Query("SELECT stringValue FROM metadata_values WHERE `key` = :key AND sessionID = :session")
     suspend fun getString(key: String, session: Long): String?

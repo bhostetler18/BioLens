@@ -3,7 +3,7 @@ package com.uf.automoth.ui.metadata
 import android.content.Context
 import com.uf.automoth.R
 import com.uf.automoth.data.AutoMothRepository
-import com.uf.automoth.data.metadata.UserMetadataType
+import com.uf.automoth.data.metadata.MetadataType
 import com.uf.automoth.utility.indexOfOrNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -53,7 +53,12 @@ class MetadataList(
         mutate {
             val session = AutoMothRepository.getSession(sessionID) ?: return@mutate
             defaultMetadata = getDefaultMetadata(session, context, ::onMetadataChange)
-//            autoMothMetadata = // TODO
+            autoMothMetadata = getAutoMothMetadata(
+                sessionID,
+                AutoMothRepository.metadataStore,
+                ::onMetadataChange,
+                context
+            )
             userMetadata = getUserMetadata(
                 sessionID,
                 AutoMothRepository.metadataStore,
@@ -71,15 +76,15 @@ class MetadataList(
         }
     }
 
-    suspend fun addUserField(name: String, type: UserMetadataType): Int? {
+    suspend fun addUserField(name: String, type: MetadataType): Int? {
         if (AutoMothRepository.metadataStore.getField(name) != null) {
             return null
         }
         AutoMothRepository.metadataStore.addMetadataField(name, type)
         AutoMothRepository.metadataStore.getField(name)?.let { field ->
             val displayable = field.toDisplayableMetadata(
-                AutoMothRepository.metadataStore,
                 sessionID,
+                AutoMothRepository.metadataStore,
                 observer = ::onMetadataChange
             )
             return@addUserField mutate {

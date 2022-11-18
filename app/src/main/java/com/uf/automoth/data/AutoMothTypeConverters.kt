@@ -1,7 +1,7 @@
 package com.uf.automoth.data
 
 import androidx.room.TypeConverter
-import com.uf.automoth.data.metadata.UserMetadataType
+import com.uf.automoth.data.metadata.MetadataType
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 
@@ -25,13 +25,13 @@ object AutoMothTypeConverters {
 
     @TypeConverter
     @JvmStatic
-    fun toUserMetadataType(value: String?): UserMetadataType? {
-        return value?.let { UserMetadataType.from(it) }
+    fun toUserMetadataType(value: String?): MetadataType? {
+        return value?.let { MetadataType.from(it) }
     }
 
     @TypeConverter
     @JvmStatic
-    fun fromUserMetadataType(type: UserMetadataType?): String? {
+    fun fromUserMetadataType(type: MetadataType?): String? {
         return type?.raw
     }
 }

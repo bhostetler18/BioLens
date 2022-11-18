@@ -70,7 +70,7 @@ class MetadataAdapter(private val onDelete: (MetadataTableDataModel) -> Unit) :
         val item = getItem(position)
         holder.bind(item)
         if (item is EditableMetadataInterface) {
-            holder.showRemoveButton(_isInDeleteMode && item.userField != null)
+            holder.showRemoveButton(_isInDeleteMode && item.editable?.isDeletable() == true)
             holder.onRemovePressed = {
                 onDelete(item)
             }
