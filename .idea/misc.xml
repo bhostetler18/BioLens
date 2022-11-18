@@ -29,12 +29,15 @@
         <entry key="app/src/main/res/layout/activity_imaging_scheduler.xml" value="0.27607361963190186" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.14896087646484377" />
         <entry key="app/src/main/res/layout/activity_main_filesystem_error.xml" value="0.1827484130859375" />
+        <entry key="app/src/main/res/layout/activity_metadata_editor.xml" value="0.20993227990970656" />
         <entry key="app/src/main/res/layout/activity_session_grid.xml" value="0.1" />
         <entry key="app/src/main/res/layout/app_bar.xml" value="0.11837606837606837" />
         <entry key="app/src/main/res/layout/content_session_grid.xml" value="0.1203125" />
+        <entry key="app/src/main/res/layout/dialog_add_metadata_field.xml" value="0.19333343505859377" />
         <entry key="app/src/main/res/layout/dialog_auto_stop.xml" value="0.15058898925781256" />
         <entry key="app/src/main/res/layout/dialog_edit_text.xml" value="0.11927083333333334" />
         <entry key="app/src/main/res/layout/dialog_interval_picker.xml" value="0.2620712280273438" />
+        <entry key="app/src/main/res/layout/dialog_metadata_export.xml" value="0.12612227447627192" />
         <entry key="app/src/main/res/layout/duration_picker.xml" value="0.24569549560546872" />
         <entry key="app/src/main/res/layout/fragment_data.xml" value="0.15567474365234377" />
         <entry key="app/src/main/res/layout/fragment_image_grid.xml" value="0.11757161179991449" />
@@ -48,14 +51,22 @@
         <entry key="app/src/main/res/layout/horizontal_divider.xml" value="0.15775972637879435" />
         <entry key="app/src/main/res/layout/image_grid_item.xml" value="0.1" />
         <entry key="app/src/main/res/layout/imaging_settings.xml" value="0.11574074074074074" />
+        <entry key="app/src/main/res/layout/metadata_boolean_item.xml" value="0.12344818115234375" />
+        <entry key="app/src/main/res/layout/metadata_deletable_row.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/metadata_editable_item.xml" value="0.27163391113281243" />
+        <entry key="app/src/main/res/layout/metadata_header_row.xml" value="0.22103463018383926" />
+        <entry key="app/src/main/res/layout/metadata_readonly_item.xml" value="0.2922422954303932" />
+        <entry key="app/src/main/res/layout/metadata_string_list_item.xml" value="0.48441772460937504" />
         <entry key="app/src/main/res/layout/pending_session_list_item.xml" value="0.28013829575507343" />
         <entry key="app/src/main/res/layout/schedule_session_options.xml" value="0.22103463018383926" />
         <entry key="app/src/main/res/layout/session_list_item.xml" value="0.3142857142857143" />
-        <entry key="app/src/main/res/layout/upload_progress_bar.xml" value="0.3079788208007812" />
+        <entry key="app/src/main/res/layout/upload_progress_bar.xml" value="0.2921686746987952" />
         <entry key="app/src/main/res/layout/vertical_divider.xml" value="0.1586147926464301" />
         <entry key="app/src/main/res/menu/bottom_nav_menu.xml" value="0.2703125" />
+        <entry key="app/src/main/res/menu/image_grid_menu.xml" value="0.2156341552734375" />
         <entry key="app/src/main/res/menu/image_share_menu.xml" value="0.1" />
         <entry key="app/src/main/res/menu/imaging_menu.xml" value="0.1453125" />
+        <entry key="app/src/main/res/menu/metadata_menu.xml" value="0.1" />
         <entry key="app/src/main/res/menu/session_list_menu.xml" value="0.1" />
         <entry key="app/src/main/res/menu/session_menu.xml" value="0.1203125" />
         <entry key="app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.195" />

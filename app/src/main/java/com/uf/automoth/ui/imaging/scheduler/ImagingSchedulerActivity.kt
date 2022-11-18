@@ -153,7 +153,6 @@ class ImagingSchedulerActivity : AppCompatActivity() {
     private fun selectInterval() {
         val dialog = IntervalDialog(
             this,
-            layoutInflater,
             viewModel.imagingSettings.interval,
             viewModel.estimatedImageSizeBytes
         ) { interval ->
@@ -166,7 +165,6 @@ class ImagingSchedulerActivity : AppCompatActivity() {
     private fun selectAutoStop() {
         val dialog = AutoStopDialog(
             this,
-            layoutInflater,
             viewModel.imagingSettings,
             viewModel.estimatedImageSizeBytes
         ) { mode, value ->

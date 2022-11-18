@@ -1,7 +1,5 @@
 package com.uf.automoth.ui.imageView
 
-import android.content.ClipData
-import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
@@ -30,6 +28,7 @@ import com.uf.automoth.ui.common.simpleAlertDialogWithOk
 import com.uf.automoth.utility.SHORT_DATE_TIME_FORMATTER
 import com.uf.automoth.utility.copyTo
 import com.uf.automoth.utility.saveImageToMediaStore
+import com.uf.automoth.utility.shareSheet
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
@@ -134,7 +133,7 @@ class ImageViewerActivity : AppCompatActivity() {
                 file.copyTo(tmp)
                 setExif(tmp.toUri())
                 val uri = FileProvider.getUriForFile(this, "com.uf.automoth.fileprovider", tmp)
-                shareImageUri(uri)
+                shareSheet(uri, MimeTypes.JPEG, getString(R.string.share))
                 true
             }
             R.id.share_crop -> {
@@ -144,17 +143,6 @@ class ImageViewerActivity : AppCompatActivity() {
 
             else -> false
         }
-    }
-
-    private fun shareImageUri(uri: Uri?) {
-        val intent = Intent()
-        intent.action = Intent.ACTION_SEND
-        intent.type = MimeTypes.JPEG
-        // See https://stackoverflow.com/questions/57689792/permission-denial-while-sharing-file-with-fileprovider
-        intent.clipData = ClipData.newRawUri("", uri)
-        intent.putExtra(Intent.EXTRA_STREAM, uri)
-        intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-        startActivity(Intent.createChooser(intent, getString(R.string.share)))
     }
 
     private fun setShareMenuVisible(enabled: Boolean) {
@@ -178,7 +166,7 @@ class ImageViewerActivity : AppCompatActivity() {
             }
 
             setExif(uri)
-            shareImageUri(uri)
+            shareSheet(uri, MimeTypes.JPEG, getString(R.string.share))
         }
         val tmp = File(applicationContext.cacheDir, "export.jpg")
         val uri = FileProvider.getUriForFile(this, "com.uf.automoth.fileprovider", tmp)

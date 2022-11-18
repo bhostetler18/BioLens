@@ -23,7 +23,6 @@ import com.uf.automoth.utility.SingletonDialog
 
 class AutoStopDialog(
     context: Context,
-    inflater: LayoutInflater,
     private val currentSettings: ImagingSettings,
     private val estimatedImageSize: Double,
     onSetHandler: (AutoStopMode, Int?) -> Unit
@@ -31,6 +30,7 @@ class AutoStopDialog(
     private val binding: DialogAutoStopBinding
 
     init {
+        val inflater = LayoutInflater.from(context)
         binding = DialogAutoStopBinding.inflate(inflater)
     }
 
@@ -64,6 +64,7 @@ class AutoStopDialog(
         }
         dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
 
+        val inflater = LayoutInflater.from(context)
         imageCountBinding = GenericNumberEntryBinding.inflate(inflater)
         imageCountBinding.root.gravity = Gravity.CENTER
         timePicker = TimeDurationPicker(dialog.context)

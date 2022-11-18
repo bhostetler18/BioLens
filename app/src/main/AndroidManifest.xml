@@ -52,6 +52,10 @@
         <activity
             android:name="com.uf.automoth.ui.imageView.ImageViewerActivity"
             android:exported="false" />
+        <activity
+            android:name="com.uf.automoth.ui.metadata.MetadataActivity"
+            android:windowSoftInputMode="adjustPan"
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

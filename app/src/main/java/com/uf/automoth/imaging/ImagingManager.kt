@@ -70,7 +70,7 @@ class ImagingManager(
             val maxAge = AutoMothRepository.getLocationToleranceSeconds(context)
             locationProvider.getCurrentLocation(context, true, maxAge)?.let {
                 Log.d(TAG, "Setting session location to $it")
-                AutoMothRepository.updateSessionLocation(sessionID, it)
+                AutoMothRepository.updateSessionLocation(sessionID, it.latitude, it.longitude)
             }
         }
 
@@ -88,15 +88,16 @@ class ImagingManager(
     }
 
     private suspend fun onTimerTick() {
-        if (shouldAutoStop()) {
-            stop("Auto-stop")
-            return
-        }
+        autoStopIfNecessary()
         val capture = imageCapture.get()
         if (capture != null) {
             runCapture(capture)
         } else {
             stop("Image capture was garbage collected")
+        }
+        if (settings.autoStopMode == AutoStopMode.IMAGE_COUNT) {
+            // check again after capturing image rather than waiting until next tick
+            autoStopIfNecessary()
         }
     }
 
@@ -111,10 +112,6 @@ class ImagingManager(
         if (shouldShutdownCamera()) {
             Log.d(TAG, "Stopping camera")
             capture.stopCamera()
-        }
-
-        if (shouldAutoStop()) {
-            stop("Auto-stop")
         }
     }
 
@@ -156,17 +153,15 @@ class ImagingManager(
         }
     }
 
-    fun stop(reason: String) {
+    suspend fun stop(reason: String) {
         Log.d(TAG, "Stopping session: $reason")
-        val end = OffsetDateTime.now()
         timer?.cancel()
         timer = null
         locationJob?.cancel()
         locationJob = null
-        AutoMothRepository.updateSessionCompletion(session.sessionID, end)
-        onAutoStopCallback?.invoke()
         imagesTaken = 0
         cameraRestartCount = 0
+        AutoMothRepository.updateSessionCompletion(session.sessionID)
     }
 
     private suspend fun tryRestartCamera() {
@@ -181,6 +176,13 @@ class ImagingManager(
             capture.startCamera()
         } else {
             stop("Camera restart unsuccessful")
+        }
+    }
+
+    private suspend fun autoStopIfNecessary() {
+        if (shouldAutoStop()) {
+            stop("Auto-stop")
+            onAutoStopCallback?.invoke() // call this last as it may do something like kill the containing service
         }
     }
 

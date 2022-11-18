@@ -72,13 +72,17 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
                         // If this session was triggered by an alarm, remove the record of its pending intent
                         AutoMothRepository.deletePendingSession(requestCode.toLong())
                     }
-                    startSession(name, settings, shouldCancel)
+                    lifecycleScope.launch {
+                        startSession(name, settings, shouldCancel)
+                    }
                     return START_REDELIVER_INTENT
                 }
             }
             ACTION_STOP_SESSION -> {
-                stopCurrentSession("Service received stop action")
-                killService()
+                lifecycleScope.launch {
+                    stopCurrentSession("Service received stop action")
+                    killService()
+                }
                 return START_REDELIVER_INTENT
             }
         }
@@ -191,7 +195,11 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
             )
         }
 
-    private fun startSession(name: String?, settings: ImagingSettings, cancelExisting: Boolean) {
+    private suspend fun startSession(
+        name: String?,
+        settings: ImagingSettings,
+        cancelExisting: Boolean
+    ) {
         if (cancelExisting) {
             stopCurrentSession("Cancelled by new session $name")
         } else if (imagingManager != null) {
@@ -205,20 +213,21 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
         imagingManager = ImagingManager(settings, WeakReference(this)) {
             killService()
         }
-        lifecycleScope.launch {
-            startCamera()
-            imagingManager?.start(
-                name ?: getString(R.string.default_session_name),
-                this@ImagingService,
-                locationProvider,
-                0L
-            )
-        }
+        currentImagingSettings.postValue(settings)
+
+        startCamera()
+        imagingManager?.start(
+            name ?: getString(R.string.default_session_name),
+            this@ImagingService,
+            locationProvider,
+            0L
+        )
     }
 
-    private fun stopCurrentSession(reason: String) {
+    private suspend fun stopCurrentSession(reason: String) {
         imagingManager?.stop(reason)
         imagingManager = null
+        currentImagingSettings.postValue(null)
     }
 
     private fun killServiceIfInactive() {
@@ -248,6 +257,7 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
         private const val KEY_REQUEST_CODE = "com.uf.automoth.extra.REQUEST_CODE"
 
         val IS_RUNNING = MutableLiveData(false)
+        val currentImagingSettings = MutableLiveData<ImagingSettings?>(null)
 
         fun getStartSessionIntent(
             context: Context,

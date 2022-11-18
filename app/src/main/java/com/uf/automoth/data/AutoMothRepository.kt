@@ -1,12 +1,13 @@
 package com.uf.automoth.data
 
 import android.content.Context
-import android.location.Location
 import android.util.Log
 import androidx.preference.PreferenceManager
 import androidx.room.Room
 import com.uf.automoth.R
+import com.uf.automoth.data.metadata.AutoMothMetadataStore
 import com.uf.automoth.imaging.ImagingSettings
+import com.uf.automoth.ui.metadata.prepopulate
 import com.uf.automoth.utility.getRandomString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +25,11 @@ import java.time.OffsetDateTime
 object AutoMothRepository {
 
     private lateinit var database: AutoMothDatabase
+    lateinit var metadataStore: AutoMothMetadataStore
+
+    // Used for database updates that should finish regardless of whether the caller is still around
     private lateinit var coroutineScope: CoroutineScope
+
     lateinit var storageLocation: File
     lateinit var userID: String
 
@@ -39,13 +44,17 @@ object AutoMothRepository {
         if (this.isInitialized) {
             return
         }
-        database = Room.databaseBuilder(
+        this.storageLocation = storageLocation
+        this.coroutineScope = coroutineScope
+        this.database = Room.databaseBuilder(
             context,
             AutoMothDatabase::class.java,
             "automoth-db"
         ).build()
-        this.storageLocation = storageLocation
-        this.coroutineScope = coroutineScope
+        this.metadataStore = AutoMothMetadataStore(database)
+        coroutineScope.launch {
+            prepopulate(metadataStore)
+        }
         Log.d(TAG, "External file path is ${storageLocation.path}")
         userID = createOrGetUserId(context)
         Log.d(TAG, "User ID is $userID")
@@ -93,6 +102,12 @@ object AutoMothRepository {
         return null
     }
 
+    fun deleteSession(id: Long) = coroutineScope.launch {
+        getSession(id)?.let {
+            delete(it)
+        }
+    }
+
     fun delete(session: Session) = coroutineScope.launch {
         val sessionDir = File(storageLocation, session.directory)
         val deleted = withContext(Dispatchers.IO) {
@@ -131,6 +146,8 @@ object AutoMothRepository {
     }
 
     suspend fun getSession(id: Long): Session? = database.sessionDAO().getSession(id)
+    fun getSessionFlow(id: Long): Flow<Session?> = database.sessionDAO().getSessionFlow(id)
+
     suspend fun getPendingSession(requestCode: Long) =
         database.pendingSessionDAO().getPendingSession(requestCode)
 
@@ -150,12 +167,15 @@ object AutoMothRepository {
         return database.sessionDAO().getNumImagesInSession(id)
     }
 
-    fun updateSessionLocation(id: Long, location: Location) = coroutineScope.launch {
-        database.sessionDAO().updateSessionLocation(id, location.latitude, location.longitude)
-    }
+    fun updateSessionLocation(id: Long, latitude: Double?, longitude: Double?) =
+        coroutineScope.launch {
+            database.sessionDAO().updateSessionLocation(id, latitude, longitude)
+        }
 
-    fun updateSessionCompletion(id: Long, time: OffsetDateTime) = coroutineScope.launch {
-        database.sessionDAO().updateSessionCompletion(id, time)
+    suspend fun updateSessionCompletion(id: Long): OffsetDateTime {
+        val completed = database.sessionDAO().getLastImageTimestampInSession(id)
+        database.sessionDAO().updateSessionCompletion(id, completed)
+        return completed
     }
 
     fun renameSession(id: Long, name: String) = coroutineScope.launch {

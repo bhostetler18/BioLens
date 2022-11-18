@@ -17,6 +17,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.IOException
 import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
 import kotlin.test.assertFailsWith
 
 @RunWith(AndroidJUnit4::class)
@@ -59,5 +60,29 @@ class DatabaseTest {
         }
         images = db.imageDAO().getAllImages()
         assert(images.isEmpty())
+    }
+
+    @Test
+    fun testTimestamps() = runBlocking {
+        val session = Session("TestSession2", "test2/", OffsetDateTime.now(), 50.0, 50.0, 5)
+        session.sessionID = db.sessionDAO().insert(session)
+
+        val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
+        val maxDate = formatter.parse("2020-01-01T04:00Z", OffsetDateTime::from)
+        val dates = listOf(
+            maxDate,
+            formatter.parse("2020-01-01T02:00Z", OffsetDateTime::from),
+            formatter.parse("2020-01-01T03:00Z", OffsetDateTime::from),
+            formatter.parse("2020-01-01T05:00+02:00", OffsetDateTime::from)
+        )
+
+        dates.forEachIndexed { i, dateTime ->
+            val image = Image(i, "", dateTime, session.sessionID)
+            db.imageDAO().insert(image)
+        }
+
+        // Ensure that datetimes are handled correctly even with offsets that might break lexicographical sort
+        val observed = db.sessionDAO().getLastImageTimestampInSession(session.sessionID)
+        assertThat(observed, equalTo(maxDate))
     }
 }

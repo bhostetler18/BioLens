@@ -19,6 +19,10 @@ abstract class BasicSessionCSVFormatter : SessionCSVFormatter {
         columns.add(BasicSessionFormatterColumn(name, getter))
     }
 
+    fun addConstantColumn(name: String, value: String) {
+        columns.add(BasicSessionFormatterColumn(name) { value })
+    }
+
     override fun getHeader(): List<String> {
         return columns.map {
             it.name

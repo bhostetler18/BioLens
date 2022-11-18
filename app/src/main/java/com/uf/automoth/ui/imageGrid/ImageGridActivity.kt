@@ -1,5 +1,6 @@
 package com.uf.automoth.ui.imageGrid
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -22,7 +23,12 @@ import com.uf.automoth.databinding.ActivityImageGridBinding
 import com.uf.automoth.network.GoogleDriveUploadWorker
 import com.uf.automoth.network.GoogleSignInHelper
 import com.uf.automoth.ui.common.EditTextDialog
+import com.uf.automoth.ui.common.ExportOptions
+import com.uf.automoth.ui.common.ExportOptionsDialog
+import com.uf.automoth.ui.common.ExportOptionsHandler
 import com.uf.automoth.ui.common.simpleAlertDialogWithOk
+import com.uf.automoth.ui.metadata.MetadataActivity
+import com.uf.automoth.utility.launchDialog
 import kotlinx.coroutines.launch
 
 class ImageGridActivity : AppCompatActivity() {
@@ -39,6 +45,11 @@ class ImageGridActivity : AppCompatActivity() {
             return
         }
 
+        viewModel = ViewModelProvider(
+            this@ImageGridActivity,
+            ImageGridViewModel.ImageGridViewModelFactory(sessionID)
+        )[ImageGridViewModel::class.java]
+
         lifecycleScope.launch {
             initialize(sessionID)
         }
@@ -50,16 +61,26 @@ class ImageGridActivity : AppCompatActivity() {
             return@initialize
         }
 
-        viewModel = ViewModelProvider(
-            this@ImageGridActivity,
-            ImageGridViewModel.ImageGridViewModelFactory(session)
-        )[ImageGridViewModel::class.java]
+        // If the session was stopped by the device running out of battery or crashing (and
+        // therefore not shutdown fully in ImagingManager::stop), ensure that the completed date is
+        // still set when the user goes to view/export this session
+        if (session.completed == null) {
+            session.completed = AutoMothRepository.updateSessionCompletion(sessionID)
+        }
 
         val adapter = ImageGridAdapter(session)
         binding.imageGrid.adapter = adapter
+        setSupportActionBar(binding.appBar.toolbar)
+        setContentView(binding.root)
+        supportActionBar?.title = session.name
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         viewModel.images.observe(this@ImageGridActivity) { images ->
             images?.let { adapter.submitList(it) }
+        }
+
+        viewModel.session.observe(this@ImageGridActivity) {
+            supportActionBar?.title = it?.name
         }
 
         viewModel.displayCounts.observe(this@ImageGridActivity) {
@@ -74,7 +95,7 @@ class ImageGridActivity : AppCompatActivity() {
         }
 
         WorkManager.getInstance(this).getWorkInfosForUniqueWorkLiveData(
-            GoogleDriveUploadWorker.uniqueWorkerTag(session)
+            GoogleDriveUploadWorker.uniqueWorkerTag(viewModel.sessionID)
         ).observe(this) { infoList: List<WorkInfo>? ->
             if (infoList != null && infoList.isNotEmpty()) {
                 showUploadProgress(infoList[0])
@@ -82,11 +103,6 @@ class ImageGridActivity : AppCompatActivity() {
                 showUploadProgress(null)
             }
         }
-
-        setSupportActionBar(binding.appBar.toolbar)
-        setContentView(binding.root)
-        supportActionBar?.title = session.name
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
     private fun displayError() {
@@ -111,11 +127,27 @@ class ImageGridActivity : AppCompatActivity() {
                 true
             }
             R.id.rename -> {
-                renameCurrentSession()
+//                renameCurrentSession()
+                val intent = Intent(applicationContext, MetadataActivity::class.java)
+                intent.putExtra("SESSION", viewModel.sessionID)
+                startActivity(intent)
                 true
             }
             R.id.upload -> {
-                uploadSession()
+                val optionsDialog =
+                    ExportOptionsDialog(
+                        this,
+                        object : ExportOptionsHandler {
+                            override fun onSelectOptions(options: ExportOptions) {
+                                viewModel.exportOptions = options
+                                uploadSession()
+                            }
+                        },
+                        R.string.upload,
+                        true,
+                        viewModel.exportOptions
+                    )
+                launchDialog(optionsDialog, item.actionView)
                 true
             }
             R.id.delete -> {
@@ -146,40 +178,26 @@ class ImageGridActivity : AppCompatActivity() {
         }
     }
 
-    private fun renameCurrentSession() {
-        val editDialog = EditTextDialog(
-            this,
-            layoutInflater,
-            title = getString(R.string.rename_session),
-            hint = viewModel.session.name,
-            positiveText = getString(R.string.rename),
-            negativeText = getString(R.string.cancel),
-            positiveListener = { text, dialog ->
-                AutoMothRepository.renameSession(viewModel.session.sessionID, text)
-                supportActionBar?.title = text
-                dialog.dismiss()
-            },
-            textValidator = Session::isValid
-        )
-        editDialog.show()
-    }
-
     private fun uploadSession() {
         val account = GoogleSignInHelper.getGoogleAccountIfValid(this)?.account
         if (account != null) {
+            val options = viewModel.exportOptions
             val workRequest = OneTimeWorkRequestBuilder<GoogleDriveUploadWorker>()
                 .setInputData(
                     workDataOf(
-                        GoogleDriveUploadWorker.KEY_SESSION_ID to viewModel.session.sessionID,
+                        GoogleDriveUploadWorker.KEY_SESSION_ID to viewModel.sessionID,
                         GoogleDriveUploadWorker.KEY_ACCOUNT_EMAIL to account.name,
-                        GoogleDriveUploadWorker.KEY_ACCOUNT_TYPE to account.type
+                        GoogleDriveUploadWorker.KEY_ACCOUNT_TYPE to account.type,
+                        GoogleDriveUploadWorker.KEY_INCLUDE_AUTOMOTH_METADATA to options.includeAutoMothMetadata,
+                        GoogleDriveUploadWorker.KEY_INCLUDE_USER_METADATA to options.includeUserMetadata,
+                        GoogleDriveUploadWorker.KEY_METADATA_ONLY to options.metadataOnly
                     )
                 ).setConstraints(
                     Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
                 )
                 .build()
             WorkManager.getInstance(this).enqueueUniqueWork(
-                GoogleDriveUploadWorker.uniqueWorkerTag(viewModel.session),
+                GoogleDriveUploadWorker.uniqueWorkerTag(viewModel.sessionID),
                 ExistingWorkPolicy.KEEP,
                 workRequest
             )
@@ -197,7 +215,7 @@ class ImageGridActivity : AppCompatActivity() {
         dialogBuilder.setTitle(getString(R.string.warn_delete_session))
         dialogBuilder.setMessage(getString(R.string.warn_permanent_action))
         dialogBuilder.setPositiveButton(getString(R.string.delete)) { dialog, _ ->
-            AutoMothRepository.delete(viewModel.session)
+            viewModel.deleteCurrentSession()
             dialog.dismiss()
             this.finish()
         }
@@ -227,7 +245,7 @@ class ImageGridActivity : AppCompatActivity() {
                 binding.progressBar.setLabel(getString(R.string.waiting_internet))
                 binding.progressBar.configureActionButton(getString(R.string.cancel)) {
                     WorkManager.getInstance(this).cancelUniqueWork(
-                        GoogleDriveUploadWorker.uniqueWorkerTag(viewModel.session)
+                        GoogleDriveUploadWorker.uniqueWorkerTag(viewModel.sessionID)
                     )
                 }
             }
@@ -247,7 +265,7 @@ class ImageGridActivity : AppCompatActivity() {
 
                 binding.progressBar.configureActionButton(getString(R.string.cancel)) {
                     WorkManager.getInstance(this).cancelUniqueWork(
-                        GoogleDriveUploadWorker.uniqueWorkerTag(viewModel.session)
+                        GoogleDriveUploadWorker.uniqueWorkerTag(viewModel.sessionID)
                     )
                 }
             }
@@ -255,7 +273,15 @@ class ImageGridActivity : AppCompatActivity() {
                 binding.progressBar.setLabel(getString(R.string.upload_complete))
                 // The Result.Success() WorkInfo update may occur before the final update to KEY_PROGRESS,
                 // so just force the progress bar to show fully complete
-                binding.progressBar.setProgress(binding.progressBar.maxProgress)
+                binding.progressBar.showComplete()
+                if (!binding.progressBar.hasSetMaxProgress) {
+                    // The Result.Success() WorkInfo contains no progress information, and when
+                    // navigating back to a completed upload the progress bar may not have been
+                    // configured with the proper max value and would just show 100/100. In this
+                    // case, just hide the numbers
+                    binding.progressBar.showNumericProgress(false)
+                }
+
                 binding.progressBar.configureActionButton(getString(R.string.dismiss)) {
                     dismissAndResetUploadBar()
                 }
