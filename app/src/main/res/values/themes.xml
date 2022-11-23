@@ -11,7 +11,7 @@
         <item name="colorSecondaryContainer">@color/green_lighter</item>
         <item name="colorOnSecondary">@color/white</item>
         <!-- Status bar color. -->
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor">@color/muted_grey_blue</item>
         <!--        <item name="colorSurface">@color/green</item>-->
         <!-- Background colors-->
         <item name="android:colorBackground">@color/extra_light_grey</item>

@@ -6,11 +6,12 @@
     <color name="green_lighter">#C7E6A3</color>
     <color name="purple">#A77CE4</color>
     <color name="destructive_red">#ED0000</color>
-    <color name="attention">#FB4771</color>
+    <color name="attention">#F87D9A</color>
     <color name="attention2">#FF8922</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="dark_grey">#4C4F50</color>
     <color name="light_grey">#CED0D1</color>
     <color name="extra_light_grey">#EBEDED</color>
+    <color name="muted_grey_blue">#1C2E2E</color>
 </resources>
