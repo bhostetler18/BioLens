@@ -6,7 +6,7 @@ help() {
     echo
 }
 
-if [ $1 = '-on' ]
+if [ "$1" = '-on' ]
 then
     adb shell settings put global sysui_demo_allowed 1
     adb shell am broadcast -a com.android.systemui.demo -e command enter
@@ -15,7 +15,7 @@ then
     adb shell am broadcast -a com.android.systemui.demo -e command battery -e level 100 -e plugged false
     adb shell am broadcast -a com.android.systemui.demo -e command notifications -e visible false
     echo 'Device successfully configured for screenshots.'
-elif [ $1 = '-off' ]
+elif [ "$1" = '-off' ]
 then
     adb shell am broadcast -a com.android.systemui.demo -e command exit
     echo 'Screenshot mode exited.'
