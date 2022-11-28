@@ -46,7 +46,7 @@ class ImagingManager(
     private val onAutoStopCallback: (() -> Unit)? = null
 ) {
 
-    private lateinit var session: Session
+    private var session: Session? = null
     private var timer: Timer? = null
     private var locationJob: Job? = null
 
@@ -54,8 +54,8 @@ class ImagingManager(
 
     private var cameraRestartCount: Int = 0
 
-    private val sessionDirectory by lazy {
-        File(AutoMothRepository.storageLocation, session.directory)
+    private val sessionDirectory: File get() {
+        return File(AutoMothRepository.storageLocation, session!!.directory)
     }
 
     suspend fun start(
@@ -78,7 +78,7 @@ class ImagingManager(
             null,
             settings.interval
         )
-        val sessionID = AutoMothRepository.create(session) ?: run {
+        val sessionID = AutoMothRepository.create(session!!) ?: run {
             Log.d(TAG, "Failed to create new session")
             return@coroutineScope
         }
@@ -149,7 +149,7 @@ class ImagingManager(
         outputFileResults: ImageCapture.OutputFileResults
     ) {
         val file = outputFileResults.savedUri?.toFile() ?: return
-        val image = Image(requestNumber, file.name, OffsetDateTime.now(), session.sessionID)
+        val image = Image(requestNumber, file.name, OffsetDateTime.now(), session!!.sessionID)
         AutoMothRepository.insert(image)
         Log.d(TAG, "Image captured at $file")
         imagesTaken++
@@ -178,7 +178,9 @@ class ImagingManager(
         locationJob = null
         imagesTaken = 0
         cameraRestartCount = 0
-        AutoMothRepository.updateSessionCompletion(session.sessionID)
+        session?.sessionID?.let {
+            AutoMothRepository.updateSessionCompletion(it)
+        }
     }
 
     private suspend fun tryRestartCamera() {
@@ -209,7 +211,7 @@ class ImagingManager(
             AutoStopMode.IMAGE_COUNT -> imagesTaken == settings.autoStopValue
             AutoStopMode.TIME -> {
                 val now = OffsetDateTime.now()
-                val minutesPassed = session.started.until(now, ChronoUnit.MINUTES)
+                val minutesPassed = session!!.started.until(now, ChronoUnit.MINUTES)
                 return minutesPassed >= settings.autoStopValue
             }
         }

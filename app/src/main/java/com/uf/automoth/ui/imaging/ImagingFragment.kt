@@ -391,6 +391,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
 
     private fun requestPermissionsIfNecessary(onRequiredPermissionsGranted: () -> Unit) {
         if (allRequiredPermissionsGranted()) {
+            binding.permissionText.isVisible = false
             onRequiredPermissionsGranted()
         } else {
             val permissionLauncher = registerForActivityResult(
