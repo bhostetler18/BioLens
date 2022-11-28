@@ -1,0 +1,13 @@
+---
+---
+
+@import "minima";
+
+.site-title::before {
+    content: url("/assets/favicon/favicon-32x32.png");
+    display: inline-block;
+    position: relative;
+    width: 32px;
+    top: 5px;
+    right: 5px;
+}
