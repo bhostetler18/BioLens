@@ -97,7 +97,7 @@ class MetadataList(
         if (AutoMothRepository.metadataStore.getField(name) != null) {
             return null
         }
-        AutoMothRepository.metadataStore.addMetadataField(name, type)
+        AutoMothRepository.metadataStore.addMetadataField(name, type, false)
         AutoMothRepository.metadataStore.getField(name)?.let { field ->
             val displayable = field.toDisplayableMetadata(
                 sessionID,
@@ -116,7 +116,7 @@ class MetadataList(
     suspend fun removeUserField(item: MetadataTableDataModel): Boolean {
         val metadata = item.editable?.userField ?: return false
         if (mutate { return@mutate userMetadata.remove(item) }) {
-            AutoMothRepository.metadataStore.deleteMetadataField(metadata.field)
+            AutoMothRepository.metadataStore.deleteMetadataField(metadata.field, false)
         }
         onMetadataChange() // update isDirty in case the only dirty item was the one that was removed
         return false

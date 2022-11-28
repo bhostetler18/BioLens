@@ -39,4 +39,9 @@ interface MetadataValueDAO {
 
     @Query("SELECT boolValue FROM metadata_values WHERE `key` = :key AND sessionID = :session")
     suspend fun getBoolean(key: String, session: Long): Boolean?
+
+    // This is dangerous and should only be called if you're sure the new key won't produce a foreign
+    // key constraint conflict
+    @Query("UPDATE metadata_values SET `key` = :newName where `key` = :originalName")
+    suspend fun rename(originalName: String, newName: String)
 }

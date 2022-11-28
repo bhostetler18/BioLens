@@ -58,7 +58,7 @@ class AutoMothSessionCSVFormatter(
         this.addConstantColumn("session_local_start_datetime", session.started.toString())
         this.addConstantColumn("session_local_end_datetime", session.completed.toStringOrEmpty())
         this.addConstantColumn("session_frame_interval_seconds", session.interval.toString())
-        this.addConstantColumn("device_type", getDeviceType())
+        this.addConstantColumn("session_device_type", getDeviceType())
         this.addConstantColumn("automoth_app_version", BuildConfig.VERSION_NAME)
     }
 

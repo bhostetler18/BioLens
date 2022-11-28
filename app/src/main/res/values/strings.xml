@@ -156,4 +156,9 @@
     <string name="export_to_filesystem">Export to filesystem</string>
     <string name="metadata_sheet_width_cm">Sheet width (cm)</string>
     <string name="metadata_sheet_height_cm">Sheet height (cm)</string>
+    <string name="metadata_has_scale_bar">Has scale bar</string>
+    <string name="metadata_has_color_standard">Has color standard</string>
+    <string name="metadata_hardware_description">Hardware description</string>
+    <string name="metadata_white_light_model">White light model</string>
+    <string name="metadata_uv_light_model">UV light model</string>
 </resources>

@@ -43,8 +43,9 @@ interface MetadataField {
 
 // Makes it easier to mock/test or potentially change backing storage in the future
 interface MetadataStore {
-    suspend fun addMetadataField(field: String, type: MetadataType, builtin: Boolean = false)
-    suspend fun deleteMetadataField(field: String)
+    suspend fun addMetadataField(field: String, type: MetadataType, builtin: Boolean)
+    suspend fun deleteMetadataField(field: String, builtin: Boolean)
+    suspend fun renameField(originalName: String, newName: String, builtin: Boolean)
     suspend fun getField(field: String): MetadataField?
     suspend fun getMetadataType(field: String): MetadataType?
     suspend fun getFields(builtin: Boolean): List<MetadataField>

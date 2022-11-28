@@ -66,8 +66,33 @@ class AutoMothMetadataStore(private val db: AutoMothDatabase) : MetadataStore {
         db.userMetadataKeyDAO().insert(MetadataKey(field, type, builtin))
     }
 
-    override suspend fun deleteMetadataField(field: String) {
-        db.userMetadataKeyDAO().delete(field)
+    override suspend fun deleteMetadataField(field: String, builtin: Boolean) {
+        db.userMetadataKeyDAO().delete(field, builtin)
+    }
+
+    override suspend fun renameField(originalName: String, newName: String, builtin: Boolean) {
+        val existingOriginal = db.userMetadataKeyDAO().get(originalName) ?: return
+        if (existingOriginal.builtin != builtin) {
+            Log.d(
+                TAG,
+                "Attempting to rename field '$originalName' with builtin='$builtin', " +
+                    "but the existing field has builtin='${existingOriginal.builtin}'"
+            )
+            return
+        }
+        if (db.userMetadataKeyDAO().get(newName) != null) {
+            Log.d(
+                TAG,
+                "Attempting to rename '$originalName' to '$newName', but '$newName' already exists"
+            )
+            return
+        }
+        // Insert first to prevent foreign key constraint conflicts (and avoid losing values that
+        // would be wiped if the original key was deleted first)
+        db.userMetadataKeyDAO().insert(MetadataKey(newName, existingOriginal.type, builtin))
+        db.userMetadataValueDAO().rename(originalName, newName)
+        // Delete now that values have been updated
+        db.userMetadataKeyDAO().delete(existingOriginal)
     }
 
     override suspend fun getField(field: String): MetadataField? {

@@ -24,13 +24,13 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.uf.automoth.data.AutoMothDatabase
 import com.uf.automoth.data.Session
+import com.uf.automoth.data.metadata.AUTOMOTH_METADATA
 import com.uf.automoth.data.metadata.AutoMothMetadataStore
 import com.uf.automoth.data.metadata.MetadataType
 import com.uf.automoth.data.metadata.MetadataValue
 import com.uf.automoth.data.metadata.getValue
+import com.uf.automoth.data.metadata.prepopulate
 import com.uf.automoth.data.metadata.setValue
-import com.uf.automoth.ui.metadata.AUTOMOTH_METADATA
-import com.uf.automoth.ui.metadata.prepopulate
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.notNullValue
@@ -74,7 +74,7 @@ class MetadataTest {
         db.clearAllTables()
         var session = createTestSession()
         var sessionID = session.sessionID
-        md.addMetadataField("test", MetadataType.STRING)
+        md.addMetadataField("test", MetadataType.STRING, false)
 
         // nonexistent session, correct key
         assertFailsWith<SQLiteConstraintException> {
@@ -100,7 +100,7 @@ class MetadataTest {
         // Deleting metadata field should delete all associated entries
         md.setValue("test", sessionID, value)
         assertThat(db.userMetadataValueDAO().getString("test", sessionID), equalTo(value))
-        md.deleteMetadataField("test")
+        md.deleteMetadataField("test", false)
         assertThat(db.userMetadataValueDAO().getString("test", sessionID), equalTo(null))
     }
 
@@ -108,14 +108,14 @@ class MetadataTest {
     fun testFields(): Unit = runBlocking {
         db.clearAllTables()
         assertThat(md.getMetadataType("test"), equalTo(null))
-        md.addMetadataField("test", MetadataType.STRING)
+        md.addMetadataField("test", MetadataType.STRING, false)
         assertThat(md.getField("test"), notNullValue())
         assertThat(md.getMetadataType("test"), equalTo(MetadataType.STRING))
-        md.addMetadataField("test", MetadataType.BOOLEAN)
+        md.addMetadataField("test", MetadataType.BOOLEAN, false)
         // Existing key should not be overwritten
         assertThat(md.getMetadataType("test"), equalTo(MetadataType.STRING))
 
-        md.addMetadataField("int", MetadataType.INT)
+        md.addMetadataField("int", MetadataType.INT, false)
 
         val fields = md.getAllFields()
         assertThat(fields.size, equalTo(2))
@@ -146,7 +146,7 @@ class MetadataTest {
         val sessionID = session.sessionID
 
         // Test basic set use case
-        md.addMetadataField("test", MetadataType.STRING)
+        md.addMetadataField("test", MetadataType.STRING, false)
         val value = "blah"
         md.setValue("test", sessionID, value)
         assertThat(md.getValue("test", sessionID), equalTo(value))
@@ -154,7 +154,7 @@ class MetadataTest {
         // Ensure that writing values has no effect unless of the correct type
         for (type in MetadataType.values()) {
             val fieldName = "field_${type.name}"
-            md.addMetadataField(fieldName, type)
+            md.addMetadataField(fieldName, type, false)
 
             md.setString(fieldName, sessionID, getSampleValue(MetadataType.STRING) as String)
             md.setInt(fieldName, sessionID, getSampleValue(MetadataType.INT) as Int)
@@ -198,5 +198,59 @@ class MetadataTest {
         md.addMetadataField("builtin", MetadataType.BOOLEAN, false)
         assertThat(md.getField("builtin")?.builtin, equalTo(true))
         assertThat(md.getString("builtin", sessionID), equalTo("something"))
+    }
+
+    @Test
+    fun testRename() = runBlocking {
+        db.clearAllTables()
+
+        val session = createTestSession()
+        val sessionID = session.sessionID
+
+        val exampleValue = "preserve_this"
+
+        md.addMetadataField("old", MetadataType.STRING, true)
+        md.setString("old", sessionID, exampleValue)
+
+        assertFailsWith<SQLiteConstraintException> { // Using the DAO method by itself is dangerous...
+            db.userMetadataValueDAO().rename("old", "new")
+        }
+
+        // Successful rename
+        md.renameField("old", "new", true)
+        assertThat(md.getValue("new", sessionID), equalTo(exampleValue))
+        assertThat(md.getString("old", sessionID), equalTo(null))
+        assertThat(md.getField("old"), equalTo(null))
+    }
+
+    @Test
+    fun testFailedRename() = runBlocking {
+        db.clearAllTables()
+
+        val session = createTestSession()
+        val sessionID = session.sessionID
+
+        val userValue = "user_data"
+        val builtinValue = "builtin_data"
+
+        md.addMetadataField("old", MetadataType.STRING, true)
+        md.setString("old", sessionID, builtinValue)
+        md.addMetadataField("new", MetadataType.STRING, false)
+        md.setString("new", sessionID, userValue)
+
+        suspend fun assertNothingChanged() {
+            assertThat(md.getValue("new", sessionID), equalTo(userValue))
+            assertThat(md.getValue("old", sessionID), equalTo(builtinValue))
+            assertThat(md.getField("new")?.builtin, equalTo(false))
+            assertThat(md.getField("old")?.builtin, equalTo(true))
+        }
+
+        // Should not rename or change anything since user value exists with the same name
+        md.renameField("old", "new", true)
+        assertNothingChanged()
+
+        // Should not rename or change anything since builtin value exists with the same name
+        md.renameField("new", "old", true)
+        assertNothingChanged()
     }
 }

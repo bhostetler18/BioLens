@@ -21,6 +21,8 @@ import android.content.Context
 import com.uf.automoth.R
 import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.Session
+import com.uf.automoth.data.metadata.AUTOMOTH_METADATA
+import com.uf.automoth.data.metadata.AUTOMOTH_METADATA_VALIDATORS
 import com.uf.automoth.data.metadata.MetadataField
 import com.uf.automoth.data.metadata.MetadataKey
 import com.uf.automoth.data.metadata.MetadataStore
@@ -164,33 +166,6 @@ suspend fun getUserMetadata(
     }
 }
 
-val AUTOMOTH_METADATA = listOf(
-    MetadataKey("sheet_width", MetadataType.DOUBLE, true),
-    MetadataKey("sheet_height", MetadataType.DOUBLE, true)
-)
-
-private val TRANSLATIONS: Map<String, Int> = mapOf(
-    "sheet_width" to R.string.metadata_sheet_width_cm,
-    "sheet_height" to R.string.metadata_sheet_height_cm
-)
-
-private fun greaterThanZero(value: Any?): Boolean {
-    return value == null || ((value as? Double) ?: 0.0) > 0.0
-}
-
-private val VALIDATORS: Map<String, (Any?) -> Boolean> = mapOf(
-    "sheet_width" to ::greaterThanZero,
-    "sheet_height" to ::greaterThanZero
-)
-
-suspend fun prepopulate(store: MetadataStore) {
-    AUTOMOTH_METADATA.forEach {
-        if (store.getField(it.key) == null) {
-            store.addMetadataField(it.key, it.type, true)
-        }
-    }
-}
-
 // Pre-populated metadata specific to AutoMoth
 suspend fun getAutoMothMetadata(
     sessionID: Long,
@@ -198,13 +173,12 @@ suspend fun getAutoMothMetadata(
     observer: MetadataChangeObserver,
     context: Context
 ): List<MetadataTableDataModel> {
-    return AUTOMOTH_METADATA.map {
-        val displayName = TRANSLATIONS[it.key]?.let { res ->
-            context.getString(res)
+    return AUTOMOTH_METADATA.map { metadata ->
+        val displayName = context.getString(metadata.translation)
+        val key = MetadataKey(metadata.name, metadata.type, true)
+        AUTOMOTH_METADATA_VALIDATORS[metadata.name]?.let { validator ->
+            return@map key.toDisplayableMetadata(sessionID, store, displayName, observer, validator)
         }
-        VALIDATORS[it.key]?.let { validator ->
-            return@map it.toDisplayableMetadata(sessionID, store, displayName, observer, validator)
-        }
-        return@map it.toDisplayableMetadata(sessionID, store, displayName, observer)
+        return@map key.toDisplayableMetadata(sessionID, store, displayName, observer)
     }
 }

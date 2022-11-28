@@ -23,8 +23,8 @@ import androidx.preference.PreferenceManager
 import androidx.room.Room
 import com.uf.automoth.R
 import com.uf.automoth.data.metadata.AutoMothMetadataStore
+import com.uf.automoth.data.metadata.prepopulate
 import com.uf.automoth.imaging.ImagingSettings
-import com.uf.automoth.ui.metadata.prepopulate
 import com.uf.automoth.utility.getRandomString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

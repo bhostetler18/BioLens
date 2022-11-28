@@ -33,8 +33,8 @@ interface MetadataKeyDAO {
     @Delete
     suspend fun delete(key: MetadataKey)
 
-    @Query("DELETE FROM metadata_keys WHERE `key` = :key")
-    suspend fun delete(key: String)
+    @Query("DELETE FROM metadata_keys WHERE `key` = :key AND builtin = :builtin")
+    suspend fun delete(key: String, builtin: Boolean)
 
     @Query("SELECT * FROM metadata_keys WHERE `key` = :key")
     suspend fun get(key: String): MetadataKey?
