@@ -1,0 +1,26 @@
+ A flexible tool for interval imaging and wildlife monitoring
+
+
+AutoMoth is a quick, cheap, and easy way to monitor moths and other wildlife in the field. Specify, schedule, and run image capture sessions from any Android device, then collect, edit, and export metadata and images for additional research. 
+
+IMAGING
+• Choose a capture interval
+• Let the session run indefinitely, or stop after a certain number of images have been taken or amount of time has passed
+• Estimate the disk storage required for a given set of options
+
+SCHEDULING
+• Automatically start imaging at a certain time of day
+• Schedule multiple sessions ahead of time
+
+BATTERY-SAVING
+• It's perfectly safe to turn the screen off! Image capture and scheduling operations occur in the background
+• Optionally, turn off the camera when not in use (useful for longer intervals)
+
+METADATA
+• Automatically collect location, timestamps, and device information
+• Optionally, add and edit custom metadata fields (text, decimal, integer, and boolean) 
+• CSV export
+
+EXPORT
+• Upload images and metadata directly to Google Drive
+• Save to your computer using the Android File Transfer app
