@@ -35,6 +35,7 @@ jobs:
         default: system-images;android-30;google_apis;x86
     executor:
       name: android/android-machine
+      resource-class: small
       tag: 2022.09.2
     steps:
       - checkout
