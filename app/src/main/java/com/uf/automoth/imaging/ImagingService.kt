@@ -25,14 +25,18 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.util.Log
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.work.await
 import com.uf.automoth.R
@@ -52,11 +56,18 @@ import kotlin.coroutines.suspendCoroutine
 class ImagingService : LifecycleService(), ImageCaptureInterface {
 
     private val serviceScope = CoroutineScope(SupervisorJob())
+
     private var cameraProvider: ProcessCameraProvider? = null
     private val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
     private var imageCapture: ImageCapture = ImageCapture.Builder().build()
     private var imagingManager: ImagingManager? = null
+
     private lateinit var locationProvider: SingleLocationProvider
+
+    private val isSessionRunning: Boolean
+        get() = imagingManager != null
+    private var isWaitingForScheduledSession = false
 
     override val isCameraStarted: Boolean
         get() = cameraProvider?.isBound(imageCapture) ?: false
@@ -69,7 +80,6 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
             AutoMothRepository(this, storageLocation, serviceScope)
             locationProvider = SingleLocationProvider(this)
             startInForeground()
-            IS_RUNNING.postValue(true)
         } else {
             Log.d(TAG, "Failed to access external directory")
         }
@@ -98,8 +108,12 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
             ACTION_STOP_SESSION -> {
                 lifecycleScope.launch {
                     stopCurrentSession("Service received stop action")
-                    killService()
+                    killServiceIfInactive()
                 }
+                return START_REDELIVER_INTENT
+            }
+            ACTION_WAIT_FOR_SCHEDULED_SESSION -> {
+                waitForScheduledSessions()
                 return START_REDELIVER_INTENT
             }
         }
@@ -108,12 +122,6 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
         // run indefinitely in the background (as long as there isn't an active session)
         killServiceIfInactive()
         return START_NOT_STICKY
-    }
-
-    override fun onDestroy() {
-        Log.d(TAG, "On destroy called")
-        IS_RUNNING.postValue(false)
-        super.onDestroy()
     }
 
     private fun startInForeground() {
@@ -145,14 +153,27 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
             manager.createNotificationChannel(serviceChannel)
         }
 
-        val notification: Notification = NotificationCompat.Builder(this, SERVICE_CHANNEL_ID)
-            .setContentTitle(getText(R.string.service_notification_title))
-            .setContentText(getText(R.string.service_notification_message))
+        val notification = NotificationCompat.Builder(this, SERVICE_CHANNEL_ID)
+            .setContentTitle(getText(R.string.service_waiting_session_notification_title))
+            .setContentText(getText(R.string.service_waiting_session_notification_message))
             .setSmallIcon(R.drawable.ic_camera_24)
             .setContentIntent(pendingIntent)
             .build()
 
         startForeground(SERVICE_NOTIFICATION_ID, notification)
+    }
+
+    private fun setNotificationContent(
+        @StringRes title: Int,
+        @StringRes message: Int,
+        @DrawableRes icon: Int
+    ) {
+        val notification = NotificationCompat.Builder(this, SERVICE_CHANNEL_ID)
+            .setContentTitle(getText(title))
+            .setContentText(getText(message))
+            .setSmallIcon(icon)
+            .build()
+        NotificationManagerCompat.from(this).notify(SERVICE_NOTIFICATION_ID, notification)
     }
 
     override suspend fun startCamera() {
@@ -180,7 +201,7 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
                 )
             } catch (exc: Exception) {
                 stopCurrentSession("Image capture use case binding failed")
-                killService()
+                killServiceIfInactive()
             }
         }
 
@@ -219,7 +240,7 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
     ) {
         if (cancelExisting) {
             stopCurrentSession("Cancelled by new session $name")
-        } else if (imagingManager != null) {
+        } else if (isSessionRunning) {
             Log.w(
                 TAG,
                 "Imaging session $name will not be started because a session is already in progress and cancelExisting=false"
@@ -227,13 +248,24 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
             return
         }
 
+        setNotificationContent(
+            R.string.service_active_session_notification_title,
+            R.string.service_active_session_notification_message,
+            R.drawable.ic_camera_24
+        )
+
+        IS_RUNNING.postValue(true)
+
         imagingManager = ImagingManager(settings, WeakReference(this)) {
-            killService()
+            lifecycleScope.launch {
+                stopCurrentSession("Auto-stop")
+                killServiceIfInactive()
+            }
         }
         currentImagingSettings.postValue(settings)
 
         startCamera()
-        imagingManager?.start(
+        imagingManager!!.start(
             name ?: getString(R.string.default_session_name),
             this@ImagingService,
             locationProvider,
@@ -244,11 +276,40 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
     private suspend fun stopCurrentSession(reason: String) {
         imagingManager?.stop(reason)
         imagingManager = null
+        IS_RUNNING.postValue(false)
         currentImagingSettings.postValue(null)
+        if (isWaitingForScheduledSession) {
+            setNotificationContent(
+                R.string.service_waiting_session_notification_title,
+                R.string.service_waiting_session_notification_message,
+                R.drawable.ic_launcher_foreground
+            )
+        }
+    }
+
+    private fun waitForScheduledSessions() {
+        Log.d(TAG, "Waiting for scheduled session")
+        if (!isWaitingForScheduledSession) {
+            isWaitingForScheduledSession = true
+            if (!isSessionRunning) {
+                setNotificationContent(
+                    R.string.service_waiting_session_notification_title,
+                    R.string.service_waiting_session_notification_message,
+                    R.drawable.ic_launcher_foreground
+                )
+            }
+            AutoMothRepository.allPendingSessionsFlow.asLiveData().observe(this) {
+                if (it.isEmpty()) {
+                    Log.d(TAG, "No pending sessions to wait for – stopping service if necessary")
+                    isWaitingForScheduledSession = false
+                    killServiceIfInactive()
+                }
+            }
+        }
     }
 
     private fun killServiceIfInactive() {
-        if (imagingManager == null) {
+        if (!isSessionRunning && !isWaitingForScheduledSession) {
             killService()
         }
     }
@@ -256,6 +317,12 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
     private fun killService() {
         stopForeground(true)
         stopSelf()
+    }
+
+    override fun onDestroy() {
+        Log.d(TAG, "On destroy called")
+        IS_RUNNING.postValue(false)
+        super.onDestroy()
     }
 
     companion object {
@@ -267,6 +334,8 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
 
         const val ACTION_START_SESSION = "com.uf.automoth.action.START_SESSION"
         const val ACTION_STOP_SESSION = "com.uf.automoth.action.STOP_SESSION"
+        const val ACTION_WAIT_FOR_SCHEDULED_SESSION =
+            "com.uf.automoth.action.WAIT_FOR_SCHEDULED_SESSION"
 
         private const val KEY_IMAGING_SETTINGS = "com.uf.automoth.extra.IMAGING_SETTINGS"
         private const val KEY_SESSION_NAME = "com.uf.automoth.extra.SESSION_NAME"
