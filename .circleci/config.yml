@@ -10,7 +10,7 @@ jobs:
   unit-test:
     executor:
       name: android/android-docker
-      tag: AndroidExecutor
+      tag: 2022.09.2
     steps:
       - checkout
       - android/restore-gradle-cache
@@ -36,7 +36,7 @@ jobs:
     executor:
       name: android/android-machine
       resource-class: xlarge
-      tag: AndroidExecutor
+      tag: 2022.09.2
     steps:
       - checkout
       - android/start-emulator-and-run-tests:
