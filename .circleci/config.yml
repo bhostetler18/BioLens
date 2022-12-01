@@ -36,7 +36,7 @@ jobs:
     executor:
       name: android/android-machine
       resource-class: medium
-      tag: 2022.09.2
+      tag: 2022.08.1
     steps:
       - checkout
       - android/start-emulator-and-run-tests:
