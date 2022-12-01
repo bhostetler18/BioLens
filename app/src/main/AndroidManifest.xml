@@ -16,7 +16,7 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
     <application
-        android:name=".AutoMothApplication"
+        android:name="com.uf.biolens.BioLensApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -24,19 +24,19 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AutoMoth"
+        android:theme="@style/Theme.BioLens"
         tools:targetApi="31">
 
         <service
-            android:name="com.uf.automoth.imaging.ImagingService"
+            android:name="com.uf.biolens.imaging.ImagingService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="location|camera" />
 
         <activity
-            android:name=".ui.MainActivity"
+            android:name="com.uf.biolens.ui.MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.AutoMoth.SplashScreen">
+            android:theme="@style/Theme.BioLens.SplashScreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -44,16 +44,16 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.uf.automoth.ui.imaging.scheduler.ImagingSchedulerActivity"
+            android:name="com.uf.biolens.ui.imaging.scheduler.ImagingSchedulerActivity"
             android:exported="false" />
         <activity
-            android:name="com.uf.automoth.ui.imageGrid.ImageGridActivity"
+            android:name="com.uf.biolens.ui.imageGrid.ImageGridActivity"
             android:exported="false" />
         <activity
-            android:name="com.uf.automoth.ui.imageView.ImageViewerActivity"
+            android:name="com.uf.biolens.ui.imageView.ImageViewerActivity"
             android:exported="false" />
         <activity
-            android:name="com.uf.automoth.ui.metadata.MetadataActivity"
+            android:name="com.uf.biolens.ui.metadata.MetadataActivity"
             android:windowSoftInputMode="adjustPan"
             android:exported="false" />
 

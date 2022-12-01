@@ -1,9 +1,9 @@
 <resources>
-    <string name="app_name">AutoMoth</string>
+    <string name="app_name">BioLens</string>
     <string name="title_imaging">Imaging</string>
     <string name="title_sessions">Sessions</string>
     <string name="title_info">Info</string>
-    <string name="warn_required_permissions_denied">AutoMoth needs permission to capture images</string>
+    <string name="warn_required_permissions_denied">BioLens needs permission to capture images</string>
     <string name="start_session">Start</string>
     <string name="stop_session">Stop</string>
     <string name="settings">Settings</string>
@@ -38,7 +38,7 @@
     <string name="per_hour">per hour</string>
     <string name="service_active_session_notification_title">Imaging session in progress</string>
     <string name="service_active_session_notification_message">Please do not open any other camera apps</string>
-    <string name="service_notification_channel">AutoMoth Imaging Service</string>
+    <string name="service_notification_channel">BioLens Imaging Service</string>
     <string name="active_session_indication">An image capture session is currently running.\nFeel free to turn off your device\'s screen!</string>
     <string name="default_session_name">Untitled session</string>
     <plurals name="unit_images">
@@ -61,7 +61,7 @@
     <string name="image_saved_failure">Failed to save image</string>
     <string name="image_crop_failure">Failed to crop image</string>
     <string name="go_to_settings">Continue to settings</string>
-    <string name="warn_needs_alarm_permission">AutoMoth needs special permissions to schedule a future session</string>
+    <string name="warn_needs_alarm_permission">BioLens needs special permissions to schedule a future session</string>
     <string name="scheduled_session_indication">An image capture session is scheduled for %s</string>
     <string name="after">After</string>
     <string name="starts">Starts</string>
@@ -105,10 +105,10 @@
     <string name="export_crop">Export cropped</string>
     <string name="exporting_metadata">Exporting metadata…</string>
     <string name="connecting_to_drive">Connecting to Google Drive…</string>
-    <string name="upload_notification_channel">AutoMoth Upload Service</string>
+    <string name="upload_notification_channel">BioLens Upload Service</string>
     <string name="uploading_session">Uploading session: %s</string>
     <string name="preference_location_tolerance_title">Location Tolerance (Minutes)</string>
-    <string name="preference_location_tolerance_description">If the current location cannot be obtained, AutoMoth will use the last known location as long as it is not older than this value</string>
+    <string name="preference_location_tolerance_description">If the current location cannot be obtained, BioLens will use the last known location as long as it is not older than this value</string>
     <string name="reload">Reload</string>
     <string name="filesystem_error">The device\'s external storage could not be accessed. Please insert your SD card and press \"reload\", or contact the developers at <a href="mailto:automothdevs@gmail.com">automothdevs@gmail.com</a>.</string>
     <string name="failed_to_mount">Failed to mount, please try again.</string>
@@ -161,6 +161,6 @@
     <string name="metadata_hardware_description">Hardware description</string>
     <string name="metadata_white_light_model">White light model</string>
     <string name="metadata_uv_light_model">UV light model</string>
-    <string name="service_waiting_session_notification_title">"AutoMoth is waiting for a scheduled session  "</string>
+    <string name="service_waiting_session_notification_title">"BioLens is waiting for a scheduled session  "</string>
     <string name="service_waiting_session_notification_message">You may turn off your device\'s screen</string>
 </resources>

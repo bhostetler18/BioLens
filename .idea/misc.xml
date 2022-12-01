@@ -36,6 +36,7 @@
         <entry key="app/src/main/res/layout/dialog_add_metadata_field.xml" value="0.19333343505859377" />
         <entry key="app/src/main/res/layout/dialog_auto_stop.xml" value="0.15058898925781256" />
         <entry key="app/src/main/res/layout/dialog_edit_text.xml" value="0.11927083333333334" />
+        <entry key="app/src/main/res/layout/dialog_export_options.xml" value="0.1" />
         <entry key="app/src/main/res/layout/dialog_interval_picker.xml" value="0.2620712280273438" />
         <entry key="app/src/main/res/layout/dialog_metadata_export.xml" value="0.12612227447627192" />
         <entry key="app/src/main/res/layout/duration_picker.xml" value="0.24569549560546872" />

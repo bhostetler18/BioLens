@@ -1,6 +1,6 @@
 <resources>
     <!-- Base application theme. -->
-    <style name="Theme.AutoMoth" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <style name="Theme.BioLens" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/teal</item>
         <item name="colorPrimaryVariant">@color/teal_lighter</item>
@@ -19,9 +19,9 @@
     </style>
 
     <!--    Splash screen -->
-    <style name="Theme.AutoMoth.SplashScreen" parent="Theme.SplashScreen">
+    <style name="Theme.BioLens.SplashScreen" parent="Theme.SplashScreen">
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
-        <item name="postSplashScreenTheme">@style/Theme.AutoMoth</item>
+        <item name="postSplashScreenTheme">@style/Theme.BioLens</item>
         <item name="windowSplashScreenBackground">@color/ic_launcher_background</item>
     </style>
 

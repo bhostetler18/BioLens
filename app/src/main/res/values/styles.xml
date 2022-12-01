@@ -17,7 +17,7 @@
         <item name="android:textColor">@color/dark_grey</item>
     </style>
 
-    <style name="AutoMoth.AppToolbar" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+    <style name="BioLens.AppToolbar" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
         <item name="android:textColorPrimary">@android:color/white</item>
         <item name="android:textColorSecondary">@android:color/white</item>
         <item name="colorOnPrimary">@android:color/white</item>
