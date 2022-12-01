@@ -24,7 +24,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import com.uf.automoth.databinding.FragmentInfoBinding
+import com.uf.biolens.databinding.FragmentInfoBinding
 
 class InfoFragment : Fragment() {
 

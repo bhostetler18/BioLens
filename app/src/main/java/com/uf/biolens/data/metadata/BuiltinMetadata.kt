@@ -18,7 +18,7 @@
 package com.uf.biolens.data.metadata
 
 import androidx.annotation.StringRes
-import com.uf.automoth.R
+import com.uf.biolens.R
 
 private const val SHEET_WIDTH = "session_sheet_width_cm"
 private const val SHEET_HEIGHT = "session_sheet_height_cm"

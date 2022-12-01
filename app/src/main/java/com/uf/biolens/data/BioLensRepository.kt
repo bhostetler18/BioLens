@@ -21,7 +21,7 @@ import android.content.Context
 import android.util.Log
 import androidx.preference.PreferenceManager
 import androidx.room.Room
-import com.uf.automoth.R
+import com.uf.biolens.R
 import com.uf.biolens.data.metadata.BioLensMetadataStore
 import com.uf.biolens.data.metadata.prepopulate
 import com.uf.biolens.imaging.ImagingSettings
@@ -54,8 +54,8 @@ object BioLensRepository {
     private var JSON = Json { encodeDefaults = true }
 
     private const val TAG = "[Repository]"
-    private const val KEY_SHARED_PREFERENCE_FILE = "com.uf.automoth.SHARED_PREFERENCES"
-    private const val KEY_USER_ID = "com.uf.automoth.preference.USER_ID"
+    private const val KEY_SHARED_PREFERENCE_FILE = "com.uf.biolens.SHARED_PREFERENCES"
+    private const val KEY_USER_ID = "com.uf.biolens.preference.USER_ID"
 
     operator fun invoke(context: Context, storageLocation: File, coroutineScope: CoroutineScope) {
         if (this.isInitialized) {
@@ -66,7 +66,7 @@ object BioLensRepository {
         this.database = Room.databaseBuilder(
             context,
             BioLensDatabase::class.java,
-            "automoth-db"
+            "biolens-db"
         ).build()
         this.metadataStore = BioLensMetadataStore(database)
         coroutineScope.launch {

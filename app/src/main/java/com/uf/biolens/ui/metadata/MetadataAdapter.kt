@@ -24,7 +24,7 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.uf.automoth.databinding.MetadataDeletableRowBinding
+import com.uf.biolens.databinding.MetadataDeletableRowBinding
 
 object MetadataViewType {
     const val HEADER = -1

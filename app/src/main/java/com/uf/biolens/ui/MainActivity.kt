@@ -30,11 +30,11 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.uf.biolens.BioLensApplication
-import com.uf.automoth.R
+import com.uf.biolens.R
 import com.uf.biolens.data.BioLensRepository
 import com.uf.biolens.data.PendingSession
-import com.uf.automoth.databinding.ActivityMainBinding
-import com.uf.automoth.databinding.ActivityMainFilesystemErrorBinding
+import com.uf.biolens.databinding.ActivityMainBinding
+import com.uf.biolens.databinding.ActivityMainFilesystemErrorBinding
 import com.uf.biolens.imaging.ImagingService
 import com.uf.biolens.ui.common.simpleAlertDialogWithOk
 import com.uf.biolens.ui.imaging.scheduler.ImagingSchedulerActivity

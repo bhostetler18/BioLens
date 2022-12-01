@@ -18,7 +18,7 @@
 package com.uf.biolens.ui.metadata
 
 import android.content.Context
-import com.uf.automoth.R
+import com.uf.biolens.R
 import com.uf.biolens.data.metadata.MetadataField
 import com.uf.biolens.utility.SHORT_DATE_TIME_FORMATTER
 import java.time.OffsetDateTime

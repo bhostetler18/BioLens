@@ -18,7 +18,7 @@
 package com.uf.biolens.utility
 
 import android.content.Context
-import com.uf.automoth.R
+import com.uf.biolens.R
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle

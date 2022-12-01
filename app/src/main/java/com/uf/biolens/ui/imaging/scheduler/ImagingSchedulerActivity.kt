@@ -33,10 +33,10 @@ import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.timepicker.MaterialTimePicker
 import com.google.android.material.timepicker.TimeFormat.CLOCK_12H
-import com.uf.automoth.R
+import com.uf.biolens.R
 import com.uf.biolens.data.BioLensRepository
 import com.uf.biolens.data.PendingSession
-import com.uf.automoth.databinding.ActivityImagingSchedulerBinding
+import com.uf.biolens.databinding.ActivityImagingSchedulerBinding
 import com.uf.biolens.imaging.ImagingScheduler
 import com.uf.biolens.imaging.ImagingService
 import com.uf.biolens.ui.imaging.AutoStopDialog
@@ -321,6 +321,6 @@ class ImagingSchedulerActivity : AppCompatActivity() {
     }
 
     companion object {
-        const val KEY_ESTIMATED_IMAGE_SIZE_BYTES = "com.uf.automoth.extra.IMAGE_SIZE_BYTES"
+        const val KEY_ESTIMATED_IMAGE_SIZE_BYTES = "com.uf.biolens.extra.IMAGE_SIZE_BYTES"
     }
 }

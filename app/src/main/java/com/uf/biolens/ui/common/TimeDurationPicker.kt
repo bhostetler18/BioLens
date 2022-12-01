@@ -22,8 +22,8 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.annotation.PluralsRes
 import androidx.constraintlayout.widget.ConstraintLayout
-import com.uf.automoth.R
-import com.uf.automoth.databinding.GenericTimePickerBinding
+import com.uf.biolens.R
+import com.uf.biolens.databinding.GenericTimePickerBinding
 
 class TimeDurationPicker(context: Context, attrs: AttributeSet?) :
     ConstraintLayout(context, attrs) {

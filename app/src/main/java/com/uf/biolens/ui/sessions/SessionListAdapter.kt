@@ -24,7 +24,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.uf.biolens.data.Session
-import com.uf.automoth.databinding.SessionListItemBinding
+import com.uf.biolens.databinding.SessionListItemBinding
 import com.uf.biolens.ui.imageGrid.ImageGridActivity
 import com.uf.biolens.utility.SHORT_DATE_TIME_FORMATTER
 

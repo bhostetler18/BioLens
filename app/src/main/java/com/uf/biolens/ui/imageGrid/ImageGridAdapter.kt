@@ -26,7 +26,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.uf.biolens.data.BioLensRepository
 import com.uf.biolens.data.Image
 import com.uf.biolens.data.Session
-import com.uf.automoth.databinding.ImageGridItemBinding
+import com.uf.biolens.databinding.ImageGridItemBinding
 import com.uf.biolens.ui.common.GlideApp
 import com.uf.biolens.ui.imageView.ImageViewerActivity
 

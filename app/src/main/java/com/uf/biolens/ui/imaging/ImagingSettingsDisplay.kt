@@ -18,7 +18,7 @@
 package com.uf.biolens.ui.imaging
 
 import android.content.Context
-import com.uf.automoth.R
+import com.uf.biolens.R
 import com.uf.biolens.imaging.AutoStopMode
 import com.uf.biolens.imaging.ImagingSettings
 import com.uf.biolens.utility.TimeUnit

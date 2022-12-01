@@ -23,7 +23,7 @@ import android.view.LayoutInflater
 import android.view.WindowManager
 import androidx.appcompat.app.AlertDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.uf.automoth.databinding.DialogEditTextBinding
+import com.uf.biolens.databinding.DialogEditTextBinding
 
 class EditTextDialog(
     context: Context,

@@ -13,5 +13,5 @@ dependencyResolutionManagement {
         maven { url "https://www.jitpack.io" }
     }
 }
-rootProject.name = "AutoMoth"
+rootProject.name = "BioLens"
 include ':app'

@@ -34,11 +34,11 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
-import com.uf.automoth.R
+import com.uf.biolens.R
 import com.uf.biolens.data.BioLensRepository
 import com.uf.biolens.data.Image
 import com.uf.biolens.data.Session
-import com.uf.automoth.databinding.ActivityImageViewerBinding
+import com.uf.biolens.databinding.ActivityImageViewerBinding
 import com.uf.biolens.network.MimeTypes
 import com.uf.biolens.ui.common.GlideApp
 import com.uf.biolens.ui.common.simpleAlertDialogWithOk
@@ -149,7 +149,7 @@ class ImageViewerActivity : AppCompatActivity() {
                 val tmp = File(applicationContext.cacheDir, "export.jpg")
                 file.copyTo(tmp)
                 setExif(tmp.toUri())
-                val uri = FileProvider.getUriForFile(this, "com.uf.automoth.fileprovider", tmp)
+                val uri = FileProvider.getUriForFile(this, "com.uf.biolens.fileprovider", tmp)
                 shareSheet(uri, MimeTypes.JPEG, getString(R.string.share))
                 true
             }
@@ -186,7 +186,7 @@ class ImageViewerActivity : AppCompatActivity() {
             shareSheet(uri, MimeTypes.JPEG, getString(R.string.share))
         }
         val tmp = File(applicationContext.cacheDir, "export.jpg")
-        val uri = FileProvider.getUriForFile(this, "com.uf.automoth.fileprovider", tmp)
+        val uri = FileProvider.getUriForFile(this, "com.uf.biolens.fileprovider", tmp)
         binding.cropImageView.croppedImageAsync(customOutputUri = uri)
     }
 

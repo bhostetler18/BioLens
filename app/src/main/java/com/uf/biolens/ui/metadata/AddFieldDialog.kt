@@ -24,9 +24,9 @@ import android.view.View
 import android.widget.AdapterView
 import androidx.appcompat.app.AlertDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.uf.automoth.R
+import com.uf.biolens.R
 import com.uf.biolens.data.metadata.MetadataType
-import com.uf.automoth.databinding.DialogAddMetadataFieldBinding
+import com.uf.biolens.databinding.DialogAddMetadataFieldBinding
 import com.uf.biolens.ui.common.EditTextValidatorWithButton
 import com.uf.biolens.ui.common.combineValidators
 import com.uf.biolens.utility.SingletonDialog

@@ -24,8 +24,8 @@ import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.uf.automoth.R
-import com.uf.automoth.databinding.DialogExportOptionsBinding
+import com.uf.biolens.R
+import com.uf.biolens.databinding.DialogExportOptionsBinding
 import com.uf.biolens.utility.SingletonDialog
 
 data class ExportOptions(

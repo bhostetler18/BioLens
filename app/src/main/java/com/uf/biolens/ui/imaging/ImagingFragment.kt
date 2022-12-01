@@ -48,10 +48,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.work.await
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.uf.automoth.R
+import com.uf.biolens.R
 import com.uf.biolens.data.BioLensRepository
 import com.uf.biolens.data.Session
-import com.uf.automoth.databinding.FragmentImagingBinding
+import com.uf.biolens.databinding.FragmentImagingBinding
 import com.uf.biolens.imaging.ImageCaptureInterface
 import com.uf.biolens.imaging.ImagingManager
 import com.uf.biolens.imaging.ImagingService

@@ -29,11 +29,11 @@ import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.LinearLayout
 import com.google.android.material.button.MaterialButtonToggleGroup
-import com.uf.automoth.R
-import com.uf.automoth.databinding.MetadataBooleanItemBinding
-import com.uf.automoth.databinding.MetadataEditableItemBinding
-import com.uf.automoth.databinding.MetadataHeaderRowBinding
-import com.uf.automoth.databinding.MetadataReadonlyItemBinding
+import com.uf.biolens.R
+import com.uf.biolens.databinding.MetadataBooleanItemBinding
+import com.uf.biolens.databinding.MetadataEditableItemBinding
+import com.uf.biolens.databinding.MetadataHeaderRowBinding
+import com.uf.biolens.databinding.MetadataReadonlyItemBinding
 
 abstract class MetadataRow(context: Context, attrs: AttributeSet?) : LinearLayout(context, attrs) {
     abstract fun bind(metadata: MetadataTableDataModel)

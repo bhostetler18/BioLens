@@ -30,7 +30,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.uf.automoth.R
+import com.uf.biolens.R
 import com.uf.biolens.network.GoogleSignInHelper
 import com.uf.biolens.ui.common.simpleAlertDialogWithOk
 

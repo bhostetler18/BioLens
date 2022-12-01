@@ -24,8 +24,8 @@ import android.view.LayoutInflater
 import android.view.View
 import androidx.appcompat.app.AlertDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.uf.automoth.R
-import com.uf.automoth.databinding.DialogIntervalPickerBinding
+import com.uf.biolens.R
+import com.uf.biolens.databinding.DialogIntervalPickerBinding
 import com.uf.biolens.ui.common.TimeDurationPicker
 import com.uf.biolens.utility.SingletonDialog
 import java.util.function.Consumer

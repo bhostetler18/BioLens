@@ -33,9 +33,9 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.uf.automoth.R
+import com.uf.biolens.R
 import com.uf.biolens.data.BioLensRepository
-import com.uf.automoth.databinding.ActivityImageGridBinding
+import com.uf.biolens.databinding.ActivityImageGridBinding
 import com.uf.biolens.network.GoogleDriveUploadWorker
 import com.uf.biolens.network.GoogleSignInHelper
 import com.uf.biolens.ui.common.ExportOptions

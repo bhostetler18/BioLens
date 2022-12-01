@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.uf.automoth">
+    package="com.uf.biolens">
 
     <uses-feature android:name="android.hardware.camera.any" />
 
@@ -59,7 +59,7 @@
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.uf.automoth.fileprovider"
+            android:authorities="com.uf.biolens.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

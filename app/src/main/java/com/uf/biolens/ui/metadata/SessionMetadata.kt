@@ -18,7 +18,7 @@
 package com.uf.biolens.ui.metadata
 
 import android.content.Context
-import com.uf.automoth.R
+import com.uf.biolens.R
 import com.uf.biolens.data.BioLensRepository
 import com.uf.biolens.data.Session
 import com.uf.biolens.data.metadata.AUTOMOTH_METADATA

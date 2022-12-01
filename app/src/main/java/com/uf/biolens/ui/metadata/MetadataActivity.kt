@@ -32,12 +32,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.uf.automoth.R
+import com.uf.biolens.R
 import com.uf.biolens.data.BioLensRepository
 import com.uf.biolens.data.export.BioLensSessionCSVFormatter
 import com.uf.biolens.data.export.SessionCSVExporter
 import com.uf.biolens.data.metadata.MetadataType
-import com.uf.automoth.databinding.ActivityMetadataEditorBinding
+import com.uf.biolens.databinding.ActivityMetadataEditorBinding
 import com.uf.biolens.network.MimeTypes
 import com.uf.biolens.ui.common.ExportOptions
 import com.uf.biolens.ui.common.ExportOptionsDialog
@@ -196,7 +196,7 @@ class MetadataActivity : AppCompatActivity() {
         saveIfNecessary() // should we ask user if they want to save changed values before exporting?
         val tmp = File(applicationContext.cacheDir, "metadata.csv")
         writeMetadata(tmp, sessionID, options)
-        val uri = FileProvider.getUriForFile(this, "com.uf.automoth.fileprovider", tmp)
+        val uri = FileProvider.getUriForFile(this, "com.uf.biolens.fileprovider", tmp)
         shareSheet(uri, MimeTypes.CSV, getString(R.string.share))
     }
 

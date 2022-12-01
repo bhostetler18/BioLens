@@ -39,7 +39,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.work.await
-import com.uf.automoth.R
+import com.uf.biolens.R
 import com.uf.biolens.data.BioLensRepository
 import com.uf.biolens.network.SingleLocationProvider
 import com.uf.biolens.ui.MainActivity
@@ -330,17 +330,17 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
 
         // Just for fun: this is "MOTH" in ASCII when expressed as four byte unsigned binary
         private const val SERVICE_NOTIFICATION_ID: Int = 1297044552
-        private const val SERVICE_CHANNEL_ID: String = "com.uf.automoth.notification.serviceChannel"
+        private const val SERVICE_CHANNEL_ID: String = "com.uf.biolens.notification.serviceChannel"
 
-        const val ACTION_START_SESSION = "com.uf.automoth.action.START_SESSION"
-        const val ACTION_STOP_SESSION = "com.uf.automoth.action.STOP_SESSION"
+        const val ACTION_START_SESSION = "com.uf.biolens.action.START_SESSION"
+        const val ACTION_STOP_SESSION = "com.uf.biolens.action.STOP_SESSION"
         const val ACTION_WAIT_FOR_SCHEDULED_SESSION =
-            "com.uf.automoth.action.WAIT_FOR_SCHEDULED_SESSION"
+            "com.uf.biolens.action.WAIT_FOR_SCHEDULED_SESSION"
 
-        private const val KEY_IMAGING_SETTINGS = "com.uf.automoth.extra.IMAGING_SETTINGS"
-        private const val KEY_SESSION_NAME = "com.uf.automoth.extra.SESSION_NAME"
-        private const val KEY_CANCEL_EXISTING = "com.automoth.extra.CANCEL_EXISTING"
-        private const val KEY_REQUEST_CODE = "com.uf.automoth.extra.REQUEST_CODE"
+        private const val KEY_IMAGING_SETTINGS = "com.uf.biolens.extra.IMAGING_SETTINGS"
+        private const val KEY_SESSION_NAME = "com.uf.biolens.extra.SESSION_NAME"
+        private const val KEY_CANCEL_EXISTING = "com.biolens.extra.CANCEL_EXISTING"
+        private const val KEY_REQUEST_CODE = "com.uf.biolens.extra.REQUEST_CODE"
 
         val IS_RUNNING = MutableLiveData(false)
         val currentImagingSettings = MutableLiveData<ImagingSettings?>(null)

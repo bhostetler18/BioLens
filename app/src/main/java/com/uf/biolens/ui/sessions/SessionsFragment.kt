@@ -29,8 +29,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.uf.automoth.R
-import com.uf.automoth.databinding.FragmentSessionsBinding
+import com.uf.biolens.R
+import com.uf.biolens.databinding.FragmentSessionsBinding
 
 class SessionsFragment : Fragment(), MenuProvider {
 

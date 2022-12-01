@@ -22,8 +22,8 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
 import androidx.core.view.isVisible
-import com.uf.automoth.R
-import com.uf.automoth.databinding.UploadProgressBarBinding
+import com.uf.biolens.R
+import com.uf.biolens.databinding.UploadProgressBarBinding
 
 class UploadProgressBar(context: Context, attrs: AttributeSet?) :
     LinearLayout(context, attrs) {

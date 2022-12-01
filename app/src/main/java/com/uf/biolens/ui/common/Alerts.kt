@@ -21,7 +21,7 @@ import android.content.Context
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.uf.automoth.R
+import com.uf.biolens.R
 
 fun simpleAlertDialogWithOk(
     context: Context,

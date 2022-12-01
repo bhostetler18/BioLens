@@ -35,7 +35,7 @@ import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
-import com.uf.automoth.R
+import com.uf.biolens.R
 import com.uf.biolens.data.BioLensRepository
 import com.uf.biolens.data.Session
 import com.uf.biolens.data.export.BioLensSessionCSVFormatter
@@ -196,17 +196,17 @@ class GoogleDriveUploadWorker(
 
     companion object {
         private const val TAG = "[UPLOAD_WORKER]"
-        const val KEY_SESSION_ID = "com.uf.automoth.extra.SESSION_ID"
-        const val KEY_ACCOUNT_EMAIL = "com.uf.automoth.extra.ACCOUNT_EMAIL"
-        const val KEY_ACCOUNT_TYPE = "com.uf.automoth.extra.ACCOUNT_TYPE"
-        const val KEY_INCLUDE_AUTOMOTH_METADATA = "com.uf.automoth.extra.INCLUDE_AUTOMOTH_METADATA"
-        const val KEY_INCLUDE_USER_METADATA = "com.uf.automoth.extra.INCLUDE_USER_METADATA"
-        const val KEY_METADATA_ONLY = "com.uf.automoth.extra.METADATA_ONLY"
-        const val KEY_PROGRESS = "com.uf.automoth.extra.PROGRESS"
-        const val KEY_MAX_PROGRESS = "com.uf.automoth.extra.MAX_PROGRESS"
-        const val KEY_METADATA = "com.uf.automoth.extra.METADATA"
+        const val KEY_SESSION_ID = "com.uf.biolens.extra.SESSION_ID"
+        const val KEY_ACCOUNT_EMAIL = "com.uf.biolens.extra.ACCOUNT_EMAIL"
+        const val KEY_ACCOUNT_TYPE = "com.uf.biolens.extra.ACCOUNT_TYPE"
+        const val KEY_INCLUDE_AUTOMOTH_METADATA = "com.uf.biolens.extra.INCLUDE_AUTOMOTH_METADATA"
+        const val KEY_INCLUDE_USER_METADATA = "com.uf.biolens.extra.INCLUDE_USER_METADATA"
+        const val KEY_METADATA_ONLY = "com.uf.biolens.extra.METADATA_ONLY"
+        const val KEY_PROGRESS = "com.uf.biolens.extra.PROGRESS"
+        const val KEY_MAX_PROGRESS = "com.uf.biolens.extra.MAX_PROGRESS"
+        const val KEY_METADATA = "com.uf.biolens.extra.METADATA"
 
-        private const val UPLOAD_CHANNEL_ID: String = "com.uf.automoth.notification.uploadChannel"
+        private const val UPLOAD_CHANNEL_ID: String = "com.uf.biolens.notification.uploadChannel"
 
         fun uniqueWorkerTag(sessionID: Long): String {
             return "UPLOAD_$sessionID"

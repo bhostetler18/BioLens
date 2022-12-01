@@ -17,7 +17,7 @@
 
 package com.uf.biolens.data.export
 
-import com.uf.automoth.BuildConfig
+import com.uf.biolens.BuildConfig
 import com.uf.biolens.data.BioLensRepository
 import com.uf.biolens.data.Image
 import com.uf.biolens.data.Session

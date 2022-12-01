@@ -30,9 +30,9 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.uf.automoth.R
-import com.uf.automoth.databinding.DialogAutoStopBinding
-import com.uf.automoth.databinding.GenericNumberEntryBinding
+import com.uf.biolens.R
+import com.uf.biolens.databinding.DialogAutoStopBinding
+import com.uf.biolens.databinding.GenericNumberEntryBinding
 import com.uf.biolens.imaging.AutoStopMode
 import com.uf.biolens.imaging.ImagingSettings
 import com.uf.biolens.ui.common.TimeDurationPicker

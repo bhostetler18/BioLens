@@ -22,9 +22,9 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.uf.automoth.R
+import com.uf.biolens.R
 import com.uf.biolens.data.PendingSession
-import com.uf.automoth.databinding.PendingSessionListItemBinding
+import com.uf.biolens.databinding.PendingSessionListItemBinding
 import com.uf.biolens.imaging.ImagingScheduler
 import com.uf.biolens.ui.imaging.autoStopDescription
 import com.uf.biolens.ui.imaging.intervalDescription
