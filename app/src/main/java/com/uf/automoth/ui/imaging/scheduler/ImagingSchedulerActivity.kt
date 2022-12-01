@@ -17,6 +17,8 @@
 
 package com.uf.automoth.ui.imaging.scheduler
 
+import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.activity.viewModels
@@ -36,6 +38,7 @@ import com.uf.automoth.data.AutoMothRepository
 import com.uf.automoth.data.PendingSession
 import com.uf.automoth.databinding.ActivityImagingSchedulerBinding
 import com.uf.automoth.imaging.ImagingScheduler
+import com.uf.automoth.imaging.ImagingService
 import com.uf.automoth.ui.imaging.AutoStopDialog
 import com.uf.automoth.ui.imaging.IntervalDialog
 import com.uf.automoth.ui.imaging.autoStopDescription
@@ -271,11 +274,23 @@ class ImagingSchedulerActivity : AppCompatActivity() {
             viewModel.imagingSettings,
             startTime
         )
+
+        if (Build.VERSION.SDK_INT >= 30) {
+            // Unfortunately, foreground services cannot access the camera when launched from the
+            // background. We have to launch the service now so it will be running when the alarm
+            // fires. See https://developer.android.com/about/versions/11/privacy/foreground-services
+            val intent = Intent(this, ImagingService::class.java).apply {
+                action = ImagingService.ACTION_WAIT_FOR_SCHEDULED_SESSION
+            }
+            ContextCompat.startForegroundService(this.applicationContext, intent)
+        }
+
         runOnUiThread {
             // Reset to make it harder to spam a bunch of identical sessions
             viewModel.sessionTime = null
             viewModel.sessionName = null
             binding.sessionOptions.time.text = getString(R.string.time)
+            binding.sessionOptions.scheduleButton.isEnabled = false
         }
     }
 
