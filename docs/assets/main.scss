@@ -4,10 +4,16 @@
 @import "minima";
 
 .site-title::before {
-    content: url("/assets/favicon/favicon-32x32.png");
+    background-image: url("{{ '/assets/logo.png' | relative_url }}");
+    background-size: 35px 35px;
     display: inline-block;
-    position: relative;
-    width: 32px;
-    top: 5px;
-    right: 5px;
+    width: 35px; 
+    height: 35px;
+    margin-right: 10px;
+    content:"";
+}
+
+.site-title {
+    display: flex;
+    align-items: center;
 }
