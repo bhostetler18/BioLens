@@ -4,7 +4,7 @@
 @import "minima";
 
 .site-title::before {
-    background-image: url("{{ '/assets/logo.png' | relative_url }}");
+    background-image: url("{{ '/assets/img/logo.png' | relative_url }}");
     background-size: 35px 35px;
     display: inline-block;
     width: 35px; 
@@ -16,4 +16,9 @@
 .site-title {
     display: flex;
     align-items: center;
+}
+
+.playstore-badge {
+    width: 150px;
+    float: right;
 }
