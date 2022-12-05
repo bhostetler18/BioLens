@@ -78,12 +78,12 @@ class MetadataTest {
 
         // nonexistent session, correct key
         assertFailsWith<SQLiteConstraintException> {
-            db.userMetadataValueDAO().insert(MetadataValue("test", 100, "don't set this"))
+            db.metadataValueDAO().insert(MetadataValue("test", 100, "don't set this"))
         }
 
         // nonexistent key, correct session
         assertFailsWith<SQLiteConstraintException> {
-            db.userMetadataValueDAO().insert(MetadataValue("blah", sessionID, "don't set this"))
+            db.metadataValueDAO().insert(MetadataValue("blah", sessionID, "don't set this"))
         }
 
         // Deleting session should delete all metadata for that session
@@ -99,9 +99,9 @@ class MetadataTest {
 
         // Deleting metadata field should delete all associated entries
         md.setValue("test", sessionID, value)
-        assertThat(db.userMetadataValueDAO().getString("test", sessionID), equalTo(value))
+        assertThat(db.metadataValueDAO().getString("test", sessionID), equalTo(value))
         md.deleteMetadataField("test", false)
-        assertThat(db.userMetadataValueDAO().getString("test", sessionID), equalTo(null))
+        assertThat(db.metadataValueDAO().getString("test", sessionID), equalTo(null))
     }
 
     @Test
@@ -123,10 +123,10 @@ class MetadataTest {
 
     private fun correctGetterFor(type: MetadataType): KSuspendFunction2<String, Long, Any?> {
         return when (type) {
-            MetadataType.STRING -> db.userMetadataValueDAO()::getString
-            MetadataType.INT -> db.userMetadataValueDAO()::getInt
-            MetadataType.DOUBLE -> db.userMetadataValueDAO()::getDouble
-            MetadataType.BOOLEAN -> db.userMetadataValueDAO()::getBoolean
+            MetadataType.STRING -> db.metadataValueDAO()::getString
+            MetadataType.INT -> db.metadataValueDAO()::getInt
+            MetadataType.DOUBLE -> db.metadataValueDAO()::getDouble
+            MetadataType.BOOLEAN -> db.metadataValueDAO()::getBoolean
         }
     }
 
@@ -165,10 +165,10 @@ class MetadataTest {
             // get the incorrect type from a given metadata field and thus wouldn't reflect if a
             // bogus value got into the actual database table
             val allGetters = setOf(
-                db.userMetadataValueDAO()::getBoolean,
-                db.userMetadataValueDAO()::getString,
-                db.userMetadataValueDAO()::getDouble,
-                db.userMetadataValueDAO()::getInt
+                db.metadataValueDAO()::getBoolean,
+                db.metadataValueDAO()::getString,
+                db.metadataValueDAO()::getDouble,
+                db.metadataValueDAO()::getInt
             )
             val workingGetter = correctGetterFor(type)
             for (get in allGetters.minus(workingGetter)) {
@@ -213,7 +213,7 @@ class MetadataTest {
         md.setString("old", sessionID, exampleValue)
 
         assertFailsWith<SQLiteConstraintException> { // Using the DAO method by itself is dangerous...
-            db.userMetadataValueDAO().rename("old", "new")
+            db.metadataValueDAO().rename("old", "new")
         }
 
         // Successful rename

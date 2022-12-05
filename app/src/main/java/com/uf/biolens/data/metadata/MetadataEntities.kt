@@ -20,30 +20,26 @@ package com.uf.biolens.data.metadata
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
-import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import com.uf.biolens.data.Session
 
 @Entity(tableName = "metadata_keys")
 data class MetadataKey(
-    @PrimaryKey val key: String,
+    @PrimaryKey override val name: String,
     override val type: MetadataType,
-    // see https://stackoverflow.com/questions/70574648/how-to-set-a-default-value-to-existing-rows-for-a-new-column-created-using-room
-    @ColumnInfo(defaultValue = "0") override val builtin: Boolean
-) : MetadataField {
-    @Ignore
-    override val field: String = key // match naming convention of UserMetadataField interface
-}
+    override val builtin: Boolean
+) : MetadataField
 
 @Entity(
     tableName = "metadata_values",
-    primaryKeys = ["key", "sessionID"],
+    primaryKeys = ["name", "sessionID"],
     foreignKeys = [
         ForeignKey(
             entity = MetadataKey::class,
-            parentColumns = ["key"],
-            childColumns = ["key"],
+            parentColumns = ["name"],
+            childColumns = ["name"],
             onDelete = ForeignKey.CASCADE
+//            onUpdate = ForeignKey.CASCADE
         ),
         ForeignKey(
             entity = Session::class,
@@ -54,7 +50,7 @@ data class MetadataKey(
     ]
 )
 data class MetadataValue(
-    val key: String,
+    val name: String,
     @ColumnInfo(index = true) val sessionID: Long,
     val stringValue: String? = null,
     val intValue: Int? = null,

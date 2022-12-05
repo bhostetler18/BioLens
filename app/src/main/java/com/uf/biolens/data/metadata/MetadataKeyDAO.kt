@@ -33,21 +33,24 @@ interface MetadataKeyDAO {
     @Delete
     suspend fun delete(key: MetadataKey)
 
-    @Query("DELETE FROM metadata_keys WHERE `key` = :key AND builtin = :builtin")
-    suspend fun delete(key: String, builtin: Boolean)
+    @Query("DELETE FROM metadata_keys WHERE name = :name AND builtin = :builtin")
+    suspend fun delete(name: String, builtin: Boolean)
 
-    @Query("SELECT * FROM metadata_keys WHERE `key` = :key")
-    suspend fun get(key: String): MetadataKey?
+    @Query("SELECT * FROM metadata_keys WHERE name = :name")
+    suspend fun get(name: String): MetadataKey?
 
-    @Query("SELECT * FROM metadata_keys WHERE builtin=:builtin ORDER BY `key`")
+    @Query("SELECT * FROM metadata_keys WHERE builtin=:builtin ORDER BY name")
     suspend fun getKeys(builtin: Boolean): List<MetadataKey>
 
-    @Query("SELECT * FROM metadata_keys ORDER BY `key`")
+    @Query("SELECT * FROM metadata_keys ORDER BY name")
     suspend fun getAllKeys(): List<MetadataKey>
 
-    @Query("SELECT * FROM metadata_keys ORDER BY `key`")
+    @Query("SELECT * FROM metadata_keys ORDER BY name")
     fun getAllKeysFlow(): Flow<List<MetadataKey>>
 
-    @Query("SELECT type FROM metadata_keys where `key` = :key")
-    suspend fun getType(key: String): MetadataType?
+    @Query("SELECT type FROM metadata_keys where name = :name")
+    suspend fun getType(name: String): MetadataType?
+
+    @Query("UPDATE metadata_values SET name = :newName where name = :originalName")
+    suspend fun rename(originalName: String, newName: String)
 }

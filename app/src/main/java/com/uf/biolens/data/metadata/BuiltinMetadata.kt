@@ -57,13 +57,13 @@ val AUTOMOTH_METADATA_VALIDATORS: Map<String, (Any?) -> Boolean> = mapOf(
     SHEET_HEIGHT to ::greaterThanZero
 )
 
-suspend fun migrate(store: MetadataStore) {
-    store.renameField("sheet_width", SHEET_WIDTH, true)
-    store.renameField("sheet_height", SHEET_HEIGHT, true)
-}
+// suspend fun migrate(store: MetadataStore) {
+//    store.renameField("sheet_width", SHEET_WIDTH, true)
+//    store.renameField("sheet_height", SHEET_HEIGHT, true)
+// }
 
 suspend fun prepopulate(store: MetadataStore) {
-    migrate(store)
+//    migrate(store)
     AUTOMOTH_METADATA.forEach {
         if (store.getField(it.name) == null) {
             store.addMetadataField(it.name, it.type, true)

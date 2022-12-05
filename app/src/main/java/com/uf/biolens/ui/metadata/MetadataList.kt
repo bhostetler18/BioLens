@@ -116,7 +116,7 @@ class MetadataList(
     suspend fun removeUserField(item: MetadataTableDataModel): Boolean {
         val metadata = item.editable?.userField ?: return false
         if (mutate { return@mutate userMetadata.remove(item) }) {
-            BioLensRepository.metadataStore.deleteMetadataField(metadata.field, false)
+            BioLensRepository.metadataStore.deleteMetadataField(metadata.name, false)
         }
         onMetadataChange() // update isDirty in case the only dirty item was the one that was removed
         return false

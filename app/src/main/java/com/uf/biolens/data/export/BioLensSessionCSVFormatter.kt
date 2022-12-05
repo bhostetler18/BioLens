@@ -65,14 +65,14 @@ class BioLensSessionCSVFormatter(
     private suspend fun addUserMetadata(metadataStore: MetadataStore) {
         metadataStore.getFields(false).forEach {
             val value = metadataStore.getValue(it, session.sessionID)
-            addConstantColumn(it.field, value.toStringOrEmpty())
+            addConstantColumn(it.name, value.toStringOrEmpty())
         }
     }
 
     private suspend fun addAutoMothMetadata(metadataStore: MetadataStore) {
         metadataStore.getFields(true).forEach {
             val value = metadataStore.getValue(it, session.sessionID)
-            addConstantColumn(it.field, value.toStringOrEmpty())
+            addConstantColumn(it.name, value.toStringOrEmpty())
         }
     }
 

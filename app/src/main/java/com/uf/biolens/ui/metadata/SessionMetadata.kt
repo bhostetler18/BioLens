@@ -116,37 +116,37 @@ suspend fun MetadataField.toDisplayableMetadata(
                 csvValidator(value) && validator(value)
             }
             MetadataTableDataModel.StringMetadata(
-                nameOverride ?: field,
+                nameOverride ?: name,
                 false,
-                db.getValue(field, sessionID),
-                { newValue -> db.setValue(field, sessionID, newValue) },
+                db.getValue(name, sessionID),
+                { newValue -> db.setValue(name, sessionID, newValue) },
                 combined
             )
         }
         MetadataType.INT -> {
             MetadataTableDataModel.IntMetadata(
-                nameOverride ?: field,
+                nameOverride ?: name,
                 false,
-                db.getValue(field, sessionID),
-                { newValue -> db.setValue(field, sessionID, newValue) },
+                db.getValue(name, sessionID),
+                { newValue -> db.setValue(name, sessionID, newValue) },
                 validator
             )
         }
         MetadataType.DOUBLE -> {
             MetadataTableDataModel.DoubleMetadata(
-                nameOverride ?: field,
+                nameOverride ?: name,
                 false,
-                db.getValue(field, sessionID),
-                { newValue -> db.setValue(field, sessionID, newValue) },
+                db.getValue(name, sessionID),
+                { newValue -> db.setValue(name, sessionID, newValue) },
                 validator
             )
         }
         MetadataType.BOOLEAN -> {
             MetadataTableDataModel.BooleanMetadata(
-                nameOverride ?: field,
+                nameOverride ?: name,
                 false,
-                db.getValue(field, sessionID)
-            ) { newValue -> db.setValue(field, sessionID, newValue) }
+                db.getValue(name, sessionID)
+            ) { newValue -> db.setValue(name, sessionID, newValue) }
         }
     }.also {
         it.observer = observer

@@ -28,20 +28,20 @@ interface MetadataValueDAO {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(value: MetadataValue)
 
-    @Query("SELECT stringValue FROM metadata_values WHERE `key` = :key AND sessionID = :session")
-    suspend fun getString(key: String, session: Long): String?
+    @Query("SELECT stringValue FROM metadata_values WHERE name = :name AND sessionID = :session")
+    suspend fun getString(name: String, session: Long): String?
 
-    @Query("SELECT intValue FROM metadata_values WHERE `key` = :key AND sessionID = :session")
-    suspend fun getInt(key: String, session: Long): Int?
+    @Query("SELECT intValue FROM metadata_values WHERE name = :name AND sessionID = :session")
+    suspend fun getInt(name: String, session: Long): Int?
 
-    @Query("SELECT doubleValue FROM metadata_values WHERE `key` = :key AND sessionID = :session")
-    suspend fun getDouble(key: String, session: Long): Double?
+    @Query("SELECT doubleValue FROM metadata_values WHERE name = :name AND sessionID = :session")
+    suspend fun getDouble(name: String, session: Long): Double?
 
-    @Query("SELECT boolValue FROM metadata_values WHERE `key` = :key AND sessionID = :session")
-    suspend fun getBoolean(key: String, session: Long): Boolean?
+    @Query("SELECT boolValue FROM metadata_values WHERE name = :name AND sessionID = :session")
+    suspend fun getBoolean(name: String, session: Long): Boolean?
 
     // This is dangerous and should only be called if you're sure the new key won't produce a foreign
     // key constraint conflict
-    @Query("UPDATE metadata_values SET `key` = :newName where `key` = :originalName")
+    @Query("UPDATE metadata_values SET name = :newName where name = :originalName")
     suspend fun rename(originalName: String, newName: String)
 }

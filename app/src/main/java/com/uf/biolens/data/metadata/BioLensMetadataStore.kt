@@ -22,8 +22,8 @@ import com.uf.biolens.data.BioLensDatabase
 
 class BioLensMetadataStore(private val db: BioLensDatabase) : MetadataStore {
 
-    private suspend inline fun <reified T> safeSet(field: String, set: () -> Unit) {
-        val entry = db.userMetadataKeyDAO().get(field)
+    private suspend inline fun <reified T> safeSet(name: String, set: () -> Unit) {
+        val entry = db.metadataKeyDAO().get(name)
         if (entry != null) {
             val requiredType = entry.type
             val actualType = reifyMetadataType<T>()
@@ -32,19 +32,19 @@ class BioLensMetadataStore(private val db: BioLensDatabase) : MetadataStore {
             } else {
                 Log.e(
                     TAG,
-                    "Tried to write value of type $actualType to field '$field' of type $requiredType"
+                    "Tried to write value of type $actualType to field '$name' of type $requiredType"
                 )
             }
         } else {
-            Log.e(TAG, "Cannot write to nonexistent field '$field'")
+            Log.e(TAG, "Cannot write to nonexistent field '$name'")
         }
     }
 
     private suspend inline fun <reified T> safeGet(
-        field: String,
+        name: String,
         get: () -> T?
     ): T? {
-        val entry = db.userMetadataKeyDAO().get(field)
+        val entry = db.metadataKeyDAO().get(name)
         return if (entry != null) {
             val desiredType = reifyMetadataType<T>()
             if (entry.type == desiredType) {
@@ -52,26 +52,26 @@ class BioLensMetadataStore(private val db: BioLensDatabase) : MetadataStore {
             } else {
                 Log.e(
                     TAG,
-                    "Tried to get $desiredType from metadata field '$field' of type ${entry.type}"
+                    "Tried to get $desiredType from metadata field '$name' of type ${entry.type}"
                 )
                 null
             }
         } else {
-            Log.e(TAG, "Tried to get nonexistent metadata field $field")
+            Log.e(TAG, "Tried to get nonexistent metadata field $name")
             null
         }
     }
 
-    override suspend fun addMetadataField(field: String, type: MetadataType, builtin: Boolean) {
-        db.userMetadataKeyDAO().insert(MetadataKey(field, type, builtin))
+    override suspend fun addMetadataField(name: String, type: MetadataType, builtin: Boolean) {
+        db.metadataKeyDAO().insert(MetadataKey(name, type, builtin))
     }
 
-    override suspend fun deleteMetadataField(field: String, builtin: Boolean) {
-        db.userMetadataKeyDAO().delete(field, builtin)
+    override suspend fun deleteMetadataField(name: String, builtin: Boolean) {
+        db.metadataKeyDAO().delete(name, builtin)
     }
 
     override suspend fun renameField(originalName: String, newName: String, builtin: Boolean) {
-        val existingOriginal = db.userMetadataKeyDAO().get(originalName) ?: return
+        val existingOriginal = db.metadataKeyDAO().get(originalName) ?: return
         if (existingOriginal.builtin != builtin) {
             Log.d(
                 TAG,
@@ -80,7 +80,7 @@ class BioLensMetadataStore(private val db: BioLensDatabase) : MetadataStore {
             )
             return
         }
-        if (db.userMetadataKeyDAO().get(newName) != null) {
+        if (db.metadataKeyDAO().get(newName) != null) {
             Log.d(
                 TAG,
                 "Attempting to rename '$originalName' to '$newName', but '$newName' already exists"
@@ -89,61 +89,61 @@ class BioLensMetadataStore(private val db: BioLensDatabase) : MetadataStore {
         }
         // Insert first to prevent foreign key constraint conflicts (and avoid losing values that
         // would be wiped if the original key was deleted first)
-        db.userMetadataKeyDAO().insert(MetadataKey(newName, existingOriginal.type, builtin))
-        db.userMetadataValueDAO().rename(originalName, newName)
+        db.metadataKeyDAO().insert(MetadataKey(newName, existingOriginal.type, builtin))
+        db.metadataValueDAO().rename(originalName, newName)
         // Delete now that values have been updated
-        db.userMetadataKeyDAO().delete(existingOriginal)
+        db.metadataKeyDAO().delete(existingOriginal)
     }
 
-    override suspend fun getField(field: String): MetadataField? {
-        return db.userMetadataKeyDAO().get(field)
+    override suspend fun getField(name: String): MetadataField? {
+        return db.metadataKeyDAO().get(name)
     }
 
-    override suspend fun getMetadataType(field: String): MetadataType? {
-        return db.userMetadataKeyDAO().getType(field)
+    override suspend fun getMetadataType(name: String): MetadataType? {
+        return db.metadataKeyDAO().getType(name)
     }
 
     override suspend fun getFields(builtin: Boolean): List<MetadataField> {
-        return db.userMetadataKeyDAO().getKeys(builtin)
+        return db.metadataKeyDAO().getKeys(builtin)
     }
 
-    override suspend fun getString(field: String, session: Long): String? = safeGet(field) {
-        db.userMetadataValueDAO().getString(field, session)
+    override suspend fun getString(name: String, session: Long): String? = safeGet(name) {
+        db.metadataValueDAO().getString(name, session)
     }
 
-    override suspend fun setString(field: String, session: Long, value: String?) =
-        safeSet<String>(field) {
-            db.userMetadataValueDAO().insert(MetadataValue(field, session, stringValue = value))
+    override suspend fun setString(name: String, session: Long, value: String?) =
+        safeSet<String>(name) {
+            db.metadataValueDAO().insert(MetadataValue(name, session, stringValue = value))
         }
 
-    override suspend fun getInt(field: String, session: Long): Int? = safeGet(field) {
-        return db.userMetadataValueDAO().getInt(field, session)
+    override suspend fun getInt(name: String, session: Long): Int? = safeGet(name) {
+        return db.metadataValueDAO().getInt(name, session)
     }
 
-    override suspend fun setInt(field: String, session: Long, value: Int?) = safeSet<Int>(field) {
-        db.userMetadataValueDAO().insert(MetadataValue(field, session, intValue = value))
+    override suspend fun setInt(name: String, session: Long, value: Int?) = safeSet<Int>(name) {
+        db.metadataValueDAO().insert(MetadataValue(name, session, intValue = value))
     }
 
-    override suspend fun getDouble(field: String, session: Long): Double? = safeGet(field) {
-        return db.userMetadataValueDAO().getDouble(field, session)
+    override suspend fun getDouble(name: String, session: Long): Double? = safeGet(name) {
+        return db.metadataValueDAO().getDouble(name, session)
     }
 
-    override suspend fun setDouble(field: String, session: Long, value: Double?) =
-        safeSet<Double>(field) {
-            db.userMetadataValueDAO().insert(MetadataValue(field, session, doubleValue = value))
+    override suspend fun setDouble(name: String, session: Long, value: Double?) =
+        safeSet<Double>(name) {
+            db.metadataValueDAO().insert(MetadataValue(name, session, doubleValue = value))
         }
 
-    override suspend fun getBoolean(field: String, session: Long): Boolean? = safeGet(field) {
-        return db.userMetadataValueDAO().getBoolean(field, session)
+    override suspend fun getBoolean(name: String, session: Long): Boolean? = safeGet(name) {
+        return db.metadataValueDAO().getBoolean(name, session)
     }
 
-    override suspend fun setBoolean(field: String, session: Long, value: Boolean?) =
-        safeSet<Boolean>(field) {
-            db.userMetadataValueDAO().insert(MetadataValue(field, session, boolValue = value))
+    override suspend fun setBoolean(name: String, session: Long, value: Boolean?) =
+        safeSet<Boolean>(name) {
+            db.metadataValueDAO().insert(MetadataValue(name, session, boolValue = value))
         }
 
     override suspend fun getAllFields(): List<MetadataField> {
-        return db.userMetadataKeyDAO().getAllKeys()
+        return db.metadataKeyDAO().getAllKeys()
     }
 
     companion object {
