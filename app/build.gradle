@@ -1,26 +1,31 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
-    id 'kotlin-kapt'
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.6.0'
     id 'kotlin-parcelize'
+    id 'kotlin-kapt'
 }
 
 android {
     compileSdk 32
 
     defaultConfig {
-        applicationId "com.uf.automoth"
+        applicationId "com.uf.biolens"
         minSdk 21
         targetSdk 32
-        versionCode 3
-        versionName "0.1"
+        versionCode 1
+        versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
+//        javaCompileOptions {
+//            annotationProcessorOptions {
+//                arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
+//            }
+//        }
+        kapt {
+            arguments {
+                arg("room.schemaLocation", "$projectDir/schemas")
             }
         }
         signingConfig signingConfigs.debug

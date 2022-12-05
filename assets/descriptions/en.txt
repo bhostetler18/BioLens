@@ -1,7 +1,7 @@
  A flexible tool for interval imaging and wildlife monitoring
 
 
-AutoMoth is a quick, cheap, and easy way to monitor moths and other wildlife in the field. Specify, schedule, and run image capture sessions from any Android device, then collect, edit, and export metadata and images for additional research. 
+BioLens is a quick, cheap, and easy way to monitor moths and other wildlife in the field. Specify, schedule, and run image capture sessions from any Android device, then collect, edit, and export metadata and images for additional research.
 
 IMAGING
 • Choose a capture interval

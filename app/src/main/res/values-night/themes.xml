@@ -1,6 +1,6 @@
 <resources>
     <!-- Base application theme. -->
-    <style name="Theme.AutoMoth" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <style name="Theme.BioLens" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/teal</item>
         <item name="colorPrimaryVariant">@color/teal_lighter</item>

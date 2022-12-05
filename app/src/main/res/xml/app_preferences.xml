@@ -24,6 +24,6 @@
         android:icon="@drawable/ic_logout_24"
         android:key="@string/PREF_GOOGLE_ACCOUNT"
         android:title="Logout"
-        tools:summary="Currently signed in as automoth@gmail.com" />
+        tools:summary="Currently signed in as biolens@gmail.com" />
 
 </PreferenceScreen>

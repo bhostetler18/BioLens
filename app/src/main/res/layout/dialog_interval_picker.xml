@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:padding="20dp">
 
-    <com.uf.automoth.ui.common.TimeDurationPicker
+    <com.uf.biolens.ui.common.TimeDurationPicker
         android:id="@+id/duration_picker"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
     <external-files-path
-        name="automoth_files"
+        name="biolens_files"
         path="." />
     <cache-path
-        name="automoth_tmp_files"
+        name="biolens_tmp_files"
         path="." />
 </paths>
