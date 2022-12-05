@@ -18,7 +18,19 @@
     align-items: center;
 }
 
+.site-header {
+    border-top: 0px;
+}
+
 .playstore-badge {
     width: 150px;
     float: right;
+}
+
+.footer-row {
+  display: flex;
+}
+
+.footer-column {
+  flex: 50%;
 }
