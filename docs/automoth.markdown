@@ -4,6 +4,8 @@ title: AutoMoth
 permalink: /automoth/
 ---
 
+![Example]({{ '/assets/img/setup_example.png' | relative_url }})
+
 # Why'd we build it?
 With insect populations shifting and declining in the face of climate change, monitoring insects in nature to understand and protect them has become a critical task in conservation. Most approaches to monitoring insects at large scales are expensive and labor intensive. We wanted to create a cheap automated system to obtain relative abundance data for insects, using the potential of citizen science to scale up moth monitoring across the United States. AutoMoth makes it simple for you to start monitoring!  
 
@@ -18,5 +20,3 @@ To use, just place the system in your backyard or natural area, plug it into pow
 # Ready to get started? 
 Download the BioLens Android app here: COMING SOON  
 View the guide on making your own monitoring system: [Google Document](https://docs.google.com/document/d/1IMntH_Dfv-yo2IfA6ZRrvAm8Bfnk04Fnvyc-dPxy6NU/edit?usp=sharing)
-
-![Example]({{ '/assets/img/setup_example.png' | relative_url }})
