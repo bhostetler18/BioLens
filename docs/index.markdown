@@ -5,7 +5,8 @@
 layout: home
 ---
 
-![Logo]({{ '/assets/img/banner.png' | relative_url }})
+![Logo]({{ '/assets/img/banner.png' | relative_url  }})
+{: .home-banner }
 
-A flexible tool for interval imaging and wildlife monitoring
+A flexible app for interval imaging and wildlife monitoring
 {: style="text-align: center;"}
