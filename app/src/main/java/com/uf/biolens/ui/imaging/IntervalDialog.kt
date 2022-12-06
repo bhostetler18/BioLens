@@ -48,7 +48,7 @@ class IntervalDialog(
 
     init {
         durationPicker.setUnits(TimeDurationPicker.DurationMode.MMSS)
-        durationPicker.setUnit1Range(0, 15)
+        durationPicker.setUnit1Range(0, 60)
         durationPicker.setUnit2Range(0, 59)
         displayInterval(currentInterval, context)
         durationPicker.setOnTimeDurationChangedListener { minutes, seconds ->
