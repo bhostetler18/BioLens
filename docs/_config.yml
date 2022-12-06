@@ -21,7 +21,7 @@
 title: BioLens
 email: automothdevs@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
-  An open-source Android application for imaging moths.
+  Flexible, open-source Android app for interval imaging and wildlife monitoring.
 baseurl: /BioLens # the subpath of your site, e.g. /blog
 url: bhostetler18.github.io # the base hostname & protocol for your site, e.g. http://example.com
 
