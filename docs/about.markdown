@@ -4,7 +4,7 @@ title: About
 permalink: /about/
 ---
 
-BioLens is a flexible app for interval imaging built by biologists, for biologists
+BioLens is a flexible app for interval imaging built by biologists, for biologists.
 
 # Features
 - Automatically take images at any interval from 1 second to 60 minutes
