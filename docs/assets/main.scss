@@ -26,6 +26,9 @@
     display: block;
     max-width: 500px;
     margin: 0 auto;
+    img {
+      border-radius: 10px;
+    }
 }
 
 .playstore-badge {
@@ -40,3 +43,20 @@
 .footer-column {
   flex: 50%;
 }
+
+#carousel {
+  display: flex;
+  flex-wrap: no-wrap;
+  overflow-x: auto;
+  margin: 20px;
+
+  img {
+    flex: 0 0 auto;
+    width: auto;
+    height: 375px;
+    max-width: 100%;
+    margin-right: 10px;
+    border-radius: 10px;
+  }
+}
+

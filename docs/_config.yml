@@ -21,9 +21,13 @@
 title: BioLens
 email: automothdevs@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
-  Flexible, open-source Android app for interval imaging and wildlife monitoring.
+  A flexible, open-source Android app for interval imaging and wildlife monitoring.
 baseurl: /BioLens # the subpath of your site, e.g. /blog
 url: bhostetler18.github.io # the base hostname & protocol for your site, e.g. http://example.com
+
+# Custom variables
+github-url: https://github.com/bhostetler18/BioLens
+playstore-url: https://play.google.com/store/apps/details?id=com.uf.biolens
 
 # Build settings
 theme: minima

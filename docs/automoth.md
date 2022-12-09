@@ -18,5 +18,5 @@ A full insect monitoring system using AutoMoth can be made without any tools usi
 To use, just place the system in your backyard or natural area, plug it into power (or attach an additional solar battery system), specify times to turn on and how many images you want to capture, then leave it be. When you return days or weeks later, hundreds or thousands of insect images will be saved to the phone at the ready for upload and use.
 
 # Ready to get started? 
-Download the BioLens Android app here: COMING SOON  
-View the guide on making your own monitoring system: [Google Document](https://docs.google.com/document/d/1IMntH_Dfv-yo2IfA6ZRrvAm8Bfnk04Fnvyc-dPxy6NU/edit?usp=sharing)
+Download the [BioLens Android app]({{ site.playstore-url }})   
+View the [guide on making your own monitoring system](https://docs.google.com/document/d/1IMntH_Dfv-yo2IfA6ZRrvAm8Bfnk04Fnvyc-dPxy6NU/edit?usp=sharing)

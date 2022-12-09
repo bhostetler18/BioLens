@@ -10,15 +10,15 @@
             {%- endif -%}
             </li>
             {%- if site.email -%}
-            Contact: 
             <li><a class="u-email" href="mailto:{{ site.email }}">{{ site.email }}</a></li>
             {%- endif -%}
+            <li><a href="{{ site.github-url }}"><svg class="svg-icon"><use xlink:href="{{ '/assets/minima-social-icons.svg#github' | relative_url }}"></use></svg> <span class="username">
         </ul>
       </div>
 
 
-      <div class="footer-footer">
-        <a href='https://play.google.com/store/apps/details?id=com.uf.biolens'>
+      <div class="footer-column">
+        <a href="{{ site.playstore-url }}">
           <img class="playstore-badge" alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png'/>
         </a>
       </div>
