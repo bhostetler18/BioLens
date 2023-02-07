@@ -48,7 +48,7 @@ interface SessionDAO {
     fun getImagesInSessionFlow(id: Long): Flow<List<Image>>
 
     @Transaction
-    @Query("SELECT * FROM images WHERE parentSessionID = :id")
+    @Query("SELECT * FROM images WHERE parentSessionID = :id ORDER BY `index`")
     suspend fun getImagesInSession(id: Long): List<Image>
 
     @Transaction
