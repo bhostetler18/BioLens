@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 University of Florida
+ * Copyright (c) 2022-2023 University of Florida
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
