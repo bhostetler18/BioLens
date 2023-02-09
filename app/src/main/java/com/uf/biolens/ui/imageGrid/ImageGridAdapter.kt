@@ -88,7 +88,7 @@ class ImageGridAdapter(
 //                .apply(RequestOptions().override(viewBinding.root.width, 100))
                 .into(viewBinding.image)
 
-            setSelected(imageSelector.isSelected(image))
+            setSelected(imageSelector.isSelected(image), false)
 
             viewBinding.root.setOnClickListener {
                 if (imageSelector.isEditing) {
@@ -106,7 +106,7 @@ class ImageGridAdapter(
 
         private fun toggle(image: Image) {
             imageSelector.toggle(image)
-            setSelected(imageSelector.isSelected(image))
+            setSelected(imageSelector.isSelected(image), true)
         }
 
         private fun openViewer(image: Image) {
@@ -117,10 +117,18 @@ class ImageGridAdapter(
             ctx.startActivity(intent)
         }
 
-        private fun setSelected(isSelected: Boolean) {
+        private fun setSelected(isSelected: Boolean, animated: Boolean) {
             val ic = if (isSelected) checked else unchecked
             viewBinding.checkIcon.setImageDrawable(ic)
             viewBinding.checkIcon.isVisible = imageSelector.isEditing
+
+//            val scale = if (isSelected) 0.95f else 1.0f
+//            if (animated) {
+//                viewBinding.image.animate().scaleX(scale).scaleY(scale).setDuration(50)
+//            } else {
+//                viewBinding.image.scaleX = scale
+//                viewBinding.image.scaleY = scale
+//            }
         }
     }
 
