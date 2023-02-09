@@ -163,4 +163,7 @@
     <string name="metadata_uv_light_model">UV light model</string>
     <string name="service_waiting_session_notification_title">"BioLens is waiting for a scheduled session  "</string>
     <string name="service_waiting_session_notification_message">You may turn off your device\'s screen</string>
+    <string name="delete_session">Delete Session</string>
+    <string name="warn_delete_images">Are you sure you want to delete the selected images?</string>
+    <string name="n_images_selected">%d selected</string>
 </resources>

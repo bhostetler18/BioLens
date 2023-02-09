@@ -162,6 +162,12 @@ object BioLensRepository {
         }
     }
 
+    fun deleteImage(id: Long) = coroutineScope.launch {
+        getImage(id)?.let {
+            delete(it)
+        }
+    }
+
     suspend fun getSession(id: Long): Session? = database.sessionDAO().getSession(id)
     fun getSessionFlow(id: Long): Flow<Session?> = database.sessionDAO().getSessionFlow(id)
 

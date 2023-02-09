@@ -21,8 +21,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.view.animation.AnticipateOvershootInterpolator
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import androidx.core.view.marginBottom
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.work.Constraints
@@ -44,6 +47,7 @@ import com.uf.biolens.ui.common.ExportOptionsHandler
 import com.uf.biolens.ui.common.simpleAlertDialogWithOk
 import com.uf.biolens.ui.metadata.MetadataActivity
 import com.uf.biolens.utility.launchDialog
+import com.uf.biolens.utility.setPadding
 import kotlinx.coroutines.launch
 
 class ImageGridActivity : AppCompatActivity() {
@@ -83,12 +87,26 @@ class ImageGridActivity : AppCompatActivity() {
             session.completed = BioLensRepository.updateSessionCompletion(sessionID)
         }
 
-        val adapter = ImageGridAdapter(session)
+        val adapter = ImageGridAdapter(session, viewModel.imageSelector, this)
         binding.imageGrid.adapter = adapter
         setSupportActionBar(binding.appBar.toolbar)
         setContentView(binding.root)
         supportActionBar?.title = session.name
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        binding.deleteButton.setOnClickListener {
+            val dialogBuilder = MaterialAlertDialogBuilder(this)
+            dialogBuilder.setTitle(getString(R.string.warn_delete_images))
+            dialogBuilder.setMessage(getString(R.string.warn_permanent_action))
+            dialogBuilder.setPositiveButton(getString(R.string.delete)) { dialog, _ ->
+                viewModel.imageSelector.deleteSelectedImages()
+                dialog.dismiss()
+            }
+            dialogBuilder.setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                dialog.dismiss()
+            }
+            dialogBuilder.create().show()
+        }
 
         viewModel.images.observe(this@ImageGridActivity) { images ->
             images?.let { adapter.submitList(it) }
@@ -98,15 +116,21 @@ class ImageGridActivity : AppCompatActivity() {
             supportActionBar?.title = it?.name
         }
 
+        viewModel.imageSelector.isEditingLiveData.observe(this@ImageGridActivity) { isEditing ->
+            showSelectionTools(isEditing)
+            adapter.refreshEditingState()
+            binding.appBar.toolbar.isEnabled = !isEditing
+        }
+
         viewModel.displayCounts.observe(this@ImageGridActivity) {
-            val total = it.first
-            val skip = it.second
-            val imageString = resources.getQuantityString(R.plurals.unit_images, total)
-            var text = "$total $imageString"
-            if (skip != 0) {
-                text += " ${getString(R.string.showing_every_x, skip)}"
+            val imageString = resources.getQuantityString(R.plurals.unit_images, it.numImages)
+            var text = "${it.numImages} $imageString"
+            if (it.skipCount != 0) {
+                text += " ${getString(R.string.showing_every_x, it.skipCount)}"
             }
             binding.imgCount.text = text
+
+            binding.imageSelectionText.text = getString(R.string.n_images_selected, it.numSelected)
         }
 
         WorkManager.getInstance(this).getWorkInfosForUniqueWorkLiveData(
@@ -320,5 +344,34 @@ class ImageGridActivity : AppCompatActivity() {
         WorkManager.getInstance(this).pruneWork() // Makes the LiveData update with a null WorkInfo
         binding.progressBar.isVisible = false
         binding.progressBar.reset()
+    }
+
+    private fun showSelectionTools(visible: Boolean) {
+        val tools = binding.selectionTools
+
+        val startOpacity = if (visible) 0.0f else 1.0f
+        val targetOpacity = if (visible) 1.0f else 0.0f
+        val startTranslation = if (visible) tools.height.toFloat() else 0.0f
+        val endTranslation = if (visible) 0.0f else tools.height.toFloat()
+
+        tools.animate()
+            .withStartAction {
+                if (visible) tools.visibility = View.VISIBLE
+                tools.alpha = startOpacity
+                tools.translationY = startTranslation
+                tools.translationY = -50.0f
+            }
+            .withEndAction {
+                tools.visibility = if (visible) View.VISIBLE else View.INVISIBLE
+                var bottomPad = binding.imgCount.height
+                if (visible) {
+                    bottomPad += tools.height + tools.marginBottom
+                }
+                binding.imageGrid.setPadding(bottom = bottomPad)
+            }
+            .alpha(targetOpacity)
+            .translationY(endTranslation)
+            .setDuration(300)
+            .setStartDelay(10).interpolator = AnticipateOvershootInterpolator()
     }
 }

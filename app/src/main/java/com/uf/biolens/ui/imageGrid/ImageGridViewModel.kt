@@ -19,6 +19,7 @@ package com.uf.biolens.ui.imageGrid
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.uf.biolens.data.BioLensRepository
@@ -31,6 +32,8 @@ import kotlinx.coroutines.flow.flowOn
 class ImageGridViewModel(val sessionID: Long) : ViewModel() {
 
     var exportOptions = ExportOptions.default
+    val imageSelector = BioLensImageSelector()
+
     val skipCount = MutableStateFlow(0)
     val images =
         skipCount.combine(BioLensRepository.getImagesInSessionFlow(sessionID)) { skip, images ->
@@ -43,10 +46,14 @@ class ImageGridViewModel(val sessionID: Long) : ViewModel() {
                 }
             }
         }.flowOn(Dispatchers.IO).asLiveData(viewModelScope.coroutineContext)
-    val displayCounts = BioLensRepository.getNumImagesInSession(sessionID)
-        .combine(skipCount) { numImages, skip ->
-            Pair(numImages, skip)
-        }.asLiveData(viewModelScope.coroutineContext)
+
+    val displayCounts = combine(
+        BioLensRepository.getNumImagesInSession(sessionID),
+        skipCount,
+        imageSelector.numSelected.asFlow()
+    ) { numImages, skipCount, numSelected ->
+        ImageDisplayData(numImages, skipCount, numSelected)
+    }.asLiveData(viewModelScope.coroutineContext)
 
     val session = BioLensRepository.getSessionFlow(sessionID).asLiveData()
 
