@@ -33,15 +33,15 @@ interface ImageSelector {
 
 data class ImageDisplayData(var numImages: Int, var skipCount: Int, var numSelected: Int)
 
-class BioLensImageSelector : ImageSelector {
+class BioLensImageSelector(
+    private var exitOnNoSelection: Boolean = false
+) : ImageSelector {
 
     var isEditingLiveData = MutableLiveData(false)
     override val isEditing: Boolean get() = isEditingLiveData.value ?: false
 
     private var selectedIndices = HashSet<Long>()
     var numSelected = MutableLiveData<Int>(0)
-
-    var exitOnNoSelection = true
 
     override fun toggleEditing() {
         setEditing(!isEditing)

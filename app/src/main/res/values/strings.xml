@@ -166,4 +166,5 @@
     <string name="delete_session">Delete Session</string>
     <string name="warn_delete_images">Are you sure you want to delete the selected images?</string>
     <string name="n_images_selected">%d selected</string>
+    <string name="select_underexposed">Select underexposed</string>
 </resources>
