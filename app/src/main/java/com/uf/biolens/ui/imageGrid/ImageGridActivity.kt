@@ -424,6 +424,7 @@ class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
             binding.progressBar.isVisible = false
         }
         binding.progressBar.max = viewModel.displayCounts.value?.numImages ?: 0
+        binding.progressBar.progress = 0
         binding.progressBar.isVisible = true
         selectUnderexposedJob = lifecycleScope.launch {
             finder.getUnderexposedImages()
