@@ -40,7 +40,7 @@
         android:paddingHorizontal="10dp"
         android:src="@drawable/ic_more_vert_24" />
 
-    <ImageButton
+    <com.uf.biolens.ui.common.GrayableImageButton
         android:id="@+id/delete_button"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"

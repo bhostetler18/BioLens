@@ -67,5 +67,6 @@ class ImageSelectorBar(context: Context, attrs: AttributeSet?) :
 
     fun setNumImagesSelected(num: Int) {
         binding.imageSelectionText.text = resources.getString(R.string.n_images_selected, num)
+        binding.deleteButton.isEnabled = num > 0
     }
 }
