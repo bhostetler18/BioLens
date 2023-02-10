@@ -29,11 +29,12 @@ class UnderexposedImageFinder(val sessionID: Long) {
 
     var onCompleteListener: (() -> Unit)? = null
     var underexposedImageHandler: ((Image) -> Unit)? = null
+    var progressListener: ((Int) -> Unit)? = null
 
     suspend fun getUnderexposedImages() = coroutineScope {
         val session = BioLensRepository.getSession(sessionID) ?: return@coroutineScope
-        BioLensRepository.getImagesInSession(sessionID).forEach {
-            val file = BioLensRepository.resolve(it, session)
+        BioLensRepository.getImagesInSession(sessionID).forEachIndexed { index, image ->
+            val file = BioLensRepository.resolve(image, session)
             val underexposed = withContext(Dispatchers.IO) {
                 return@withContext loadDownsampledImage(file.absolutePath, 50, 50)?.let { bitmap ->
                     val result = bitmap.isUnderexposed()
@@ -44,9 +45,10 @@ class UnderexposedImageFinder(val sessionID: Long) {
             if (underexposed) {
                 launch(Dispatchers.Main) {
                     ensureActive()
-                    underexposedImageHandler?.invoke(it)
+                    underexposedImageHandler?.invoke(image)
                 }
             }
+            progressListener?.invoke(index)
         }
         onCompleteListener?.invoke()
     }

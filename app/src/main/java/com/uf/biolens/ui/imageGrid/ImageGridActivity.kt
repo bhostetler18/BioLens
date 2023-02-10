@@ -68,6 +68,7 @@ class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        binding.uploadProgressBar.isVisible = false
         binding.progressBar.isVisible = false
 
         sessionID = intent.extras?.get("SESSION") as? Long ?: run {
@@ -272,23 +273,23 @@ class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
 
     private fun showUploadProgress(info: WorkInfo?) {
         if (info == null) {
-            binding.progressBar.isVisible = false
+            binding.uploadProgressBar.isVisible = false
             return
         }
 
-        binding.progressBar.isVisible = true
+        binding.uploadProgressBar.isVisible = true
 
         val maxProgress =
             info.progress.keyValueMap[GoogleDriveUploadWorker.KEY_MAX_PROGRESS] as? Int
         maxProgress?.let {
-            binding.progressBar.maxProgress = it
+            binding.uploadProgressBar.maxProgress = it
         }
 
         when (info.state) {
             WorkInfo.State.ENQUEUED,
             WorkInfo.State.BLOCKED -> {
-                binding.progressBar.setLabel(getString(R.string.waiting_internet))
-                binding.progressBar.configureActionButton(getString(R.string.cancel)) {
+                binding.uploadProgressBar.setLabel(getString(R.string.waiting_internet))
+                binding.uploadProgressBar.configureActionButton(getString(R.string.cancel)) {
                     WorkManager.getInstance(this).cancelUniqueWork(
                         GoogleDriveUploadWorker.uniqueWorkerTag(viewModel.sessionID)
                     )
@@ -296,50 +297,50 @@ class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
             }
             WorkInfo.State.RUNNING -> {
                 if (info.progress.keyValueMap.containsKey(GoogleDriveUploadWorker.KEY_METADATA)) {
-                    binding.progressBar.setLabel(getString(R.string.exporting_metadata))
+                    binding.uploadProgressBar.setLabel(getString(R.string.exporting_metadata))
                 } else if (info.progress.keyValueMap.containsKey(GoogleDriveUploadWorker.KEY_PROGRESS)) {
                     val progress =
                         info.progress.keyValueMap[GoogleDriveUploadWorker.KEY_PROGRESS] as? Int
-                    binding.progressBar.setLabel(getString(R.string.uploading_images))
+                    binding.uploadProgressBar.setLabel(getString(R.string.uploading_images))
                     progress?.let {
-                        binding.progressBar.setProgress(it)
+                        binding.uploadProgressBar.setProgress(it)
                     }
                 } else {
-                    binding.progressBar.setLabel(getString(R.string.connecting_to_drive))
+                    binding.uploadProgressBar.setLabel(getString(R.string.connecting_to_drive))
                 }
 
-                binding.progressBar.configureActionButton(getString(R.string.cancel)) {
+                binding.uploadProgressBar.configureActionButton(getString(R.string.cancel)) {
                     WorkManager.getInstance(this).cancelUniqueWork(
                         GoogleDriveUploadWorker.uniqueWorkerTag(viewModel.sessionID)
                     )
                 }
             }
             WorkInfo.State.SUCCEEDED -> {
-                binding.progressBar.setLabel(getString(R.string.upload_complete))
+                binding.uploadProgressBar.setLabel(getString(R.string.upload_complete))
                 // The Result.Success() WorkInfo update may occur before the final update to KEY_PROGRESS,
                 // so just force the progress bar to show fully complete
-                binding.progressBar.showComplete()
-                if (!binding.progressBar.hasSetMaxProgress) {
+                binding.uploadProgressBar.showComplete()
+                if (!binding.uploadProgressBar.hasSetMaxProgress) {
                     // The Result.Success() WorkInfo contains no progress information, and when
                     // navigating back to a completed upload the progress bar may not have been
                     // configured with the proper max value and would just show 100/100. In this
                     // case, just hide the numbers
-                    binding.progressBar.showNumericProgress(false)
+                    binding.uploadProgressBar.showNumericProgress(false)
                 }
 
-                binding.progressBar.configureActionButton(getString(R.string.dismiss)) {
+                binding.uploadProgressBar.configureActionButton(getString(R.string.dismiss)) {
                     dismissAndResetUploadBar()
                 }
             }
             WorkInfo.State.CANCELLED -> {
-                binding.progressBar.setLabel(getString(R.string.upload_cancelled))
-                binding.progressBar.configureActionButton(getString(R.string.dismiss)) {
+                binding.uploadProgressBar.setLabel(getString(R.string.upload_cancelled))
+                binding.uploadProgressBar.configureActionButton(getString(R.string.dismiss)) {
                     dismissAndResetUploadBar()
                 }
             }
             WorkInfo.State.FAILED -> {
-                binding.progressBar.setLabel(getString(R.string.upload_failed))
-                binding.progressBar.configureActionButton(getString(R.string.retry)) {
+                binding.uploadProgressBar.setLabel(getString(R.string.upload_failed))
+                binding.uploadProgressBar.configureActionButton(getString(R.string.retry)) {
                     uploadSession()
                 }
             }
@@ -348,8 +349,8 @@ class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
 
     private fun dismissAndResetUploadBar() {
         WorkManager.getInstance(this).pruneWork() // Makes the LiveData update with a null WorkInfo
-        binding.progressBar.isVisible = false
-        binding.progressBar.reset()
+        binding.uploadProgressBar.isVisible = false
+        binding.uploadProgressBar.reset()
     }
 
     private fun showSelectionTools(visible: Boolean) {
@@ -415,9 +416,15 @@ class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
             viewModel.imageSelector.setSelected(image, true)
             adapter.refreshEditingState()
         }
+        finder.progressListener = {
+            binding.progressBar.progress = it
+        }
         finder.onCompleteListener = {
             selectUnderexposedJob = null
+            binding.progressBar.isVisible = false
         }
+        binding.progressBar.max = viewModel.displayCounts.value?.numImages ?: 0
+        binding.progressBar.isVisible = true
         selectUnderexposedJob = lifecycleScope.launch {
             finder.getUnderexposedImages()
         }
@@ -426,5 +433,6 @@ class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
     private fun cancelSelectingUnderexposed() {
         selectUnderexposedJob?.cancel()
         selectUnderexposedJob = null
+        binding.progressBar.isVisible = false
     }
 }

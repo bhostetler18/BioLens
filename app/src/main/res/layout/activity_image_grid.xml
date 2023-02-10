@@ -15,8 +15,16 @@
             android:id="@+id/app_bar"
             layout="@layout/app_bar" />
 
-        <com.uf.biolens.ui.common.UploadProgressBar
+        <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/progress_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:indicatorColor="@color/green"
+            app:trackColor="@color/green_lighter"
+            tools:progress="65" />
+
+        <com.uf.biolens.ui.common.UploadProgressBar
+            android:id="@+id/upload_progress_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
