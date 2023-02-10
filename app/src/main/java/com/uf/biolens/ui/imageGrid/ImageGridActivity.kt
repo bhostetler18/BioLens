@@ -49,6 +49,7 @@ import com.uf.biolens.ui.common.ImageSelectorListener
 import com.uf.biolens.ui.common.simpleAlertDialogWithOk
 import com.uf.biolens.ui.metadata.MetadataActivity
 import com.uf.biolens.utility.launchDialog
+import com.uf.biolens.utility.setItemEnabled
 import com.uf.biolens.utility.setPadding
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -56,10 +57,13 @@ import kotlin.properties.Delegates
 
 class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
     private var sessionID by Delegates.notNull<Long>()
-    private lateinit var viewModel: ImageGridViewModel
     private val binding by lazy { ActivityImageGridBinding.inflate(layoutInflater) }
+
+    private lateinit var viewModel: ImageGridViewModel
     private lateinit var adapter: ImageGridAdapter
+
     private var selectUnderexposedJob: Job? = null
+    private var menu: Menu? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -113,6 +117,7 @@ class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
             cancelSelectingUnderexposed()
             showSelectionTools(isEditing)
             adapter.refreshEditingState()
+            menu?.setItemEnabled(R.id.upload, !isEditing)
         }
 
         viewModel.displayCounts.observe(this@ImageGridActivity) {
@@ -153,6 +158,7 @@ class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.image_grid_menu, menu)
+        this.menu = menu
         return true
     }
 

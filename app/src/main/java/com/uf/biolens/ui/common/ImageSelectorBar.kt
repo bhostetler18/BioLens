@@ -22,14 +22,14 @@ import android.util.AttributeSet
 import android.view.MenuItem
 import android.widget.FrameLayout
 import android.widget.PopupMenu
-import androidx.annotation.IntegerRes
+import androidx.annotation.IdRes
 import com.uf.biolens.R
 import com.uf.biolens.databinding.ImageSelectorBarBinding
 
 interface ImageSelectorListener {
     fun onDeletePressed()
     fun onExitPressed()
-    fun onMoreOptionPressed(@IntegerRes identifier: Int)
+    fun onMoreOptionPressed(@IdRes identifier: Int)
 }
 
 class ImageSelectorBar(context: Context, attrs: AttributeSet?) :
