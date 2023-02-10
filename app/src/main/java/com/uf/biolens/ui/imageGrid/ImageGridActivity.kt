@@ -162,11 +162,14 @@ class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
                 onBackPressed()
                 true
             }
-            R.id.rename -> {
-//                renameCurrentSession()
+            R.id.edit_metadata -> {
                 val intent = Intent(applicationContext, MetadataActivity::class.java)
                 intent.putExtra("SESSION", viewModel.sessionID)
                 startActivity(intent)
+                true
+            }
+            R.id.edit -> {
+                viewModel.imageSelector.setEditing(true)
                 true
             }
             R.id.upload -> {
