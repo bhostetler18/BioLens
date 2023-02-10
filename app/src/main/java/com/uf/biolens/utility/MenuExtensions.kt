@@ -24,6 +24,6 @@ fun Menu.setItemEnabled(@IdRes id: Int, isEnabled: Boolean) {
     findItem(id)?.apply {
         this.isEnabled = isEnabled
         icon = icon.mutate()
-        icon.alpha = if (isEnabled) 150 else 255
+        icon.alpha = if (isEnabled) 255 else 150
     }
 }
