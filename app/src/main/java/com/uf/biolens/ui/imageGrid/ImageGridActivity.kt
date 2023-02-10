@@ -378,6 +378,7 @@ class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
         dialogBuilder.setMessage(getString(R.string.warn_permanent_action))
         dialogBuilder.setPositiveButton(getString(R.string.delete)) { dialog, _ ->
             viewModel.imageSelector.deleteSelectedImages()
+            viewModel.imageSelector.setEditing(false)
             dialog.dismiss()
         }
         dialogBuilder.setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
