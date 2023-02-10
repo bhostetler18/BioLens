@@ -31,7 +31,7 @@ interface ImageSelector {
     val isEditing: Boolean
 }
 
-data class ImageDisplayData(var numImages: Int, var skipCount: Int, var numSelected: Int)
+data class ImageDisplayData(var numImages: Int, var skipCount: Int)
 
 class BioLensImageSelector(
     private var exitOnNoSelection: Boolean = false
@@ -47,7 +47,7 @@ class BioLensImageSelector(
         setEditing(!isEditing)
     }
 
-    private fun setEditing(isEditing: Boolean) {
+    fun setEditing(isEditing: Boolean) {
         isEditingLiveData.value = isEditing
         if (!isEditing) {
             selectedIndices.clear()

@@ -45,22 +45,28 @@ import com.uf.biolens.network.GoogleSignInHelper
 import com.uf.biolens.ui.common.ExportOptions
 import com.uf.biolens.ui.common.ExportOptionsDialog
 import com.uf.biolens.ui.common.ExportOptionsHandler
+import com.uf.biolens.ui.common.ImageSelectorListener
 import com.uf.biolens.ui.common.simpleAlertDialogWithOk
 import com.uf.biolens.ui.metadata.MetadataActivity
 import com.uf.biolens.utility.launchDialog
 import com.uf.biolens.utility.setPadding
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlin.properties.Delegates
 
-class ImageGridActivity : AppCompatActivity() {
+class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
+    private var sessionID by Delegates.notNull<Long>()
     private lateinit var viewModel: ImageGridViewModel
     private val binding by lazy { ActivityImageGridBinding.inflate(layoutInflater) }
+    private lateinit var adapter: ImageGridAdapter
+    private var selectUnderexposedJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding.progressBar.isVisible = false
 
-        val sessionID = intent.extras?.get("SESSION") as? Long ?: run {
+        sessionID = intent.extras?.get("SESSION") as? Long ?: run {
             displayError()
             return
         }
@@ -88,35 +94,12 @@ class ImageGridActivity : AppCompatActivity() {
             session.completed = BioLensRepository.updateSessionCompletion(sessionID)
         }
 
-        val adapter = ImageGridAdapter(session, viewModel.imageSelector, this)
+        adapter = ImageGridAdapter(session, viewModel.imageSelector, this)
         binding.imageGrid.adapter = adapter
         setSupportActionBar(binding.appBar.toolbar)
         setContentView(binding.root)
         supportActionBar?.title = session.name
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-
-        binding.deleteButton.setOnClickListener {
-            val dialogBuilder = MaterialAlertDialogBuilder(this)
-            dialogBuilder.setTitle(getString(R.string.warn_delete_images))
-            dialogBuilder.setMessage(getString(R.string.warn_permanent_action))
-            dialogBuilder.setPositiveButton(getString(R.string.delete)) { dialog, _ ->
-                viewModel.imageSelector.deleteSelectedImages()
-                dialog.dismiss()
-            }
-            dialogBuilder.setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                dialog.dismiss()
-            }
-            dialogBuilder.create().show()
-        }
-
-        binding.selectUnderexposed.setOnClickListener {
-            lifecycleScope.launch {
-                getUnderexposedImages(sessionID) { image ->
-                    viewModel.imageSelector.setSelected(image, true)
-                    adapter.refreshEditingState()
-                }
-            }
-        }
 
         viewModel.images.observe(this@ImageGridActivity) { images ->
             images?.let { adapter.submitList(it) }
@@ -127,9 +110,9 @@ class ImageGridActivity : AppCompatActivity() {
         }
 
         viewModel.imageSelector.isEditingLiveData.observe(this@ImageGridActivity) { isEditing ->
+            cancelSelectingUnderexposed()
             showSelectionTools(isEditing)
             adapter.refreshEditingState()
-            binding.appBar.toolbar.isEnabled = !isEditing
         }
 
         viewModel.displayCounts.observe(this@ImageGridActivity) {
@@ -139,9 +122,13 @@ class ImageGridActivity : AppCompatActivity() {
                 text += " ${getString(R.string.showing_every_x, it.skipCount)}"
             }
             binding.imgCount.text = text
-
-            binding.imageSelectionText.text = getString(R.string.n_images_selected, it.numSelected)
         }
+
+        viewModel.imageSelector.numSelected.observe(this@ImageGridActivity) {
+            binding.imageSelectorBar.setNumImagesSelected(it)
+        }
+
+        binding.imageSelectorBar.listener = this
 
         WorkManager.getInstance(this).getWorkInfosForUniqueWorkLiveData(
             GoogleDriveUploadWorker.uniqueWorkerTag(viewModel.sessionID)
@@ -357,7 +344,7 @@ class ImageGridActivity : AppCompatActivity() {
     }
 
     private fun showSelectionTools(visible: Boolean) {
-        val tools = binding.selectionTools
+        val tools = binding.imageSelectorBar
 
         val startOpacity = if (visible) 0.0f else 1.0f
         val targetOpacity = if (visible) 1.0f else 0.0f
@@ -383,5 +370,46 @@ class ImageGridActivity : AppCompatActivity() {
             .translationY(endTranslation)
             .setDuration(300)
             .setStartDelay(10).interpolator = AnticipateOvershootInterpolator()
+    }
+
+    override fun onDeletePressed() {
+        val dialogBuilder = MaterialAlertDialogBuilder(this)
+        dialogBuilder.setTitle(getString(R.string.warn_delete_images))
+        dialogBuilder.setMessage(getString(R.string.warn_permanent_action))
+        dialogBuilder.setPositiveButton(getString(R.string.delete)) { dialog, _ ->
+            viewModel.imageSelector.deleteSelectedImages()
+            dialog.dismiss()
+        }
+        dialogBuilder.setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+            dialog.dismiss()
+        }
+        dialogBuilder.create().show()
+    }
+
+    override fun onExitPressed() {
+        viewModel.imageSelector.setEditing(false)
+    }
+
+    override fun onMoreOptionPressed(identifier: Int) {
+        when (identifier) {
+            R.id.select_underexposed -> startSelectingUnderexposed()
+        }
+    }
+
+    private fun startSelectingUnderexposed() {
+        if (selectUnderexposedJob != null) {
+            return
+        }
+        selectUnderexposedJob = lifecycleScope.launch {
+            getUnderexposedImages(sessionID) { image ->
+                viewModel.imageSelector.setSelected(image, true)
+                adapter.refreshEditingState()
+            }
+        }
+    }
+
+    private fun cancelSelectingUnderexposed() {
+        selectUnderexposedJob?.cancel()
+        selectUnderexposedJob = null
     }
 }

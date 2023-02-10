@@ -24,6 +24,7 @@ import com.uf.biolens.data.BioLensRepository
 import com.uf.biolens.data.Image
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -73,6 +74,7 @@ suspend fun getUnderexposedImages(
         }
         if (underexposed) {
             launch(Dispatchers.Main) {
+                ensureActive()
                 handleUnderexposed(it)
             }
         }
