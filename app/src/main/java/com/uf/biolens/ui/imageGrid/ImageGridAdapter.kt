@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 University of Florida
+ * Copyright (c) 2022-2023 University of Florida
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,12 +17,18 @@
 
 package com.uf.biolens.ui.imageGrid
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.uf.biolens.R
 import com.uf.biolens.data.BioLensRepository
 import com.uf.biolens.data.Image
 import com.uf.biolens.data.Session
@@ -30,8 +36,29 @@ import com.uf.biolens.databinding.ImageGridItemBinding
 import com.uf.biolens.ui.common.GlideApp
 import com.uf.biolens.ui.imageView.ImageViewerActivity
 
-class ImageGridAdapter(val session: Session) :
-    ListAdapter<Image, ImageGridAdapter.ImageViewHolder>(DiffCallback) {
+class ImageGridAdapter(
+    val session: Session,
+    private val imageSelector: ImageSelector,
+    context: Context
+) :
+    ListAdapter<Image, ImageGridAdapter.ImageViewHolder>(ImageDiffCallback(imageSelector)) {
+
+    private val checked =
+        ResourcesCompat.getDrawable(context.resources, R.drawable.ic_checked_circle_24, null)
+    private val unchecked =
+        ResourcesCompat.getDrawable(context.resources, R.drawable.ic_unchecked_circle_24, null)
+
+    private fun startEditing(image: Image) {
+        if (!imageSelector.isEditing) {
+            imageSelector.toggleEditing()
+            imageSelector.setSelected(image, true)
+        }
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun refreshEditingState() {
+        notifyDataSetChanged()
+    }
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -57,24 +84,65 @@ class ImageGridAdapter(val session: Session) :
             GlideApp.with(viewBinding.root.context)
                 .load(file)
                 .thumbnail(thumbnailRequest)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+//                .apply(RequestOptions().override(viewBinding.root.width, 100))
                 .into(viewBinding.image)
-            viewBinding.image.setOnClickListener {
-                val ctx = viewBinding.root.context
-                val intent = Intent(ctx, ImageViewerActivity::class.java)
-                intent.putExtra("IMAGE", image.imageID)
-                intent.putExtra("SESSION", session.sessionID)
-                ctx.startActivity(intent)
+
+            setSelected(imageSelector.isSelected(image), false)
+
+            viewBinding.root.setOnClickListener {
+                if (imageSelector.isEditing) {
+                    toggle(image)
+                } else {
+                    openViewer(image)
+                }
             }
+
+            viewBinding.root.setOnLongClickListener {
+                startEditing(image)
+                true
+            }
+        }
+
+        private fun toggle(image: Image) {
+            imageSelector.toggle(image)
+            setSelected(imageSelector.isSelected(image), true)
+        }
+
+        private fun openViewer(image: Image) {
+            val ctx = viewBinding.root.context
+            val intent = Intent(ctx, ImageViewerActivity::class.java)
+            intent.putExtra("IMAGE", image.imageID)
+            intent.putExtra("SESSION", session.sessionID)
+            ctx.startActivity(intent)
+        }
+
+        private fun setSelected(isSelected: Boolean, animated: Boolean) {
+            val ic = if (isSelected) checked else unchecked
+            viewBinding.checkIcon.setImageDrawable(ic)
+            viewBinding.checkIcon.isVisible = imageSelector.isEditing
+
+//            val scale = if (isSelected) 0.95f else 1.0f
+//            if (animated) {
+//                viewBinding.image.animate().scaleX(scale).scaleY(scale).setDuration(50)
+//            } else {
+//                viewBinding.image.scaleX = scale
+//                viewBinding.image.scaleY = scale
+//            }
         }
     }
 
-    companion object DiffCallback : DiffUtil.ItemCallback<Image>() {
+    class ImageDiffCallback(
+        private val imageSelector: ImageSelector?
+    ) : DiffUtil.ItemCallback<Image>() {
+
         override fun areItemsTheSame(oldItem: Image, newItem: Image): Boolean {
             return oldItem === newItem
         }
 
         override fun areContentsTheSame(oldItem: Image, newItem: Image): Boolean {
-            return oldItem.imageID == newItem.imageID
+            return oldItem.imageID == newItem.imageID &&
+                imageSelector?.isSelected(oldItem) == imageSelector?.isSelected(newItem)
         }
     }
 }

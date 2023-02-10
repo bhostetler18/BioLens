@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 University of Florida
+ * Copyright (c) 2022-2023 University of Florida
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,8 +21,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.view.animation.AnticipateOvershootInterpolator
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import androidx.core.view.marginBottom
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.work.Constraints
@@ -36,26 +39,39 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.uf.biolens.R
 import com.uf.biolens.data.BioLensRepository
 import com.uf.biolens.databinding.ActivityImageGridBinding
+import com.uf.biolens.imaging.UnderexposedImageFinder
 import com.uf.biolens.network.GoogleDriveUploadWorker
 import com.uf.biolens.network.GoogleSignInHelper
 import com.uf.biolens.ui.common.ExportOptions
 import com.uf.biolens.ui.common.ExportOptionsDialog
 import com.uf.biolens.ui.common.ExportOptionsHandler
+import com.uf.biolens.ui.common.ImageSelectorListener
 import com.uf.biolens.ui.common.simpleAlertDialogWithOk
 import com.uf.biolens.ui.metadata.MetadataActivity
 import com.uf.biolens.utility.launchDialog
+import com.uf.biolens.utility.setItemEnabled
+import com.uf.biolens.utility.setPadding
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlin.properties.Delegates
 
-class ImageGridActivity : AppCompatActivity() {
-    private lateinit var viewModel: ImageGridViewModel
+class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
+    private var sessionID by Delegates.notNull<Long>()
     private val binding by lazy { ActivityImageGridBinding.inflate(layoutInflater) }
+
+    private lateinit var viewModel: ImageGridViewModel
+    private lateinit var adapter: ImageGridAdapter
+
+    private var selectUnderexposedJob: Job? = null
+    private var menu: Menu? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        binding.uploadProgressBar.isVisible = false
         binding.progressBar.isVisible = false
 
-        val sessionID = intent.extras?.get("SESSION") as? Long ?: run {
+        sessionID = intent.extras?.get("SESSION") as? Long ?: run {
             displayError()
             return
         }
@@ -83,7 +99,7 @@ class ImageGridActivity : AppCompatActivity() {
             session.completed = BioLensRepository.updateSessionCompletion(sessionID)
         }
 
-        val adapter = ImageGridAdapter(session)
+        adapter = ImageGridAdapter(session, viewModel.imageSelector, this)
         binding.imageGrid.adapter = adapter
         setSupportActionBar(binding.appBar.toolbar)
         setContentView(binding.root)
@@ -98,16 +114,27 @@ class ImageGridActivity : AppCompatActivity() {
             supportActionBar?.title = it?.name
         }
 
+        viewModel.imageSelector.isEditingLiveData.observe(this@ImageGridActivity) { isEditing ->
+            cancelSelectingUnderexposed()
+            showSelectionTools(isEditing)
+            adapter.refreshEditingState()
+            menu?.setItemEnabled(R.id.upload, !isEditing)
+        }
+
         viewModel.displayCounts.observe(this@ImageGridActivity) {
-            val total = it.first
-            val skip = it.second
-            val imageString = resources.getQuantityString(R.plurals.unit_images, total)
-            var text = "$total $imageString"
-            if (skip != 0) {
-                text += " ${getString(R.string.showing_every_x, skip)}"
+            val imageString = resources.getQuantityString(R.plurals.unit_images, it.numImages)
+            var text = "${it.numImages} $imageString"
+            if (it.skipCount != 0) {
+                text += " ${getString(R.string.showing_every_x, it.skipCount)}"
             }
             binding.imgCount.text = text
         }
+
+        viewModel.imageSelector.numSelected.observe(this@ImageGridActivity) {
+            binding.imageSelectorBar.setNumImagesSelected(it)
+        }
+
+        binding.imageSelectorBar.listener = this
 
         WorkManager.getInstance(this).getWorkInfosForUniqueWorkLiveData(
             GoogleDriveUploadWorker.uniqueWorkerTag(viewModel.sessionID)
@@ -132,6 +159,7 @@ class ImageGridActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.image_grid_menu, menu)
+        this.menu = menu
         return true
     }
 
@@ -141,11 +169,14 @@ class ImageGridActivity : AppCompatActivity() {
                 onBackPressed()
                 true
             }
-            R.id.rename -> {
-//                renameCurrentSession()
+            R.id.edit_metadata -> {
                 val intent = Intent(applicationContext, MetadataActivity::class.java)
                 intent.putExtra("SESSION", viewModel.sessionID)
                 startActivity(intent)
+                true
+            }
+            R.id.edit -> {
+                viewModel.imageSelector.setEditing(true)
                 true
             }
             R.id.upload -> {
@@ -242,23 +273,23 @@ class ImageGridActivity : AppCompatActivity() {
 
     private fun showUploadProgress(info: WorkInfo?) {
         if (info == null) {
-            binding.progressBar.isVisible = false
+            binding.uploadProgressBar.isVisible = false
             return
         }
 
-        binding.progressBar.isVisible = true
+        binding.uploadProgressBar.isVisible = true
 
         val maxProgress =
             info.progress.keyValueMap[GoogleDriveUploadWorker.KEY_MAX_PROGRESS] as? Int
         maxProgress?.let {
-            binding.progressBar.maxProgress = it
+            binding.uploadProgressBar.maxProgress = it
         }
 
         when (info.state) {
             WorkInfo.State.ENQUEUED,
             WorkInfo.State.BLOCKED -> {
-                binding.progressBar.setLabel(getString(R.string.waiting_internet))
-                binding.progressBar.configureActionButton(getString(R.string.cancel)) {
+                binding.uploadProgressBar.setLabel(getString(R.string.waiting_internet))
+                binding.uploadProgressBar.configureActionButton(getString(R.string.cancel)) {
                     WorkManager.getInstance(this).cancelUniqueWork(
                         GoogleDriveUploadWorker.uniqueWorkerTag(viewModel.sessionID)
                     )
@@ -266,50 +297,50 @@ class ImageGridActivity : AppCompatActivity() {
             }
             WorkInfo.State.RUNNING -> {
                 if (info.progress.keyValueMap.containsKey(GoogleDriveUploadWorker.KEY_METADATA)) {
-                    binding.progressBar.setLabel(getString(R.string.exporting_metadata))
+                    binding.uploadProgressBar.setLabel(getString(R.string.exporting_metadata))
                 } else if (info.progress.keyValueMap.containsKey(GoogleDriveUploadWorker.KEY_PROGRESS)) {
                     val progress =
                         info.progress.keyValueMap[GoogleDriveUploadWorker.KEY_PROGRESS] as? Int
-                    binding.progressBar.setLabel(getString(R.string.uploading_images))
+                    binding.uploadProgressBar.setLabel(getString(R.string.uploading_images))
                     progress?.let {
-                        binding.progressBar.setProgress(it)
+                        binding.uploadProgressBar.setProgress(it)
                     }
                 } else {
-                    binding.progressBar.setLabel(getString(R.string.connecting_to_drive))
+                    binding.uploadProgressBar.setLabel(getString(R.string.connecting_to_drive))
                 }
 
-                binding.progressBar.configureActionButton(getString(R.string.cancel)) {
+                binding.uploadProgressBar.configureActionButton(getString(R.string.cancel)) {
                     WorkManager.getInstance(this).cancelUniqueWork(
                         GoogleDriveUploadWorker.uniqueWorkerTag(viewModel.sessionID)
                     )
                 }
             }
             WorkInfo.State.SUCCEEDED -> {
-                binding.progressBar.setLabel(getString(R.string.upload_complete))
+                binding.uploadProgressBar.setLabel(getString(R.string.upload_complete))
                 // The Result.Success() WorkInfo update may occur before the final update to KEY_PROGRESS,
                 // so just force the progress bar to show fully complete
-                binding.progressBar.showComplete()
-                if (!binding.progressBar.hasSetMaxProgress) {
+                binding.uploadProgressBar.showComplete()
+                if (!binding.uploadProgressBar.hasSetMaxProgress) {
                     // The Result.Success() WorkInfo contains no progress information, and when
                     // navigating back to a completed upload the progress bar may not have been
                     // configured with the proper max value and would just show 100/100. In this
                     // case, just hide the numbers
-                    binding.progressBar.showNumericProgress(false)
+                    binding.uploadProgressBar.showNumericProgress(false)
                 }
 
-                binding.progressBar.configureActionButton(getString(R.string.dismiss)) {
+                binding.uploadProgressBar.configureActionButton(getString(R.string.dismiss)) {
                     dismissAndResetUploadBar()
                 }
             }
             WorkInfo.State.CANCELLED -> {
-                binding.progressBar.setLabel(getString(R.string.upload_cancelled))
-                binding.progressBar.configureActionButton(getString(R.string.dismiss)) {
+                binding.uploadProgressBar.setLabel(getString(R.string.upload_cancelled))
+                binding.uploadProgressBar.configureActionButton(getString(R.string.dismiss)) {
                     dismissAndResetUploadBar()
                 }
             }
             WorkInfo.State.FAILED -> {
-                binding.progressBar.setLabel(getString(R.string.upload_failed))
-                binding.progressBar.configureActionButton(getString(R.string.retry)) {
+                binding.uploadProgressBar.setLabel(getString(R.string.upload_failed))
+                binding.uploadProgressBar.configureActionButton(getString(R.string.retry)) {
                     uploadSession()
                 }
             }
@@ -318,7 +349,91 @@ class ImageGridActivity : AppCompatActivity() {
 
     private fun dismissAndResetUploadBar() {
         WorkManager.getInstance(this).pruneWork() // Makes the LiveData update with a null WorkInfo
+        binding.uploadProgressBar.isVisible = false
+        binding.uploadProgressBar.reset()
+    }
+
+    private fun showSelectionTools(visible: Boolean) {
+        val tools = binding.imageSelectorBar
+
+        val startOpacity = if (visible) 0.0f else 1.0f
+        val targetOpacity = if (visible) 1.0f else 0.0f
+        val startTranslation = if (visible) tools.height.toFloat() else 0.0f
+        val endTranslation = if (visible) 0.0f else tools.height.toFloat()
+
+        tools.animate()
+            .withStartAction {
+                if (visible) tools.visibility = View.VISIBLE
+                tools.alpha = startOpacity
+                tools.translationY = startTranslation
+                tools.translationY = -50.0f
+            }
+            .withEndAction {
+                tools.visibility = if (visible) View.VISIBLE else View.INVISIBLE
+                var bottomPad = binding.imgCount.height
+                if (visible) {
+                    bottomPad += tools.height + tools.marginBottom
+                }
+                binding.imageGrid.setPadding(bottom = bottomPad)
+            }
+            .alpha(targetOpacity)
+            .translationY(endTranslation)
+            .setDuration(300)
+            .setStartDelay(10).interpolator = AnticipateOvershootInterpolator()
+    }
+
+    override fun onDeletePressed() {
+        val dialogBuilder = MaterialAlertDialogBuilder(this)
+        dialogBuilder.setTitle(getString(R.string.warn_delete_images))
+        dialogBuilder.setMessage(getString(R.string.warn_permanent_action))
+        dialogBuilder.setPositiveButton(getString(R.string.delete)) { dialog, _ ->
+            viewModel.imageSelector.deleteSelectedImages()
+            viewModel.imageSelector.setEditing(false)
+            dialog.dismiss()
+        }
+        dialogBuilder.setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+            dialog.dismiss()
+        }
+        dialogBuilder.create().show()
+    }
+
+    override fun onExitPressed() {
+        viewModel.imageSelector.setEditing(false)
+    }
+
+    override fun onMoreOptionPressed(identifier: Int) {
+        when (identifier) {
+            R.id.select_underexposed -> startSelectingUnderexposed()
+        }
+    }
+
+    private fun startSelectingUnderexposed() {
+        if (selectUnderexposedJob != null) {
+            return
+        }
+        val finder = UnderexposedImageFinder(sessionID)
+        finder.underexposedImageHandler = { image ->
+            viewModel.imageSelector.setSelected(image, true)
+            adapter.refreshEditingState()
+        }
+        finder.progressListener = {
+            binding.progressBar.progress = it
+        }
+        finder.onCompleteListener = {
+            selectUnderexposedJob = null
+            binding.progressBar.isVisible = false
+        }
+        binding.progressBar.max = viewModel.displayCounts.value?.numImages ?: 0
+        binding.progressBar.progress = 0
+        binding.progressBar.isVisible = true
+        selectUnderexposedJob = lifecycleScope.launch {
+            finder.getUnderexposedImages()
+        }
+    }
+
+    private fun cancelSelectingUnderexposed() {
+        selectUnderexposedJob?.cancel()
+        selectUnderexposedJob = null
         binding.progressBar.isVisible = false
-        binding.progressBar.reset()
     }
 }

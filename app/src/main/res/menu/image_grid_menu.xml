@@ -2,8 +2,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/rename"
-        android:icon="@drawable/ic_edit_24"
+        android:id="@+id/edit_metadata"
+        android:icon="@drawable/ic_info_24"
         android:title="@string/edit_metadata"
         app:showAsAction="always" />
     <item
@@ -11,6 +11,11 @@
         android:icon="@drawable/ic_cloud_upload_24"
         android:title="@string/upload"
         app:showAsAction="always" />
+    <item
+        android:id="@+id/edit"
+        android:icon="@drawable/ic_edit_24"
+        android:title="@string/edit"
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/filter"
         android:icon="@drawable/ic_filter_list_24"
@@ -37,7 +42,7 @@
     <item
         android:id="@+id/delete"
         android:icon="@drawable/ic_delete_24"
-        android:title="@string/delete"
+        android:title="@string/delete_session"
         app:showAsAction="ifRoom" />
 
 </menu>

@@ -79,7 +79,7 @@
     <string name="show_every_10">Show every 10th</string>
     <string name="show_every_25">Show every 25th</string>
     <string name="show_every_100">Show every 100th</string>
-    <string name="showing_every_x">(showing every %d)</string>
+    <string name="showing_every_x">(showing every %dth)</string>
     <string name="waiting_internet">Waiting for Internet connection…</string>
     <string name="uploading_images">Uploading images…</string>
     <string name="upload_complete">Upload complete!</string>
@@ -163,4 +163,8 @@
     <string name="metadata_uv_light_model">UV light model</string>
     <string name="service_waiting_session_notification_title">"BioLens is waiting for a scheduled session  "</string>
     <string name="service_waiting_session_notification_message">You may turn off your device\'s screen</string>
+    <string name="delete_session">Delete Session</string>
+    <string name="warn_delete_images">Are you sure you want to delete the selected images?</string>
+    <string name="n_images_selected">%d selected</string>
+    <string name="select_underexposed">Select underexposed</string>
 </resources>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 University of Florida
+ * Copyright (c) 2022-2023 University of Florida
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ interface SessionDAO {
     fun getImagesInSessionFlow(id: Long): Flow<List<Image>>
 
     @Transaction
-    @Query("SELECT * FROM images WHERE parentSessionID = :id")
+    @Query("SELECT * FROM images WHERE parentSessionID = :id ORDER BY `index`")
     suspend fun getImagesInSession(id: Long): List<Image>
 
     @Transaction

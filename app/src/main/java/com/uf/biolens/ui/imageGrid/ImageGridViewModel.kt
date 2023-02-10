@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 University of Florida
+ * Copyright (c) 2022-2023 University of Florida
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,8 @@ import kotlinx.coroutines.flow.flowOn
 class ImageGridViewModel(val sessionID: Long) : ViewModel() {
 
     var exportOptions = ExportOptions.default
+    val imageSelector = BioLensImageSelector()
+
     val skipCount = MutableStateFlow(0)
     val images =
         skipCount.combine(BioLensRepository.getImagesInSessionFlow(sessionID)) { skip, images ->
@@ -43,10 +45,13 @@ class ImageGridViewModel(val sessionID: Long) : ViewModel() {
                 }
             }
         }.flowOn(Dispatchers.IO).asLiveData(viewModelScope.coroutineContext)
-    val displayCounts = BioLensRepository.getNumImagesInSession(sessionID)
-        .combine(skipCount) { numImages, skip ->
-            Pair(numImages, skip)
-        }.asLiveData(viewModelScope.coroutineContext)
+
+    val displayCounts = combine(
+        BioLensRepository.getNumImagesInSession(sessionID),
+        skipCount
+    ) { numImages, skipCount ->
+        ImageDisplayData(numImages, skipCount)
+    }.asLiveData(viewModelScope.coroutineContext)
 
     val session = BioLensRepository.getSessionFlow(sessionID).asLiveData()
 

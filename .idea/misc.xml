@@ -22,9 +22,11 @@
         <entry key="app/src/main/res/drawable/ic_sort_24.xml" value="0.2125" />
         <entry key="app/src/main/res/drawable/ic_time_filled_24.xml" value="0.155" />
         <entry key="app/src/main/res/drawable/ic_timer_24.xml" value="0.155" />
+        <entry key="app/src/main/res/drawable/ic_unchecked_circle_24.xml" value="0.1055" />
+        <entry key="app/src/main/res/drawable/rounded.xml" value="0.1" />
         <entry key="app/src/main/res/layout-land/activity_imaging_scheduler.xml" value="0.24774774774774774" />
         <entry key="app/src/main/res/layout-land/generic_time_picker.xml" value="0.16576576576576577" />
-        <entry key="app/src/main/res/layout/activity_image_grid.xml" value="0.2976730346679688" />
+        <entry key="app/src/main/res/layout/activity_image_grid.xml" value="0.17109826589595376" />
         <entry key="app/src/main/res/layout/activity_image_viewer.xml" value="0.22313639322916673" />
         <entry key="app/src/main/res/layout/activity_imaging_scheduler.xml" value="0.27607361963190186" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.14896087646484377" />
@@ -50,8 +52,11 @@
         <entry key="app/src/main/res/layout/generic_number_picker.xml" value="0.16270751953125004" />
         <entry key="app/src/main/res/layout/generic_time_picker.xml" value="0.23541870117187502" />
         <entry key="app/src/main/res/layout/horizontal_divider.xml" value="0.15775972637879435" />
-        <entry key="app/src/main/res/layout/image_grid_item.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/image_grid_item.xml" value="0.23297223287915428" />
+        <entry key="app/src/main/res/layout/image_selector.xml" value="0.22103463018383926" />
+        <entry key="app/src/main/res/layout/image_selector_bar.xml" value="0.11928174433518597" />
         <entry key="app/src/main/res/layout/imaging_settings.xml" value="0.11574074074074074" />
+        <entry key="app/src/main/res/layout/k.xml" value="0.1" />
         <entry key="app/src/main/res/layout/metadata_boolean_item.xml" value="0.12344818115234375" />
         <entry key="app/src/main/res/layout/metadata_deletable_row.xml" value="0.1" />
         <entry key="app/src/main/res/layout/metadata_editable_item.xml" value="0.27163391113281243" />
@@ -65,6 +70,7 @@
         <entry key="app/src/main/res/layout/vertical_divider.xml" value="0.1586147926464301" />
         <entry key="app/src/main/res/menu/bottom_nav_menu.xml" value="0.2703125" />
         <entry key="app/src/main/res/menu/image_grid_menu.xml" value="0.2156341552734375" />
+        <entry key="app/src/main/res/menu/image_select_menu.xml" value="0.1" />
         <entry key="app/src/main/res/menu/image_share_menu.xml" value="0.1" />
         <entry key="app/src/main/res/menu/imaging_menu.xml" value="0.1453125" />
         <entry key="app/src/main/res/menu/metadata_menu.xml" value="0.1" />
