@@ -20,13 +20,6 @@ package com.uf.biolens.imaging
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
-import com.uf.biolens.data.BioLensRepository
-import com.uf.biolens.data.Image
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 fun Bitmap.isUnderexposed(
     minBrightness: Float = 0.25f,
@@ -56,29 +49,6 @@ fun Bitmap.isUnderexposed(
         }
     }
     return dimCount / total > thresh
-}
-
-suspend fun getUnderexposedImages(
-    sessionID: Long,
-    handleUnderexposed: (Image) -> Unit
-) = coroutineScope {
-    val session = BioLensRepository.getSession(sessionID) ?: return@coroutineScope
-    BioLensRepository.getImagesInSession(sessionID).forEach {
-        val file = BioLensRepository.resolve(it, session)
-        val underexposed = withContext(Dispatchers.IO) {
-            return@withContext loadDownsampledImage(file.absolutePath, 50, 50)?.let { bitmap ->
-                val result = bitmap.isUnderexposed()
-                bitmap.recycle()
-                return@let result
-            } ?: false
-        }
-        if (underexposed) {
-            launch(Dispatchers.Main) {
-                ensureActive()
-                handleUnderexposed(it)
-            }
-        }
-    }
 }
 
 // See https://developer.android.com/topic/performance/graphics/load-bitmap
