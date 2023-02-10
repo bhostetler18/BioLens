@@ -52,9 +52,6 @@ fun Bitmap.isUnderexposed(
             if (dimCount / total > thresh) {
                 return true
             }
-            if (brightCount / total > 1 - thresh) {
-                return false
-            }
         }
     }
     return dimCount / total > thresh
