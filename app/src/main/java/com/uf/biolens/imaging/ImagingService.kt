@@ -41,11 +41,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.work.await
 import com.uf.biolens.R
 import com.uf.biolens.data.BioLensRepository
+import com.uf.biolens.network.GoogleSignInHelper
 import com.uf.biolens.network.SingleLocationProvider
+import com.uf.biolens.network.upload.GoogleDriveImageUploader
+import com.uf.biolens.network.upload.ImageUploadQueue
+import com.uf.biolens.network.upload.ImageUploadQueueListener
 import com.uf.biolens.ui.MainActivity
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -53,9 +55,7 @@ import java.lang.ref.WeakReference
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-class ImagingService : LifecycleService(), ImageCaptureInterface {
-
-    private val serviceScope = CoroutineScope(SupervisorJob())
+class ImagingService : LifecycleService(), ImageCaptureInterface, ImageUploadQueueListener {
 
     private var cameraProvider: ProcessCameraProvider? = null
     private val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
@@ -68,6 +68,7 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
     private val isSessionRunning: Boolean
         get() = imagingManager != null
     private var isWaitingForScheduledSession = false
+    private var isWaitingForUploadQueue = false
 
     override val isCameraStarted: Boolean
         get() = cameraProvider?.isBound(imageCapture) ?: false
@@ -77,7 +78,7 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
         super.onCreate()
         val storageLocation = getExternalFilesDir(null)
         if (storageLocation != null) {
-            BioLensRepository(this, storageLocation, serviceScope)
+            BioLensRepository(this, storageLocation, lifecycleScope)
             locationProvider = SingleLocationProvider(this)
             startInForeground()
         } else {
@@ -256,7 +257,18 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
 
         IS_RUNNING.postValue(true)
 
-        imagingManager = ImagingManager(settings, WeakReference(this)) {
+        var uploadQueue: ImageUploadQueue? = null
+        if (settings.automaticUpload) {
+            uploadQueue = makeUploadQueue()
+            isWaitingForUploadQueue = true
+        }
+
+        imagingManager = ImagingManager(
+            settings,
+            WeakReference(this),
+            uploadQueue = uploadQueue
+        ) {
+            // On auto-stop:
             lifecycleScope.launch {
                 stopCurrentSession("Auto-stop")
                 killServiceIfInactive()
@@ -269,7 +281,7 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
             name ?: getString(R.string.default_session_name),
             this@ImagingService,
             locationProvider,
-            0L
+            0
         )
     }
 
@@ -285,6 +297,26 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
                 R.drawable.ic_launcher_foreground
             )
         }
+    }
+
+    private fun makeUploadQueue(): ImageUploadQueue? {
+        val account = GoogleSignInHelper.getGoogleAccountIfValid(this)?.account ?: return null
+        val uploader = GoogleDriveImageUploader(account, applicationContext)
+        val queue = ImageUploadQueue(lifecycleScope, uploader)
+        queue.listener = this
+        return queue
+    }
+
+    override fun onFinishUpload() {
+        isWaitingForUploadQueue = false
+        Log.d(TAG, "Upload finished successfully")
+        killServiceIfInactive()
+    }
+
+    override fun onFailUpload() {
+        isWaitingForUploadQueue = false
+        Log.d(TAG, "Upload failed")
+        killServiceIfInactive()
     }
 
     private fun waitForScheduledSessions() {
@@ -309,13 +341,17 @@ class ImagingService : LifecycleService(), ImageCaptureInterface {
     }
 
     private fun killServiceIfInactive() {
-        if (!isSessionRunning && !isWaitingForScheduledSession) {
+        Log.d(TAG, "Killing service if inactive")
+        if (!isSessionRunning && !isWaitingForScheduledSession && !isWaitingForUploadQueue) {
             killService()
+        } else {
+            Log.d(TAG, "Service was still active")
         }
     }
 
     private fun killService() {
         stopForeground(true)
+        Log.d(TAG, "Killed service")
         stopSelf()
     }
 

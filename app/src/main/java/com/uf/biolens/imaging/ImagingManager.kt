@@ -25,46 +25,57 @@ import androidx.core.net.toFile
 import com.uf.biolens.data.BioLensRepository
 import com.uf.biolens.data.Image
 import com.uf.biolens.data.Session
+import com.uf.biolens.data.export.BioLensFilenameProvider
+import com.uf.biolens.data.export.SessionFilenameProvider
 import com.uf.biolens.network.SingleLocationProvider
+import com.uf.biolens.network.upload.ImageUploadBuffer
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.runInterruptible
 import java.io.File
 import java.lang.ref.WeakReference
 import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.util.*
-import kotlin.concurrent.fixedRateTimer
+import java.util.concurrent.Executors
+import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
 
 class ImagingManager(
     private val settings: ImagingSettings,
     private val imageCapture: WeakReference<ImageCaptureInterface>,
     private val maxCameraRestarts: Int = DEFAULT_MAX_RESTART_COUNT,
     private val minShutdownInterval: Int = DEFAULT_MIN_SHUTDOWN_INTERVAL,
+    private val uploadQueue: ImageUploadBuffer? = null,
     private val onAutoStopCallback: (() -> Unit)? = null
 ) {
 
     private var session: Session? = null
-    private var timer: Timer? = null
+    private var filenameProvider: SessionFilenameProvider? = null
+
+    private var executor: ScheduledExecutorService? = null
+
     private var locationJob: Job? = null
 
     private var imagesTaken: Int = 0
 
     private var cameraRestartCount: Int = 0
 
-    private val sessionDirectory: File get() {
-        return File(BioLensRepository.storageLocation, session!!.directory)
-    }
+    private val sessionDirectory: File
+        get() {
+            return File(BioLensRepository.storageLocation, session!!.directory)
+        }
 
     suspend fun start(
         sessionName: String,
         context: Context,
         locationProvider: SingleLocationProvider,
-        initialDelay: Long
+        initialDelay: Int
     ) = coroutineScope {
-        if (timer != null) {
+        if (executor != null) {
             Log.d(TAG, "Manager was already started")
             return@coroutineScope
         }
@@ -83,6 +94,8 @@ class ImagingManager(
             return@coroutineScope
         }
 
+        filenameProvider = BioLensFilenameProvider(session!!)
+
         locationJob = launch {
             val maxAge = BioLensRepository.getLocationToleranceSeconds(context)
             locationProvider.getCurrentLocation(context, true, maxAge)?.let {
@@ -91,17 +104,19 @@ class ImagingManager(
             }
         }
 
-        val milliseconds: Long = settings.interval * 1000L
-        timer = fixedRateTimer(TAG, false, initialDelay, milliseconds) {
+        if (settings.automaticUpload) {
+            uploadQueue?.start(session!!, filenameProvider!!)
+        }
+
+        executor = Executors.newSingleThreadScheduledExecutor()
+        executor!!.scheduleAtFixedRate({
             // The runBlocking call is an acceptable bridge between the coroutine-oriented image
             // capture methods and a traditional timer. It will only ever block the timer thread,
             // which is actually desirable since each image capture should complete before a new one
-            // begins. fixedRateTimer was used instead of a coroutine-based delay() because (at
-            // least as of now) the coroutine "timer" implementation is not overly precise.
-            runBlocking {
-                onTimerTick()
-            }
-        }
+            // begins. scheduleAtFixedRate was used instead of a coroutine-based delay() because (at
+            // least as of now) a coroutine "timer" implementation is not overly precise.
+            runBlocking { onTimerTick() }
+        }, initialDelay.toLong(), settings.interval.toLong(), TimeUnit.SECONDS)
     }
 
     private suspend fun onTimerTick() {
@@ -153,6 +168,10 @@ class ImagingManager(
         BioLensRepository.insert(image)
         Log.d(TAG, "Image captured at $file")
         imagesTaken++
+
+        if (settings.automaticUpload) {
+            uploadQueue?.enqueue(image)
+        }
     }
 
     private suspend fun onError(exception: ImageCaptureException) {
@@ -172,8 +191,13 @@ class ImagingManager(
 
     suspend fun stop(reason: String) {
         Log.d(TAG, "Stopping session: $reason")
-        timer?.cancel()
-        timer = null
+        executor?.shutdown()
+        // Wait for execution of currently running capture (if any)
+        runInterruptible(Dispatchers.IO) {
+            executor?.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)
+            Log.d(TAG, "Last capture completed")
+        }
+        executor = null
         locationJob?.cancel()
         locationJob = null
         imagesTaken = 0
@@ -181,6 +205,9 @@ class ImagingManager(
         session?.sessionID?.let {
             BioLensRepository.updateSessionCompletion(it)
         }
+        session = null
+        filenameProvider = null
+        uploadQueue?.finalize()
     }
 
     private suspend fun tryRestartCamera() {
@@ -222,7 +249,8 @@ class ImagingManager(
     }
 
     private fun getUniqueFile(requestNumber: Int): File {
-        return File(sessionDirectory, "img$requestNumber.jpg")
+        val filename = filenameProvider!!.getUniqueImageId(requestNumber)
+        return File(sessionDirectory, "$filename.jpg")
     }
 
     companion object {

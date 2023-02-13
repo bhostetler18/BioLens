@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="PREF_SHUTDOWN_CAMERA">com.uf.biolens.preference.SHUTDOWN_CAMERA</string>
+    <string name="PREF_UPLOAD_AUTOMATICALLY">com.uf.biolens.preference.AUTO_UPLOAD</string>
     <string name="PREF_LOCATION_TOLERANCE">com.uf.biolens.preference.LOCATION_TOLERANCE</string>
     <string name="PREF_GOOGLE_ACCOUNT">com.uf.biolens.preference.GOOGLE_ACCOUNT</string>
 </resources>

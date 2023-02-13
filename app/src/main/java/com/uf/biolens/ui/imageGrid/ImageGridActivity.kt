@@ -34,14 +34,14 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import androidx.work.workDataOf
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.uf.biolens.R
 import com.uf.biolens.data.BioLensRepository
 import com.uf.biolens.databinding.ActivityImageGridBinding
 import com.uf.biolens.imaging.UnderexposedImageFinder
-import com.uf.biolens.network.GoogleDriveUploadWorker
 import com.uf.biolens.network.GoogleSignInHelper
+import com.uf.biolens.network.upload.GoogleDriveUploadWorker
+import com.uf.biolens.network.upload.SessionUploadWorker
 import com.uf.biolens.ui.common.ExportOptions
 import com.uf.biolens.ui.common.ExportOptionsDialog
 import com.uf.biolens.ui.common.ExportOptionsHandler
@@ -137,7 +137,7 @@ class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
         binding.imageSelectorBar.listener = this
 
         WorkManager.getInstance(this).getWorkInfosForUniqueWorkLiveData(
-            GoogleDriveUploadWorker.uniqueWorkerTag(viewModel.sessionID)
+            SessionUploadWorker.uniqueWorkerTag(viewModel.sessionID)
         ).observe(this) { infoList: List<WorkInfo>? ->
             if (infoList != null && infoList.isNotEmpty()) {
                 showUploadProgress(infoList[0])
@@ -228,22 +228,22 @@ class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
         val account = GoogleSignInHelper.getGoogleAccountIfValid(this)?.account
         if (account != null) {
             val options = viewModel.exportOptions
+            val data = GoogleDriveUploadWorker.GoogleDriveWorkData(
+                sessionID,
+                options.metadataOnly,
+                account,
+                options.includeAutoMothMetadata,
+                options.includeUserMetadata
+            )
             val workRequest = OneTimeWorkRequestBuilder<GoogleDriveUploadWorker>()
                 .setInputData(
-                    workDataOf(
-                        GoogleDriveUploadWorker.KEY_SESSION_ID to viewModel.sessionID,
-                        GoogleDriveUploadWorker.KEY_ACCOUNT_EMAIL to account.name,
-                        GoogleDriveUploadWorker.KEY_ACCOUNT_TYPE to account.type,
-                        GoogleDriveUploadWorker.KEY_INCLUDE_AUTOMOTH_METADATA to options.includeAutoMothMetadata,
-                        GoogleDriveUploadWorker.KEY_INCLUDE_USER_METADATA to options.includeUserMetadata,
-                        GoogleDriveUploadWorker.KEY_METADATA_ONLY to options.metadataOnly
-                    )
+                    data.toWorkData()
                 ).setConstraints(
                     Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
                 )
                 .build()
             WorkManager.getInstance(this).enqueueUniqueWork(
-                GoogleDriveUploadWorker.uniqueWorkerTag(viewModel.sessionID),
+                SessionUploadWorker.uniqueWorkerTag(viewModel.sessionID),
                 ExistingWorkPolicy.KEEP,
                 workRequest
             )
@@ -280,7 +280,7 @@ class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
         binding.uploadProgressBar.isVisible = true
 
         val maxProgress =
-            info.progress.keyValueMap[GoogleDriveUploadWorker.KEY_MAX_PROGRESS] as? Int
+            info.progress.keyValueMap[SessionUploadWorker.KEY_MAX_PROGRESS] as? Int
         maxProgress?.let {
             binding.uploadProgressBar.maxProgress = it
         }
@@ -291,16 +291,16 @@ class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
                 binding.uploadProgressBar.setLabel(getString(R.string.waiting_internet))
                 binding.uploadProgressBar.configureActionButton(getString(R.string.cancel)) {
                     WorkManager.getInstance(this).cancelUniqueWork(
-                        GoogleDriveUploadWorker.uniqueWorkerTag(viewModel.sessionID)
+                        SessionUploadWorker.uniqueWorkerTag(viewModel.sessionID)
                     )
                 }
             }
             WorkInfo.State.RUNNING -> {
-                if (info.progress.keyValueMap.containsKey(GoogleDriveUploadWorker.KEY_METADATA)) {
+                if (info.progress.keyValueMap.containsKey(SessionUploadWorker.KEY_METADATA)) {
                     binding.uploadProgressBar.setLabel(getString(R.string.exporting_metadata))
-                } else if (info.progress.keyValueMap.containsKey(GoogleDriveUploadWorker.KEY_PROGRESS)) {
+                } else if (info.progress.keyValueMap.containsKey(SessionUploadWorker.KEY_PROGRESS)) {
                     val progress =
-                        info.progress.keyValueMap[GoogleDriveUploadWorker.KEY_PROGRESS] as? Int
+                        info.progress.keyValueMap[SessionUploadWorker.KEY_PROGRESS] as? Int
                     binding.uploadProgressBar.setLabel(getString(R.string.uploading_images))
                     progress?.let {
                         binding.uploadProgressBar.setProgress(it)
@@ -311,7 +311,7 @@ class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
 
                 binding.uploadProgressBar.configureActionButton(getString(R.string.cancel)) {
                     WorkManager.getInstance(this).cancelUniqueWork(
-                        GoogleDriveUploadWorker.uniqueWorkerTag(viewModel.sessionID)
+                        SessionUploadWorker.uniqueWorkerTag(viewModel.sessionID)
                     )
                 }
             }

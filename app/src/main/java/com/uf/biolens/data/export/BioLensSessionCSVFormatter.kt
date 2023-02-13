@@ -19,31 +19,36 @@ package com.uf.biolens.data.export
 
 import com.uf.biolens.BuildConfig
 import com.uf.biolens.data.BioLensRepository
-import com.uf.biolens.data.Image
 import com.uf.biolens.data.Session
 import com.uf.biolens.data.metadata.MetadataStore
 import com.uf.biolens.data.metadata.getValue
 import com.uf.biolens.ui.common.ExportOptions
 import com.uf.biolens.utility.getDeviceType
 
-class BioLensSessionCSVFormatter(
-    private val session: Session
-) : BasicSessionCSVFormatter() {
-
-    val uniqueSessionId: String by lazy {
+class BioLensFilenameProvider(private val session: Session) : SessionFilenameProvider {
+    override val uniqueSessionId: String by lazy {
         "${BioLensRepository.userID}-${session.sessionID}"
     }
 
-    fun getUniqueImageId(image: Image): String {
-        return "$uniqueSessionId-${image.index}"
+    override val sessionDirectory: String by lazy {
+        "${session.name}-$uniqueSessionId"
     }
+
+    override fun getUniqueImageId(imageIndex: Int): String {
+        return "$uniqueSessionId-$imageIndex"
+    }
+}
+
+class BioLensSessionCSVFormatter(
+    private val session: Session
+) : BasicSessionCSVFormatter(), SessionFilenameProvider by BioLensFilenameProvider(session) {
 
     init {
         this.addColumn("frame_position_in_session") { image ->
             image.index.toString()
         }
         this.addColumn("frame_unique_id") { image ->
-            getUniqueImageId(image)
+            getUniqueImageId(image.index)
         }
         this.addColumn("frame_local_datetime") { image ->
             image.timestamp.toString()

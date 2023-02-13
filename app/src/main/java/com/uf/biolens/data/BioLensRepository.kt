@@ -51,7 +51,7 @@ object BioLensRepository {
     lateinit var userID: String
 
     private const val DEFAULT_IMAGING_SETTINGS_FILENAME = "imaging_settings.json"
-    private var JSON = Json { encodeDefaults = true }
+    private var JSON = Json { encodeDefaults = true; ignoreUnknownKeys = true }
 
     private const val TAG = "[Repository]"
     private const val KEY_SHARED_PREFERENCE_FILE = "com.uf.biolens.SHARED_PREFERENCES"
@@ -228,6 +228,12 @@ object BioLensRepository {
                     settings.shutdownCameraWhenPossible =
                         PreferenceManager.getDefaultSharedPreferences(context)
                             .getBoolean(context.getString(R.string.PREF_SHUTDOWN_CAMERA), false)
+                    settings.automaticUpload =
+                        PreferenceManager.getDefaultSharedPreferences(context)
+                            .getBoolean(
+                                context.getString(R.string.PREF_UPLOAD_AUTOMATICALLY),
+                                false
+                            )
                     return settings
                 }
             }

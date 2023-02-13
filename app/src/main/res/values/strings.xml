@@ -167,4 +167,6 @@
     <string name="warn_delete_images">Are you sure you want to delete the selected images?</string>
     <string name="n_images_selected">%d selected</string>
     <string name="select_underexposed">Select underexposed</string>
+    <string name="preference_auto_upload_description">When enabled, BioLens will attempt to upload images immediately as they are captured</string>
+    <string name="preference_auto_upload">Automatic Upload</string>
 </resources>
