@@ -62,7 +62,7 @@
     <string name="image_crop_failure">Failed to crop image</string>
     <string name="go_to_settings">Continue to settings</string>
     <string name="warn_needs_alarm_permission">BioLens needs special permissions to schedule a future session</string>
-    <string name="scheduled_session_indication">An image capture session is scheduled for %s</string>
+    <string name="scheduled_session_indication">An image capture session is scheduled for %s (%s)</string>
     <string name="after">After</string>
     <string name="starts">Starts</string>
     <string name="date">Date</string>

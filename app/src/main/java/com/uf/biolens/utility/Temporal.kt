@@ -18,8 +18,10 @@
 package com.uf.biolens.utility
 
 import android.content.Context
+import android.text.format.DateUtils
 import com.uf.biolens.R
 import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
@@ -37,6 +39,18 @@ fun LocalDate.formatDateTodayTomorrow(context: Context): String {
     } else {
         SHORT_DATE_FORMATTER.format(this)
     }
+}
+
+fun OffsetDateTime.toMilliseconds(): Long {
+    return toInstant().toEpochMilli()
+}
+
+fun OffsetDateTime.humanDurationUntil(other: OffsetDateTime, resolution: Long): String {
+    return DateUtils.getRelativeTimeSpanString(
+        other.toMilliseconds(),
+        this.toMilliseconds(),
+        resolution
+    ).toString()
 }
 
 enum class TimeUnit {

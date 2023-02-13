@@ -19,6 +19,7 @@ package com.uf.biolens.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.format.DateUtils
 import android.text.method.LinkMovementMethod
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -39,6 +40,13 @@ import com.uf.biolens.imaging.ImagingService
 import com.uf.biolens.ui.common.simpleAlertDialogWithOk
 import com.uf.biolens.ui.imaging.scheduler.ImagingSchedulerActivity
 import com.uf.biolens.utility.SHORT_TIME_FORMATTER
+import com.uf.biolens.utility.humanDurationUntil
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.isActive
+import java.time.OffsetDateTime
 
 class MainActivity : AppCompatActivity() {
 
@@ -93,7 +101,16 @@ class MainActivity : AppCompatActivity() {
             setRunningSessionIndicatorVisible(isRunning)
         }
 
-        BioLensRepository.earliestPendingSessionFlow.asLiveData().observe(this) {
+        BioLensRepository.earliestPendingSessionFlow.combine(
+            flow {
+                while (currentCoroutineContext().isActive) {
+                    emit(0)
+                    delay(DateUtils.MINUTE_IN_MILLIS)
+                }
+            }
+        ) { session, _ ->
+            session
+        }.asLiveData().observe(this) {
             setScheduledServiceIndicator(it)
         }
 
@@ -109,9 +126,13 @@ class MainActivity : AppCompatActivity() {
     private fun setScheduledServiceIndicator(pendingSession: PendingSession?) {
         binding.sessionScheduledNotification.isVisible = pendingSession != null
         pendingSession?.let {
-            val time = pendingSession.scheduledDateTime.toLocalTime().format(SHORT_TIME_FORMATTER)
+            val scheduled = pendingSession.scheduledDateTime
+            val time = scheduled.toLocalTime().format(SHORT_TIME_FORMATTER)
+            val duration =
+                OffsetDateTime.now().humanDurationUntil(scheduled, DateUtils.MINUTE_IN_MILLIS)
+                    .lowercase()
             binding.sessionScheduledNotification.text =
-                getString(R.string.scheduled_session_indication, time)
+                getString(R.string.scheduled_session_indication, time, duration)
         }
     }
 }
