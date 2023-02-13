@@ -82,7 +82,7 @@ class ImagingService : LifecycleService(), ImageCaptureInterface, ImageUploadQue
             locationProvider = SingleLocationProvider(this)
             startInForeground()
         } else {
-            Log.d(TAG, "Failed to access external directory")
+            Log.e(TAG, "Failed to access external directory")
         }
     }
 

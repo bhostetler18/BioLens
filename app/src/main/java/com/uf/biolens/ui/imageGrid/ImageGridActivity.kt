@@ -32,7 +32,6 @@ import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.uf.biolens.R
@@ -46,6 +45,7 @@ import com.uf.biolens.ui.common.ExportOptions
 import com.uf.biolens.ui.common.ExportOptionsDialog
 import com.uf.biolens.ui.common.ExportOptionsHandler
 import com.uf.biolens.ui.common.ImageSelectorListener
+import com.uf.biolens.ui.common.UploadProgressBarListener
 import com.uf.biolens.ui.common.simpleAlertDialogWithOk
 import com.uf.biolens.ui.metadata.MetadataActivity
 import com.uf.biolens.utility.launchDialog
@@ -61,6 +61,7 @@ class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
 
     private lateinit var viewModel: ImageGridViewModel
     private lateinit var adapter: ImageGridAdapter
+    private lateinit var uploadObserver: UploadProgressBarListener
 
     private var selectUnderexposedJob: Job? = null
     private var menu: Menu? = null
@@ -136,15 +137,13 @@ class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
 
         binding.imageSelectorBar.listener = this
 
-        WorkManager.getInstance(this).getWorkInfosForUniqueWorkLiveData(
-            SessionUploadWorker.uniqueWorkerTag(viewModel.sessionID)
-        ).observe(this) { infoList: List<WorkInfo>? ->
-            if (infoList != null && infoList.isNotEmpty()) {
-                showUploadProgress(infoList[0])
-            } else {
-                showUploadProgress(null)
-            }
-        }
+        uploadObserver = UploadProgressBarListener(
+            binding.uploadProgressBar,
+            sessionID,
+            ::dismissAndResetUploadBar,
+            ::uploadSession
+        )
+        uploadObserver.observe(this, this, sessionID)
     }
 
     private fun displayError() {
@@ -247,6 +246,7 @@ class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
                 ExistingWorkPolicy.KEEP,
                 workRequest
             )
+            uploadObserver.onBeginWorker()
         } else {
             simpleAlertDialogWithOk(
                 this,
@@ -269,82 +269,6 @@ class ImageGridActivity : AppCompatActivity(), ImageSelectorListener {
             dialog.dismiss()
         }
         dialogBuilder.create().show()
-    }
-
-    private fun showUploadProgress(info: WorkInfo?) {
-        if (info == null) {
-            binding.uploadProgressBar.isVisible = false
-            return
-        }
-
-        binding.uploadProgressBar.isVisible = true
-
-        val maxProgress =
-            info.progress.keyValueMap[SessionUploadWorker.KEY_MAX_PROGRESS] as? Int
-        maxProgress?.let {
-            binding.uploadProgressBar.maxProgress = it
-        }
-
-        when (info.state) {
-            WorkInfo.State.ENQUEUED,
-            WorkInfo.State.BLOCKED -> {
-                binding.uploadProgressBar.setLabel(getString(R.string.waiting_internet))
-                binding.uploadProgressBar.configureActionButton(getString(R.string.cancel)) {
-                    WorkManager.getInstance(this).cancelUniqueWork(
-                        SessionUploadWorker.uniqueWorkerTag(viewModel.sessionID)
-                    )
-                }
-            }
-            WorkInfo.State.RUNNING -> {
-                if (info.progress.keyValueMap.containsKey(SessionUploadWorker.KEY_METADATA)) {
-                    binding.uploadProgressBar.setLabel(getString(R.string.exporting_metadata))
-                } else if (info.progress.keyValueMap.containsKey(SessionUploadWorker.KEY_PROGRESS)) {
-                    val progress =
-                        info.progress.keyValueMap[SessionUploadWorker.KEY_PROGRESS] as? Int
-                    binding.uploadProgressBar.setLabel(getString(R.string.uploading_images))
-                    progress?.let {
-                        binding.uploadProgressBar.setProgress(it)
-                    }
-                } else {
-                    binding.uploadProgressBar.setLabel(getString(R.string.connecting_to_drive))
-                }
-
-                binding.uploadProgressBar.configureActionButton(getString(R.string.cancel)) {
-                    WorkManager.getInstance(this).cancelUniqueWork(
-                        SessionUploadWorker.uniqueWorkerTag(viewModel.sessionID)
-                    )
-                }
-            }
-            WorkInfo.State.SUCCEEDED -> {
-                binding.uploadProgressBar.setLabel(getString(R.string.upload_complete))
-                // The Result.Success() WorkInfo update may occur before the final update to KEY_PROGRESS,
-                // so just force the progress bar to show fully complete
-                binding.uploadProgressBar.showComplete()
-                if (!binding.uploadProgressBar.hasSetMaxProgress) {
-                    // The Result.Success() WorkInfo contains no progress information, and when
-                    // navigating back to a completed upload the progress bar may not have been
-                    // configured with the proper max value and would just show 100/100. In this
-                    // case, just hide the numbers
-                    binding.uploadProgressBar.showNumericProgress(false)
-                }
-
-                binding.uploadProgressBar.configureActionButton(getString(R.string.dismiss)) {
-                    dismissAndResetUploadBar()
-                }
-            }
-            WorkInfo.State.CANCELLED -> {
-                binding.uploadProgressBar.setLabel(getString(R.string.upload_cancelled))
-                binding.uploadProgressBar.configureActionButton(getString(R.string.dismiss)) {
-                    dismissAndResetUploadBar()
-                }
-            }
-            WorkInfo.State.FAILED -> {
-                binding.uploadProgressBar.setLabel(getString(R.string.upload_failed))
-                binding.uploadProgressBar.configureActionButton(getString(R.string.retry)) {
-                    uploadSession()
-                }
-            }
-        }
     }
 
     private fun dismissAndResetUploadBar() {

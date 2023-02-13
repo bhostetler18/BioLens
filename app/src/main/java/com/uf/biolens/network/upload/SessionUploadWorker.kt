@@ -17,16 +17,8 @@
 
 package com.uf.biolens.network.upload
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
-import android.os.Build
 import android.util.Log
-import androidx.core.app.NotificationCompat
-import androidx.work.CoroutineWorker
-import androidx.work.ForegroundInfo
-import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.uf.biolens.R
@@ -40,7 +32,7 @@ import kotlinx.coroutines.withContext
 abstract class SessionUploadWorker(
     appContext: Context,
     workerParams: WorkerParameters
-) : CoroutineWorker(appContext, workerParams) {
+) : UploadWorker(appContext, workerParams) {
 
     abstract suspend fun getWorkData(): UploadWorkData?
     abstract suspend fun setup(session: Session, data: UploadWorkData): UploadSpecification
@@ -49,12 +41,13 @@ abstract class SessionUploadWorker(
         val data = getWorkData() ?: return Result.failure()
         val session = BioLensRepository.getSession(data.sessionID) ?: return Result.failure()
 
-        val info = createForegroundInfo(session)
-        setForeground(info)
+        val title = applicationContext.getString(R.string.uploading_session, session.name)
+        makeForeground(title, data.sessionID.toInt())
 
         return withContext(Dispatchers.IO) {
             try {
                 val (uploader, filenameProvider, formatter) = setup(session, data)
+                setProgressConnecting()
                 uploader.initialize(session, filenameProvider)
                 setProgressUploadingMetadata()
                 uploader.uploadMetadata(formatter)
@@ -79,51 +72,20 @@ abstract class SessionUploadWorker(
         }
     }
 
+    private suspend fun setProgressConnecting() {
+        setProgress(
+            workDataOf(
+                KEY_CONNECTING to true
+            )
+        )
+    }
+
     private suspend fun setProgressUploadingMetadata() {
         setProgress(
             workDataOf(
                 KEY_METADATA to true
             )
         )
-    }
-
-    private suspend fun setProgress(progress: Int, max: Int) {
-        setProgress(
-            workDataOf(
-                KEY_PROGRESS to progress,
-                KEY_MAX_PROGRESS to max
-            )
-        )
-    }
-
-    private fun createForegroundInfo(session: Session): ForegroundInfo {
-        val title = applicationContext.getString(R.string.uploading_session, session.name)
-        val cancel = applicationContext.getString(R.string.cancel)
-
-        val cancelIntent =
-            WorkManager.getInstance(applicationContext).createCancelPendingIntent(this.id)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val uploadChannel = NotificationChannel(
-                UPLOAD_CHANNEL_ID,
-                applicationContext.getString(R.string.upload_notification_channel),
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-            uploadChannel.lockscreenVisibility = Notification.VISIBILITY_PUBLIC
-            val manager =
-                applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            manager.createNotificationChannel(uploadChannel)
-        }
-
-        val notification = NotificationCompat.Builder(applicationContext, UPLOAD_CHANNEL_ID)
-            .setContentTitle(title)
-            .setTicker(title)
-            .setSmallIcon(R.drawable.ic_cloud_upload_24)
-            .setOngoing(true)
-            .addAction(R.drawable.ic_cancel_24, cancel, cancelIntent)
-            .build()
-
-        return ForegroundInfo(session.sessionID.toInt(), notification)
     }
 
     interface UploadWorkData {
@@ -139,13 +101,9 @@ abstract class SessionUploadWorker(
     )
 
     companion object {
-        private const val TAG = "[UPLOAD_WORKER]"
-
-        const val KEY_PROGRESS = "com.uf.biolens.extra.PROGRESS"
-        const val KEY_MAX_PROGRESS = "com.uf.biolens.extra.MAX_PROGRESS"
+        private const val TAG = "[SESSION_UPLOAD_WORKER]"
         const val KEY_METADATA = "com.uf.biolens.extra.METADATA"
-
-        private const val UPLOAD_CHANNEL_ID: String = "com.uf.biolens.notification.uploadChannel"
+        const val KEY_CONNECTING = "com.uf.biolens.extra.CONNECTING"
 
         fun uniqueWorkerTag(sessionID: Long): String {
             return "UPLOAD_$sessionID"
