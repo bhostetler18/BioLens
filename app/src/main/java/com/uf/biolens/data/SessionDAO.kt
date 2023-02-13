@@ -61,7 +61,7 @@ interface SessionDAO {
         "SELECT timestamp FROM images WHERE parentSessionID = :id and datetime(timestamp) = " +
             "(SELECT MAX(datetime(timestamp)) FROM images WHERE parentSessionID = :id) LIMIT 1;"
     )
-    suspend fun getLastImageTimestampInSession(id: Long): OffsetDateTime
+    suspend fun getLastImageTimestampInSession(id: Long): OffsetDateTime?
 
     @Query("SELECT * FROM sessions WHERE sessionID = :id")
     suspend fun getSession(id: Long): Session?

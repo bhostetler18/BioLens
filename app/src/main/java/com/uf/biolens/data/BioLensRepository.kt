@@ -195,8 +195,10 @@ object BioLensRepository {
             database.sessionDAO().updateSessionLocation(id, latitude, longitude)
         }
 
-    suspend fun updateSessionCompletion(id: Long): OffsetDateTime {
-        val completed = database.sessionDAO().getLastImageTimestampInSession(id)
+    suspend fun updateSessionCompletion(id: Long): OffsetDateTime? {
+        val completed =
+            database.sessionDAO().getLastImageTimestampInSession(id) ?: database.sessionDAO()
+                .getSession(id)?.started ?: return null
         database.sessionDAO().updateSessionCompletion(id, completed)
         return completed
     }
