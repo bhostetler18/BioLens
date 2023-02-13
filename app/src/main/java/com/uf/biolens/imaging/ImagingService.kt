@@ -313,6 +313,12 @@ class ImagingService : LifecycleService(), ImageCaptureInterface, ImageUploadQue
         killServiceIfInactive()
     }
 
+    override fun onCancelUpload() {
+        isWaitingForUploadQueue = false
+        Log.d(TAG, "Upload cancelled")
+        killServiceIfInactive()
+    }
+
     override fun onFailUpload() {
         isWaitingForUploadQueue = false
         Log.d(TAG, "Upload failed")

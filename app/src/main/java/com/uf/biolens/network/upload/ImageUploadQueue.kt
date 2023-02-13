@@ -20,11 +20,13 @@ package com.uf.biolens.network.upload
 import android.util.Log
 import com.uf.biolens.data.Image
 import com.uf.biolens.data.Session
+import com.uf.biolens.data.export.BioLensSessionCSVFormatter
 import com.uf.biolens.data.export.SessionFilenameProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -35,12 +37,14 @@ import java.util.concurrent.atomic.AtomicBoolean
 interface ImageUploadQueueListener {
     fun onFinishUpload()
     fun onFailUpload()
+    fun onCancelUpload()
 }
 
 class ImageUploadQueue(
     private val parentScope: CoroutineScope,
     private val uploader: ImageUploader,
-    private val maxFailures: Int = 3
+    private val maxFailures: Int = 3,
+    private val retryDelay: Long = 5000
 ) : ImageUploadBuffer {
 
     private var acceptingImages = AtomicBoolean(false)
@@ -50,12 +54,17 @@ class ImageUploadQueue(
     var listener: ImageUploadQueueListener? = null
 
     override fun start(session: Session, filenameProvider: SessionFilenameProvider) {
+        if (uploadJob != null) {
+            Log.w(TAG, "Upload queue already started")
+            return
+        }
         acceptingImages.set(true)
         uploadJob = parentScope.launch {
-            withContext(Dispatchers.IO) {
-                uploader.initialize(session, filenameProvider)
+            if (tryUpload({ uploader.initialize(session, filenameProvider) }, "init session")) {
+                uploadLoop(session)
+            } else {
+                listener?.onFailUpload()
             }
-            uploadLoop()
         }
     }
 
@@ -63,46 +72,39 @@ class ImageUploadQueue(
         queue.add(image)
     }
 
-    private suspend fun uploadLoop() = coroutineScope {
-        var failedAttempts = 0
+    private suspend fun uploadLoop(session: Session) = coroutineScope {
         while (isActive) {
-            queue.peek()?.let {
-                if (tryUpload(it)) {
-                    queue.poll()
-                } else {
-                    failedAttempts += 1
-                }
-            }
-            if (!acceptingImages.get() && queue.isEmpty()) {
-                onCompletion()
-                break
-            }
-            if (failedAttempts >= maxFailures) {
+            yield()
+            val image = queue.peek() ?: continue
+            if (tryUpload({ uploader.uploadImage(image) }, "upload image ${image.imageID}")) {
+                queue.poll()
+            } else {
                 onFailure()
                 break
             }
-            yield()
-        }
-    }
 
-    private suspend fun tryUpload(image: Image): Boolean = withContext(Dispatchers.IO) {
-        return@withContext try {
-            uploader.uploadImage(image)
-            true
-        } catch (e: Exception) {
-            Log.w(TAG, "Failed to upload image: ${e.localizedMessage}")
-            false
+            if (!acceptingImages.get() && queue.isEmpty()) {
+                onCompletion(session)
+                break
+            }
         }
     }
 
     private fun onFailure() {
-        listener?.onFailUpload()
         queue.clear()
+        listener?.onFailUpload()
     }
 
-    private suspend fun onCompletion() {
-//        uploader.uploadMetadata()
-        listener?.onFinishUpload()
+    private suspend fun onCompletion(session: Session) {
+        if (tryUpload(
+                { uploader.uploadMetadata(BioLensSessionCSVFormatter(session)) },
+                "upload metadata"
+            )
+        ) {
+            listener?.onFailUpload()
+        } else {
+            listener?.onFinishUpload()
+        }
     }
 
     override fun finalize() {
@@ -112,6 +114,22 @@ class ImageUploadQueue(
     override fun cancel() {
         uploadJob?.cancel()
         queue.clear()
+        listener?.onCancelUpload()
+    }
+
+    private suspend fun tryUpload(uploadBlock: suspend () -> Unit, name: String): Boolean {
+        repeat(maxFailures) {
+            try {
+                withContext(Dispatchers.IO) {
+                    uploadBlock()
+                }
+                return true
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to $name: ${e.localizedMessage}")
+            }
+            delay(retryDelay)
+        }
+        return false
     }
 
     companion object {
