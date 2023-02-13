@@ -26,8 +26,8 @@
             android:layout_height="wrap_content"
             android:background="@color/attention"
             android:gravity="center_horizontal"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="5dp"
             android:text="@string/active_session_indication"
             android:textColor="@color/white" />
 
@@ -37,8 +37,8 @@
             android:layout_height="wrap_content"
             android:background="@color/attention2"
             android:gravity="center_horizontal"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="5dp"
             android:text="@string/scheduled_session_indication"
             android:textColor="@color/white" />
     </LinearLayout>
