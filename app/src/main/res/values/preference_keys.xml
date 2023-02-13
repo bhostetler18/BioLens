@@ -4,4 +4,5 @@
     <string name="PREF_UPLOAD_AUTOMATICALLY">com.uf.biolens.preference.AUTO_UPLOAD</string>
     <string name="PREF_LOCATION_TOLERANCE">com.uf.biolens.preference.LOCATION_TOLERANCE</string>
     <string name="PREF_GOOGLE_ACCOUNT">com.uf.biolens.preference.GOOGLE_ACCOUNT</string>
+    <string name="PREF_APP_VERSION">com.uf.biolens.preference.APP_VERSION</string>
 </resources>

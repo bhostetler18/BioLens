@@ -170,4 +170,6 @@
     <string name="preference_auto_upload_description">When enabled, BioLens will attempt to upload images immediately as they are captured</string>
     <string name="preference_auto_upload">Automatic Upload</string>
     <string name="service_waiting_for_autoupload">Finishing auto-upload</string>
+    <string name="app_version">BioLens version %s</string>
+    <string name="app_build">Build %d</string>
 </resources>

@@ -30,6 +30,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.uf.biolens.BuildConfig
 import com.uf.biolens.R
 import com.uf.biolens.network.GoogleSignInHelper
 import com.uf.biolens.ui.common.simpleAlertDialogWithOk
@@ -58,6 +59,17 @@ class BioLensPreferenceFragment : PreferenceFragmentCompat() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.app_preferences, rootKey)
         setGoogleAccount(GoogleSignInHelper.getGoogleAccountIfValid(requireContext()))
+        showAppVersion()
+    }
+
+    private fun showAppVersion() {
+        val versionCode = BuildConfig.VERSION_CODE
+        val versionName = BuildConfig.VERSION_NAME
+        val pref =
+            preferenceScreen.findPreference<Preference>(getString(R.string.PREF_APP_VERSION))
+                ?: return
+        pref.title = getString(R.string.app_version, versionName)
+        pref.summary = getString(R.string.app_build, versionCode)
     }
 
     private fun signIn() {
