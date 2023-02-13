@@ -63,7 +63,7 @@ class GoogleDriveHelper(private val drive: Drive, val appFolderName: String) {
         val request = drive.files().create(fileMetadata, fileContent).setFields("id")
         request.mediaHttpUploader.progressListener = progressListener
         val result = request.execute()
-        Log.d(TAG, "Uploaded file with id: ${result.id}")
+        Log.v(TAG, "Uploaded file with id: ${result.id}")
         return result.id
     }
 
@@ -82,10 +82,10 @@ class GoogleDriveHelper(private val drive: Drive, val appFolderName: String) {
             val request = drive.files().update(id, fileMetadata, fileContent)
             request.mediaHttpUploader.progressListener = progressListener
             request.execute()
-            Log.d(TAG, "Updated file with id: $id")
+            Log.v(TAG, "Updated file with id: $id")
             return true
         }
-        Log.d(TAG, "Could not update file: $filename does not exist")
+        Log.w(TAG, "Could not update file: $filename does not exist")
         return false
     }
 
@@ -140,16 +140,16 @@ class GoogleDriveHelper(private val drive: Drive, val appFolderName: String) {
         private const val TAG = "[DRIVE_HELPER]"
         val DUMMY_LISTENER = MediaHttpUploaderProgressListener { uploader ->
             when (uploader.uploadState) {
-                MediaHttpUploader.UploadState.INITIATION_STARTED -> Log.d(TAG, "Initiation started")
-                MediaHttpUploader.UploadState.INITIATION_COMPLETE -> Log.d(
+                MediaHttpUploader.UploadState.INITIATION_STARTED -> Log.v(TAG, "Initiation started")
+                MediaHttpUploader.UploadState.INITIATION_COMPLETE -> Log.v(
                     TAG,
                     "Initiation complete"
                 )
-                MediaHttpUploader.UploadState.MEDIA_IN_PROGRESS -> Log.d(
+                MediaHttpUploader.UploadState.MEDIA_IN_PROGRESS -> Log.v(
                     TAG,
                     "Progress: ${uploader.progress}"
                 )
-                MediaHttpUploader.UploadState.MEDIA_COMPLETE -> Log.d(TAG, "Upload complete!")
+                MediaHttpUploader.UploadState.MEDIA_COMPLETE -> Log.v(TAG, "Upload complete!")
                 else -> {}
             }
         }

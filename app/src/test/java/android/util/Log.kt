@@ -15,22 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.uf.biolens.imaging
+// Quick workaround for mocking:
+// see https://stackoverflow.com/questions/36787449/how-to-mock-method-e-in-log
 
-import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
-import kotlinx.serialization.Serializable
+@file:JvmName("Log")
 
-enum class AutoStopMode {
-    OFF, TIME, IMAGE_COUNT
+package android.util
+
+fun v(tag: String, msg: String): Int = mockLog("VERBOSE", tag, msg)
+fun d(tag: String, msg: String): Int = mockLog("DEBUG", tag, msg)
+fun w(tag: String, msg: String): Int = mockLog("WARN", tag, msg)
+fun e(tag: String, msg: String): Int = mockLog("ERROR", tag, msg)
+
+private fun mockLog(name: String, tag: String, msg: String): Int {
+    println("$name: $tag: $msg")
+    return 0
 }
-
-@Serializable
-@Parcelize
-data class ImagingSettings(
-    var interval: Int = 60,
-    var autoStopMode: AutoStopMode = AutoStopMode.TIME,
-    var autoStopValue: Int = 720,
-    var shutdownCameraWhenPossible: Boolean = false,
-    var automaticUpload: Boolean = false
-) : Parcelable

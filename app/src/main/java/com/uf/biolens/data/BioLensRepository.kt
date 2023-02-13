@@ -51,7 +51,7 @@ object BioLensRepository {
     lateinit var userID: String
 
     private const val DEFAULT_IMAGING_SETTINGS_FILENAME = "imaging_settings.json"
-    private var JSON = Json { encodeDefaults = true }
+    private var JSON = Json { encodeDefaults = true; ignoreUnknownKeys = true }
 
     private const val TAG = "[Repository]"
     private const val KEY_SHARED_PREFERENCE_FILE = "com.uf.biolens.SHARED_PREFERENCES"
@@ -195,8 +195,10 @@ object BioLensRepository {
             database.sessionDAO().updateSessionLocation(id, latitude, longitude)
         }
 
-    suspend fun updateSessionCompletion(id: Long): OffsetDateTime {
-        val completed = database.sessionDAO().getLastImageTimestampInSession(id)
+    suspend fun updateSessionCompletion(id: Long): OffsetDateTime? {
+        val completed =
+            database.sessionDAO().getLastImageTimestampInSession(id) ?: database.sessionDAO()
+                .getSession(id)?.started ?: return null
         database.sessionDAO().updateSessionCompletion(id, completed)
         return completed
     }
@@ -228,6 +230,12 @@ object BioLensRepository {
                     settings.shutdownCameraWhenPossible =
                         PreferenceManager.getDefaultSharedPreferences(context)
                             .getBoolean(context.getString(R.string.PREF_SHUTDOWN_CAMERA), false)
+                    settings.automaticUpload =
+                        PreferenceManager.getDefaultSharedPreferences(context)
+                            .getBoolean(
+                                context.getString(R.string.PREF_UPLOAD_AUTOMATICALLY),
+                                false
+                            )
                     return settings
                 }
             }

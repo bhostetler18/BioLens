@@ -350,7 +350,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
                     name ?: getString(R.string.default_session_name),
                     requireContext(),
                     locationProvider,
-                    1000
+                    1
                 )
             }
         }

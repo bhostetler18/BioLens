@@ -15,22 +15,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.uf.biolens.imaging
+package com.uf.biolens.data.export
 
-import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
-import kotlinx.serialization.Serializable
-
-enum class AutoStopMode {
-    OFF, TIME, IMAGE_COUNT
+interface SessionFilenameProvider {
+    val uniqueSessionId: String
+    val sessionDirectory: String
+    fun getUniqueImageId(imageIndex: Int): String
 }
-
-@Serializable
-@Parcelize
-data class ImagingSettings(
-    var interval: Int = 60,
-    var autoStopMode: AutoStopMode = AutoStopMode.TIME,
-    var autoStopValue: Int = 720,
-    var shutdownCameraWhenPossible: Boolean = false,
-    var automaticUpload: Boolean = false
-) : Parcelable
