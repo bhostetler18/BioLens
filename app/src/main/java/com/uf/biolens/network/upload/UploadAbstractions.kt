@@ -22,14 +22,14 @@ import com.uf.biolens.data.Session
 import com.uf.biolens.data.export.SessionCSVFormatter
 import com.uf.biolens.data.export.SessionFilenameProvider
 
-interface ImageUploader {
+interface SessionUploader {
     suspend fun initialize(session: Session, filenameProvider: SessionFilenameProvider)
     suspend fun uploadImage(image: Image)
     suspend fun uploadMetadata(formatter: SessionCSVFormatter)
 }
 
 // TODO: make implementation which can upload images simultaneously
-interface ImageUploadBuffer {
+interface SessionUploadBuffer {
     fun start(session: Session, filenameProvider: SessionFilenameProvider)
     fun enqueue(image: Image)
     fun finalize()

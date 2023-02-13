@@ -28,7 +28,7 @@ import com.uf.biolens.data.Session
 import com.uf.biolens.data.export.BioLensFilenameProvider
 import com.uf.biolens.data.export.SessionFilenameProvider
 import com.uf.biolens.network.SingleLocationProvider
-import com.uf.biolens.network.upload.ImageUploadBuffer
+import com.uf.biolens.network.upload.SessionUploadBuffer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
@@ -44,13 +44,18 @@ import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
+interface ImagingManagerListener {
+    fun onSessionCreation(session: Session, settings: ImagingSettings)
+    fun onAutoStop(session: Session)
+}
+
 class ImagingManager(
     private val settings: ImagingSettings,
     private val imageCapture: WeakReference<ImageCaptureInterface>,
     private val maxCameraRestarts: Int = DEFAULT_MAX_RESTART_COUNT,
     private val minShutdownInterval: Int = DEFAULT_MIN_SHUTDOWN_INTERVAL,
-    private val uploadQueue: ImageUploadBuffer? = null,
-    private val onAutoStopCallback: (() -> Unit)? = null
+    private val uploadBuffer: SessionUploadBuffer? = null,
+    private val listener: ImagingManagerListener? = null
 ) {
 
     private var session: Session? = null
@@ -94,6 +99,8 @@ class ImagingManager(
             return@coroutineScope
         }
 
+        listener?.onSessionCreation(session!!, settings)
+
         filenameProvider = BioLensFilenameProvider(session!!)
 
         locationJob = launch {
@@ -105,7 +112,7 @@ class ImagingManager(
         }
 
         if (settings.automaticUpload) {
-            uploadQueue?.start(session!!, filenameProvider!!)
+            uploadBuffer?.start(session!!, filenameProvider!!)
         }
 
         executor = Executors.newSingleThreadScheduledExecutor()
@@ -170,7 +177,7 @@ class ImagingManager(
         imagesTaken++
 
         if (settings.automaticUpload) {
-            uploadQueue?.enqueue(image)
+            uploadBuffer?.enqueue(image)
         }
     }
 
@@ -207,7 +214,7 @@ class ImagingManager(
         }
         session = null
         filenameProvider = null
-        uploadQueue?.finalize()
+        uploadBuffer?.finalize()
     }
 
     private suspend fun tryRestartCamera() {
@@ -228,7 +235,8 @@ class ImagingManager(
     private suspend fun autoStopIfNecessary() {
         if (shouldAutoStop()) {
             stop("Auto-stop")
-            onAutoStopCallback?.invoke() // call this last as it may do something like kill the containing service
+            // call this last as it may do something like kill the containing service
+            listener?.onAutoStop(session!!)
         }
     }
 

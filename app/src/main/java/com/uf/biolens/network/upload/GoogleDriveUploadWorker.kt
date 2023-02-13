@@ -44,7 +44,7 @@ class GoogleDriveUploadWorker(
             BioLensRepository.metadataStore
         )
         return UploadSpecification(
-            GoogleDriveImageUploader(
+            GoogleDriveSessionUploader(
                 uploadData.account,
                 applicationContext
             ),

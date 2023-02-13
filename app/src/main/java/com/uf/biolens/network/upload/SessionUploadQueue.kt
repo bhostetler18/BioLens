@@ -35,20 +35,21 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
 
 interface ImageUploadQueueListener {
-    fun onFinishUpload()
-    fun onFailUpload()
-    fun onCancelUpload()
+    fun onFinishUpload(session: Session?)
+    fun onFailUpload(session: Session?)
+    fun onCancelUpload(session: Session?)
 }
 
-class ImageUploadQueue(
+class SessionUploadQueue(
     private val parentScope: CoroutineScope,
-    private val uploader: ImageUploader,
+    private val uploader: SessionUploader,
     private val maxFailures: Int = 3,
     private val retryDelay: Long = 5000
-) : ImageUploadBuffer {
+) : SessionUploadBuffer {
 
     private var acceptingImages = AtomicBoolean(false)
     private val queue = ConcurrentLinkedQueue<Image>()
+    private var session: Session? = null
 
     var uploadJob: Job? = null
     var listener: ImageUploadQueueListener? = null
@@ -58,12 +59,13 @@ class ImageUploadQueue(
             Log.w(TAG, "Upload queue already started")
             return
         }
+        this.session = session
         acceptingImages.set(true)
         uploadJob = parentScope.launch {
             if (tryUpload({ uploader.initialize(session, filenameProvider) }, "init session")) {
                 uploadLoop(session)
             } else {
-                listener?.onFailUpload()
+                listener?.onFailUpload(session)
             }
         }
     }
@@ -92,7 +94,7 @@ class ImageUploadQueue(
 
     private fun onFailure() {
         queue.clear()
-        listener?.onFailUpload()
+        listener?.onFailUpload(session)
     }
 
     private suspend fun onCompletion(session: Session) {
@@ -101,9 +103,9 @@ class ImageUploadQueue(
                 "upload metadata"
             )
         ) {
-            listener?.onFailUpload()
+            listener?.onFinishUpload(session)
         } else {
-            listener?.onFinishUpload()
+            listener?.onFailUpload(session)
         }
     }
 
@@ -114,7 +116,7 @@ class ImageUploadQueue(
     override fun cancel() {
         uploadJob?.cancel()
         queue.clear()
-        listener?.onCancelUpload()
+        listener?.onCancelUpload(session)
     }
 
     private suspend fun tryUpload(uploadBlock: suspend () -> Unit, name: String): Boolean {

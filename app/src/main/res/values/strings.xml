@@ -169,4 +169,5 @@
     <string name="select_underexposed">Select underexposed</string>
     <string name="preference_auto_upload_description">When enabled, BioLens will attempt to upload images immediately as they are captured</string>
     <string name="preference_auto_upload">Automatic Upload</string>
+    <string name="service_waiting_for_autoupload">Finishing auto-upload</string>
 </resources>

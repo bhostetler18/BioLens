@@ -41,11 +41,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.work.await
 import com.uf.biolens.R
 import com.uf.biolens.data.BioLensRepository
+import com.uf.biolens.data.Session
 import com.uf.biolens.network.GoogleSignInHelper
 import com.uf.biolens.network.SingleLocationProvider
-import com.uf.biolens.network.upload.GoogleDriveImageUploader
-import com.uf.biolens.network.upload.ImageUploadQueue
+import com.uf.biolens.network.upload.GoogleDriveSessionUploader
 import com.uf.biolens.network.upload.ImageUploadQueueListener
+import com.uf.biolens.network.upload.SessionUploadQueue
 import com.uf.biolens.ui.MainActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -55,7 +56,11 @@ import java.lang.ref.WeakReference
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-class ImagingService : LifecycleService(), ImageCaptureInterface, ImageUploadQueueListener {
+class ImagingService :
+    LifecycleService(),
+    ImageCaptureInterface,
+    ImagingManagerListener,
+    ImageUploadQueueListener {
 
     private var cameraProvider: ProcessCameraProvider? = null
     private val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
@@ -63,12 +68,15 @@ class ImagingService : LifecycleService(), ImageCaptureInterface, ImageUploadQue
     private var imageCapture: ImageCapture = ImageCapture.Builder().build()
     private var imagingManager: ImagingManager? = null
 
+    private var autoUploadQueues = mutableSetOf<Long>()
+
     private lateinit var locationProvider: SingleLocationProvider
 
     private val isSessionRunning: Boolean
         get() = imagingManager != null
     private var isWaitingForScheduledSession = false
-    private var isWaitingForUploadQueue = false
+    private val isWaitingForUploadQueue: Boolean
+        get() = autoUploadQueues.isNotEmpty()
 
     override val isCameraStarted: Boolean
         get() = cameraProvider?.isBound(imageCapture) ?: false
@@ -249,31 +257,19 @@ class ImagingService : LifecycleService(), ImageCaptureInterface, ImageUploadQue
             return
         }
 
-        setNotificationContent(
-            R.string.service_active_session_notification_title,
-            R.string.service_active_session_notification_message,
-            R.drawable.ic_camera_24
-        )
-
         IS_RUNNING.postValue(true)
 
-        var uploadQueue: ImageUploadQueue? = null
+        var uploadQueue: SessionUploadQueue? = null
         if (settings.automaticUpload) {
             uploadQueue = makeUploadQueue()
-            isWaitingForUploadQueue = true
         }
 
         imagingManager = ImagingManager(
             settings,
             WeakReference(this),
-            uploadQueue = uploadQueue
-        ) {
-            // On auto-stop:
-            lifecycleScope.launch {
-                stopCurrentSession("Auto-stop")
-                killServiceIfInactive()
-            }
-        }
+            uploadBuffer = uploadQueue,
+            listener = this
+        )
         currentImagingSettings.postValue(settings)
 
         startCamera()
@@ -283,59 +279,87 @@ class ImagingService : LifecycleService(), ImageCaptureInterface, ImageUploadQue
             locationProvider,
             0
         )
+
+        updateNotification()
     }
 
-    private suspend fun stopCurrentSession(reason: String) {
-        imagingManager?.stop(reason)
-        imagingManager = null
-        IS_RUNNING.postValue(false)
-        currentImagingSettings.postValue(null)
-        if (isWaitingForScheduledSession) {
-            setNotificationContent(
-                R.string.service_waiting_session_notification_title,
-                R.string.service_waiting_session_notification_message,
-                R.drawable.ic_launcher_foreground
-            )
+    override fun onAutoStop(session: Session) {
+        lifecycleScope.launch {
+            stopCurrentSession("Auto-stop", true)
+            killServiceIfInactive()
         }
     }
 
-    private fun makeUploadQueue(): ImageUploadQueue? {
+    override fun onSessionCreation(session: Session, settings: ImagingSettings) {
+        if (settings.automaticUpload) {
+            autoUploadQueues.add(session.sessionID)
+        }
+    }
+
+    private suspend fun stopCurrentSession(reason: String, autoStop: Boolean = false) {
+        if (!autoStop) {
+            // Imaging manager already stops itself when auto-stopped
+            imagingManager?.stop(reason)
+        }
+        imagingManager = null
+        IS_RUNNING.postValue(false)
+        currentImagingSettings.postValue(null)
+        updateNotification()
+    }
+
+    private fun makeUploadQueue(): SessionUploadQueue? {
         val account = GoogleSignInHelper.getGoogleAccountIfValid(this)?.account ?: return null
-        val uploader = GoogleDriveImageUploader(account, applicationContext)
-        val queue = ImageUploadQueue(lifecycleScope, uploader)
+        val uploader = GoogleDriveSessionUploader(account, applicationContext)
+        val queue = SessionUploadQueue(lifecycleScope, uploader)
         queue.listener = this
         return queue
     }
 
-    override fun onFinishUpload() {
-        isWaitingForUploadQueue = false
-        Log.d(TAG, "Upload finished successfully")
+    override fun onFinishUpload(session: Session?) {
+        Log.d(TAG, "Upload session ${session?.name} finished successfully")
+        autoUploadQueues.remove(session?.sessionID)
         killServiceIfInactive()
     }
 
-    override fun onCancelUpload() {
-        isWaitingForUploadQueue = false
-        Log.d(TAG, "Upload cancelled")
+    override fun onCancelUpload(session: Session?) {
+        Log.d(TAG, "Upload session ${session?.name} cancelled")
+        autoUploadQueues.remove(session?.sessionID)
         killServiceIfInactive()
     }
 
-    override fun onFailUpload() {
-        isWaitingForUploadQueue = false
-        Log.d(TAG, "Upload failed")
+    override fun onFailUpload(session: Session?) {
+        Log.d(TAG, "Upload session ${session?.name} failed")
+        autoUploadQueues.remove(session?.sessionID)
         killServiceIfInactive()
+    }
+
+    private fun updateNotification() {
+        if (isSessionRunning) {
+            setNotificationContent(
+                R.string.service_active_session_notification_title,
+                R.string.service_active_session_notification_message,
+                R.drawable.ic_camera_24
+            )
+        } else if (isWaitingForUploadQueue) {
+            setNotificationContent(
+                R.string.service_waiting_for_autoupload,
+                R.string.service_waiting_session_notification_message,
+                R.drawable.ic_cloud_upload_24
+            )
+        } else if (isWaitingForScheduledSession) {
+            setNotificationContent(
+                R.string.service_waiting_session_notification_title,
+                R.string.service_waiting_session_notification_message,
+                R.drawable.ic_time_filled_24
+            )
+        }
     }
 
     private fun waitForScheduledSessions() {
         Log.d(TAG, "Waiting for scheduled session")
+        updateNotification()
         if (!isWaitingForScheduledSession) {
             isWaitingForScheduledSession = true
-            if (!isSessionRunning) {
-                setNotificationContent(
-                    R.string.service_waiting_session_notification_title,
-                    R.string.service_waiting_session_notification_message,
-                    R.drawable.ic_launcher_foreground
-                )
-            }
             BioLensRepository.allPendingSessionsFlow.asLiveData().observe(this) {
                 if (it.isEmpty()) {
                     Log.d(TAG, "No pending sessions to wait for – stopping service if necessary")
@@ -351,6 +375,7 @@ class ImagingService : LifecycleService(), ImageCaptureInterface, ImageUploadQue
         if (!isSessionRunning && !isWaitingForScheduledSession && !isWaitingForUploadQueue) {
             killService()
         } else {
+            updateNotification()
             Log.d(TAG, "Service was still active")
         }
     }

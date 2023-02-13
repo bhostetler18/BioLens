@@ -19,12 +19,11 @@ package com.uf.biolens
 
 import com.uf.biolens.data.Image
 import com.uf.biolens.data.Session
-import com.uf.biolens.data.export.BioLensFilenameProvider
 import com.uf.biolens.data.export.SessionCSVFormatter
 import com.uf.biolens.data.export.SessionFilenameProvider
-import com.uf.biolens.network.upload.ImageUploadQueue
 import com.uf.biolens.network.upload.ImageUploadQueueListener
-import com.uf.biolens.network.upload.ImageUploader
+import com.uf.biolens.network.upload.SessionUploadQueue
+import com.uf.biolens.network.upload.SessionUploader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -33,46 +32,14 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import java.time.OffsetDateTime
 
-class ImageUploadQueueTests {
-
-    class TestUploader(
-        private val shouldFail: Boolean = false,
-        private val numFails: Int = 0
-    ) : ImageUploader {
-        var hasUploadedMetadata: Boolean = false
-        var uploadedImageIDs = HashSet<Long>()
-        private var failCount = 0
-
-        override suspend fun initialize(
-            session: Session,
-            filenameProvider: SessionFilenameProvider
-        ) {
-            println("Initializing session ${session.sessionID}")
-        }
-
-        override suspend fun uploadImage(image: Image) {
-            if (shouldFail && failCount < numFails) {
-                failCount += 1
-                throw Exception("Failed to upload")
-            }
-            println("Uploading image ${image.imageID}...")
-            delay(500)
-            uploadedImageIDs.add(image.imageID)
-            println("Image ${image.imageID} uploaded")
-        }
-
-        override suspend fun uploadMetadata(formatter: SessionCSVFormatter) {
-            println("Uploaded metadata")
-            hasUploadedMetadata = true
-        }
-    }
+class SessionUploadQueueTests {
 
     @Test
     fun testUpload() = runBlocking {
         val uploader = TestUploader()
-        val queue = ImageUploadQueue(this, uploader)
+        val queue = SessionUploadQueue(this, uploader)
         val session = Session("", "", OffsetDateTime.now(), null, null, 1)
-        queue.start(session, BioLensFilenameProvider(session))
+        queue.start(session, DummyFilenameProvider())
         queue.enqueue(testImage(0))
         queue.enqueue(testImage(1))
         queue.finalize()
@@ -83,9 +50,9 @@ class ImageUploadQueueTests {
     @Test
     fun testCancel() = runBlocking {
         val uploader = TestUploader()
-        val queue = ImageUploadQueue(this, uploader)
+        val queue = SessionUploadQueue(this, uploader, retryDelay = 0)
         val session = Session("", "", OffsetDateTime.now(), null, null, 1)
-        queue.start(session, BioLensFilenameProvider(session))
+        queue.start(session, DummyFilenameProvider())
         queue.enqueue(testImage(0))
         queue.enqueue(testImage(1))
         delay(2000)
@@ -99,9 +66,9 @@ class ImageUploadQueueTests {
     fun testCoroutineScoping() = runBlocking {
         val scope = CoroutineScope(coroutineContext + Job())
         val uploader = TestUploader()
-        val queue = ImageUploadQueue(scope, uploader)
+        val queue = SessionUploadQueue(scope, uploader, retryDelay = 0)
         val session = Session("", "", OffsetDateTime.now(), null, null, 1)
-        queue.start(session, BioLensFilenameProvider(session))
+        queue.start(session, DummyFilenameProvider())
         queue.enqueue(testImage(0))
         queue.enqueue(testImage(1))
         delay(2000)
@@ -114,9 +81,9 @@ class ImageUploadQueueTests {
     @Test
     fun testFailure() = runBlocking {
         var uploader = TestUploader(true, 3)
-        var queue = ImageUploadQueue(this, uploader, 4)
+        var queue = SessionUploadQueue(this, uploader, 4, retryDelay = 0)
         val session = Session("", "", OffsetDateTime.now(), null, null, 1)
-        queue.start(session, BioLensFilenameProvider(session))
+        queue.start(session, DummyFilenameProvider())
         queue.enqueue(testImage(0))
         queue.enqueue(testImage(1))
         queue.finalize()
@@ -124,19 +91,23 @@ class ImageUploadQueueTests {
         assert(uploader.uploadedImageIDs == hashSetOf(0L, 1L))
 
         uploader = TestUploader(true, 4)
-        queue = ImageUploadQueue(this, uploader, 4)
+        queue = SessionUploadQueue(this, uploader, 4)
         var failed = false
         var finished = false
         queue.listener = object : ImageUploadQueueListener {
-            override fun onFailUpload() {
+            override fun onFailUpload(session: Session?) {
                 failed = true
             }
 
-            override fun onFinishUpload() {
+            override fun onCancelUpload(session: Session?) {
+                TODO("Not yet implemented")
+            }
+
+            override fun onFinishUpload(session: Session?) {
                 finished = true
             }
         }
-        queue.start(session, BioLensFilenameProvider(session))
+        queue.start(session, DummyFilenameProvider())
         queue.enqueue(testImage(0))
         queue.finalize()
         queue.uploadJob?.join()
@@ -152,4 +123,45 @@ class ImageUploadQueueTests {
         0,
         id
     )
+}
+
+class TestUploader(
+    private val shouldFail: Boolean = false,
+    private val numFails: Int = 0
+) : SessionUploader {
+    var hasUploadedMetadata: Boolean = false
+    var uploadedImageIDs = HashSet<Long>()
+    private var failCount = 0
+
+    override suspend fun initialize(
+        session: Session,
+        filenameProvider: SessionFilenameProvider
+    ) {
+        println("Initializing session ${session.sessionID}")
+    }
+
+    override suspend fun uploadImage(image: Image) {
+        if (shouldFail && failCount < numFails) {
+            failCount += 1
+            throw Exception("Failed to upload")
+        }
+        println("Uploading image ${image.imageID}...")
+        delay(500)
+        uploadedImageIDs.add(image.imageID)
+        println("Image ${image.imageID} uploaded")
+    }
+
+    override suspend fun uploadMetadata(formatter: SessionCSVFormatter) {
+        println("Uploaded metadata")
+        hasUploadedMetadata = true
+    }
+}
+
+class DummyFilenameProvider : SessionFilenameProvider {
+    override val uniqueSessionId: String = "test_session"
+    override val sessionDirectory: String = "test_session_folder"
+
+    override fun getUniqueImageId(imageIndex: Int): String {
+        return "test_img$imageIndex"
+    }
 }

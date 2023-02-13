@@ -37,10 +37,10 @@ import com.uf.biolens.network.MimeTypes
 import java.io.File
 import java.util.*
 
-class GoogleDriveImageUploader(
+class GoogleDriveSessionUploader(
     account: Account,
     applicationContext: Context
-) : ImageUploader {
+) : SessionUploader {
 
     private val tmpDirectory: File = applicationContext.cacheDir
     private val driveHelper: GoogleDriveHelper = initializeDrive(account, applicationContext)

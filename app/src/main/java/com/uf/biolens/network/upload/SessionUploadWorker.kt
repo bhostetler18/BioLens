@@ -62,7 +62,7 @@ abstract class SessionUploadWorker(
         }
     }
 
-    private suspend fun uploadImages(session: Session, uploader: ImageUploader) {
+    private suspend fun uploadImages(session: Session, uploader: SessionUploader) {
         val images = BioLensRepository.getImagesInSession(session.sessionID)
         val total = images.size
         setProgress(0, total)
@@ -95,7 +95,7 @@ abstract class SessionUploadWorker(
     }
 
     data class UploadSpecification(
-        val uploader: ImageUploader,
+        val uploader: SessionUploader,
         val filenameProvider: SessionFilenameProvider,
         val csvFormatter: SessionCSVFormatter
     )
