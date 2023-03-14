@@ -364,7 +364,7 @@ class ImagingFragment : Fragment(), MenuProvider, ImageCaptureInterface {
             requireContext().applicationContext.startService(intent)
         } else {
             lifecycleScope.launch {
-                viewModel.imagingManager?.stop("Manual stop")
+                viewModel.imagingManager?.stopAndAwaitTermination()
                 viewModel.imagingManager = null
             }
         }

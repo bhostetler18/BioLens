@@ -299,7 +299,7 @@ class ImagingService :
     private suspend fun stopCurrentSession(reason: String, autoStop: Boolean = false) {
         if (!autoStop) {
             // Imaging manager already stops itself when auto-stopped
-            imagingManager?.stop(reason)
+            imagingManager?.stopAndAwaitTermination()
         }
         imagingManager = null
         IS_RUNNING.postValue(false)
