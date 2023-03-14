@@ -196,15 +196,23 @@ class ImagingManager(
         }
     }
 
-    suspend fun stop(reason: String) {
-        Log.d(TAG, "Stopping session: $reason")
+    suspend fun stopAndAwaitTermination() {
         executor?.shutdown()
         // Wait for execution of currently running capture (if any)
         runInterruptible(Dispatchers.IO) {
             executor?.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS)
             Log.d(TAG, "Last capture completed")
         }
-        executor = null
+        finish()
+    }
+
+    private suspend fun stop(reason: String) {
+        Log.d(TAG, "Stopping session: $reason")
+        finish()
+        executor?.shutdown()
+    }
+
+    private suspend fun finish() {
         locationJob?.cancel()
         locationJob = null
         imagesTaken = 0
@@ -212,9 +220,10 @@ class ImagingManager(
         session?.sessionID?.let {
             BioLensRepository.updateSessionCompletion(it)
         }
-        session = null
+//        session = null
         filenameProvider = null
         uploadBuffer?.finalize()
+        Log.d(TAG, "Session stopped successfully")
     }
 
     private suspend fun tryRestartCamera() {
